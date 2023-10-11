@@ -1,3 +1,193 @@
+curl (7.52.1-5+deb9u20) stretch-security; urgency=medium
+
+  * Non-maintainer upload by the ELTS team.
+  * CVE-2023-38546: cookie injection
+
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Wed, 11 Oct 2023 12:46:31 +0200
+
+curl (7.52.1-5+deb9u19) stretch-security; urgency=high
+
+  * Non-maintainer upload by the ELTS team.
+  * Fix CVE-2023-27533:
+    A vulnerability in input validation exists in curl during
+    communication using the TELNET protocol may allow an attacker to pass on
+    maliciously crafted user name and "telnet options" during server
+    negotiation. The lack of proper input scrubbing allows an attacker to send
+    content or perform option negotiation without the application's intent.
+    This vulnerability could be exploited if an application allows user input,
+    thereby enabling attackers to execute arbitrary code on the system.
+  * Fix CVE-2023-27535:
+    An authentication bypass vulnerability exists in libcurl in the FTP
+    connection reuse feature that can result in wrong credentials being used
+    during subsequent transfers. Previously created connections are kept in a
+    connection pool for reuse if they match the current setup. However, certain
+    FTP settings such as CURLOPT_FTP_ACCOUNT, CURLOPT_FTP_ALTERNATIVE_TO_USER,
+    CURLOPT_FTP_SSL_CCC, and CURLOPT_USE_SSL were not included in the
+    configuration match checks, causing them to match too easily. This could
+    lead to libcurl using the wrong credentials when performing a transfer,
+    potentially allowing unauthorized access to sensitive information.
+  * CVE-2023-27536:
+    An authentication bypass vulnerability exists in libcurl in the
+    connection reuse feature which can reuse previously established connections
+    with incorrect user permissions due to a failure to check for changes in
+    the CURLOPT_GSSAPI_DELEGATION option. This vulnerability affects
+    krb5/kerberos/negotiate/GSSAPI transfers and could potentially result in
+    unauthorized access to sensitive information. The safest option is to not
+    reuse connections if the CURLOPT_GSSAPI_DELEGATION option has been changed.
+  * Fix CVE-2023-27538:
+    An authentication bypass vulnerability exists in libcurl where it
+    reuses a previously established SSH connection despite the fact that an SSH
+    option was modified, which should have prevented reuse. libcurl maintains a
+    pool of previously used connections to reuse them for subsequent transfers
+    if the configurations match. However, two SSH settings were omitted from
+    the configuration check, allowing them to match easily, potentially leading
+    to the reuse of an inappropriate connection.
+
+ -- Markus Koschany <apo@debian.org>  Mon, 10 Apr 2023 11:34:53 +0200
+
+curl (7.52.1-5+deb9u18) stretch-security; urgency=medium
+
+  * Non-maintainer upload by the ELTS team.
+  * CVE-2022-27774:
+    An insufficiently protected credentials vulnerability exists in curl that
+    could allow an attacker to extract credentials when follows HTTP(S)
+    redirects is used with authentication could leak credentials to other
+    services that exist on different protocols or port numbers.
+  * Follow up to CVE-2022-27782:
+    The patch included to address this CVE in 7.52.1-5+deb9u17 contained a
+    defect which resulted in the vulnerability being completely addressed.  The
+    patch is corrected and the vulberability is fully addressed in this version.
+  * CVE-2022-32221:
+    When doing HTTP(S) transfers, libcurl might erroneously use the read
+    callback (CURLOPT_READFUNCTION) to ask for data to send, even when the
+    CURLOPT_POSTFIELDS option has been set, if the same handle previously was
+    used to issue a PUT request which used that callback.
+  * CVE-2022-35252:
+    When curl is used to retrieve and parse cookies from a HTTP(S) server,
+    it accepts cookies using control codes that when later are sent back to a
+    HTTP server might make the server return 400 responses. Effectively
+    allowing a "sister site" to deny service to all siblings.
+  * CVE-2022-43552:
+    HTTP Proxy deny use-after-free
+
+ -- Roberto C. Sánchez <roberto@debian.org>  Thu, 26 Jan 2023 08:51:51 -0500
+
+curl (7.52.1-5+deb9u17) stretch-security; urgency=high
+
+  * Non-maintainer upload by the ELTS team.
+  * Fix CVE-2022-22576:
+    An improper authentication vulnerability exists in curl which might allow
+    reuse OAUTH2-authenticated connections without properly making sure that
+    the connection was authenticated with the same credentials as set for this
+    transfer. This affects SASL-enabled protocols: SMPTP(S), IMAP(S), POP3(S)
+    and LDAP(S) (openldap only).
+  * Fix CVE-2022-27776:
+    A insufficiently protected credentials vulnerability in curl might leak
+    authentication or cookie header data on HTTP redirects to the same host but
+    another port number.
+  * Fix CVE-2022-27781:
+    libcurl provides the `CURLOPT_CERTINFO` option to allow applications
+    to request details to be returned about a server's certificate chain. Due to
+    an erroneous function, a malicious server could make libcurl built withNSS
+    get stuck in a never-ending busy-loop when trying to retrieve
+    thatinformation.
+  * Fix CVE-2022-27782:
+    libcurl would reuse a previously created connection even when a TLS or
+    SSH related option had been changed that should have prohibited
+    reuse. libcurl keeps previously used connections in a connection pool for
+    subsequent transfers to reuse if one of them matches the setup. However,
+    several TLS and SSH settings were left out from the configuration match
+    checks, making them match too easily.
+  * Fix CVE-2022-32208:
+    When curl < 7.84.0 does FTP transfers secured by krb5, it handles message
+    verification failures wrongly. This flaw makes it possible for a
+    Man-In-The-Middle attack to go unnoticed and even allows it to inject data
+    to the client.
+
+ -- Markus Koschany <apo@debian.org>  Sat, 20 Aug 2022 15:37:57 +0200
+
+curl (7.52.1-5+deb9u16) stretch-security; urgency=medium
+
+  * Non-maintainer upload by the LTS Team.
+  * CVE-2021-22946
+    Crafted answers from a server might force clients to not use TLS on
+    connections though TLS was required and expected.
+  * CVE-2021-22947
+    When using STARTTLS to initiate a TLS connection, the server might
+    send multiple answers before the TLS upgrade and such the client
+    would handle them as being trusted. This could be used by a
+    MITM-attacker to inject fake response data.
+
+ -- Thorsten Alteholz <debian@alteholz.de>  Wed, 29 Sep 2021 21:03:02 +0200
+
+curl (7.52.1-5+deb9u15) stretch-security; urgency=medium
+
+  * Non-maintainer upload by the LTS team.
+  * CVE-2021-22898: Information disclosure in connection to telnet servers.
+  * CVE-2021-22924: Bad connection reuse due to flawed path name checks.
+
+ -- Adrian Bunk <bunk@debian.org>  Sun, 08 Aug 2021 22:57:19 +0300
+
+curl (7.52.1-5+deb9u14) stretch-security; urgency=high
+  
+  * Non-maintainer upload by the LTS Security Team.
+  * Backport URL API which is a pre-requisite for CVE-2021-22876.
+  * Reference new symbols.
+  * CVE-2021-22876: curl is vulnerable to an "Exposure of Private Personal
+    Information to an Unauthorized Actor" by leaking credentials in the
+    HTTP Referer: header. libcurl does not strip off user credentials from
+    the URL when automatically populating the Referer: HTTP request header
+    field in outgoing HTTP requests, and therefore risks leaking sensitive
+    data to the server that is the target of the second HTTP request.
+
+ -- Sylvain Beucler <beuc@debian.org>  Sat, 15 May 2021 18:11:21 +0200
+
+curl (7.52.1-5+deb9u13) stretch-security; urgency=high
+
+  * Non-maintainer upload by the LTS Team.
+  * CVE-2020-8284
+    malicious server can use the FTP PASV response to trick curl into
+    connecting back to a given IP address and port, and this way potentially
+    make curl extract information about services that are otherwise private and
+    not disclosed, for example doing port scanning and service banner
+    extractions (Closes: #977163)
+  * CVE-2020-8285
+    curl is vulnerable to uncontrolled recursion due to a stack overflow issue
+    in FTP wildcard match parsing (Closes: #977162)
+  * CVE-2020-8286
+    curl is vulnerable to an improper check for certificate revocation due to
+    insufficient verification of the OCSP response (Closes: #977161)
+
+ -- Roberto C. Sánchez <roberto@debian.org>  Thu, 17 Dec 2020 14:12:07 -0500
+
+curl (7.52.1-5+deb9u12) stretch-security; urgency=high
+
+  * Non-maintainer upload by the LTS Team. 
+  * CVE-2020-8231
+    in rare circumstances, when using the multi API of curl in
+    combination with CURLOPT_CONNECT_ONLY, the wrong connection
+    might be used when transfering data later
+ 
+ -- Thorsten Alteholz <debian@alteholz.de>  Sun, 20 Sep 2020 18:03:02 +0200
+
+curl (7.52.1-5+deb9u11) stretch-security; urgency=high
+
+  * Non-maintainer upload by the LTS Team. 
+ 
+ -- Thorsten Alteholz <debian@alteholz.de>  Mon, 13 Jul 2020 19:03:02 +0200
+
+curl (7.52.1-5+deb9u10) stretch-security; urgency=high
+
+  * Fix TFTP receive buffer overflow as per CVE-2019-5436 (Closes: #929351)
+    https://curl.haxx.se/docs/CVE-2019-5436.html
+  * Fix FTP-KRB double-free as per CVE-2019-5481 (Closes: #940009)
+    https://curl.haxx.se/docs/CVE-2019-5481.html
+  * Fix TFTP small blocksize heap buffer overflow as per CVE-2019-5482
+    (Closes: #940010)
+    https://curl.haxx.se/docs/CVE-2019-5482.html
+
+ -- Alessandro Ghedini <ghedo@debian.org>  Sat, 22 Feb 2020 14:56:32 +0000
+
 curl (7.52.1-5+deb9u9) stretch-security; urgency=high
 
   * Fix NTLM type-2 out-of-bounds buffer read as per CVE-2018-16890
