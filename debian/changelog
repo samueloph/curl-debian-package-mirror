@@ -1,3 +1,9 @@
+curl (8.5.0-2+exp1) experimental; urgency=medium
+
+  * d/rules: Run tests in parallel
+
+ -- Samuel Henrique <samueloph@debian.org>  Sat, 06 Jan 2024 09:01:03 -0300
+
 curl (8.5.0-2) unstable; urgency=medium
 
   * d/p/openldap_fix_an_LDAP_crash.patch: New patch to fix ldap segfault
