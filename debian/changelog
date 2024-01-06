@@ -1,8 +1,9 @@
-curl (8.5.0-1+exp1) experimental; urgency=medium
+curl (8.5.0-2) unstable; urgency=medium
 
-  * Build on experimental with a newer openldap to help investigate #1057855
+  * d/p/openldap_fix_an_LDAP_crash.patch: New patch to fix ldap segfault
+    (closes: #1057855)
 
- -- Samuel Henrique <samueloph@debian.org>  Fri, 22 Dec 2023 11:20:39 -0300
+ -- Samuel Henrique <samueloph@debian.org>  Fri, 29 Dec 2023 15:34:11 -0300
 
 curl (8.5.0-1) unstable; urgency=medium
 
