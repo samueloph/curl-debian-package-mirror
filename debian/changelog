@@ -1,3 +1,32 @@
+curl (7.52.1-5+deb9u21) stretch-security; urgency=high
+
+  * Non-maintainer upload by the ELTS Security Team.
+  * Fix CVE-2023-28321: An improper certificate validation
+    vulnerability existed in curl in the way it supports
+    matching of wildcard patterns when listed as
+    "Subject Alternative Name" in TLS server certificates.
+    curl can be built to use its own name matching function
+    for TLS rather than one provided by a TLS library.
+    This private wildcard matching function would match IDN
+    (International Domain Name) hosts incorrectly and could
+    as a result accept patterns that otherwise should mismatch.
+    IDN hostnames are converted to puny code before used for
+    certificate checks. Puny coded names always start with
+    `xn--` and should not be allowed to pattern match,
+    but the wildcard check in curl could still check for `x*`,
+    which would match even though the IDN name most likely
+    contained nothing even resembling an `x`.
+  * Fix CVE-2023-27534: a path traversal vulnerability existed
+    in curl SFTP implementation causes the tilde (~) character
+    to be wrongly replaced when used as a prefix in the first
+    path element, in addition to its intended use as the first
+    element to indicate a path relative to the user's home
+    directory. Attackers can exploit this flaw to bypass
+    filtering or execute arbitrary code by crafting a path
+    like /~2/foo while accessing a server with a specific user.
+
+ -- Bastien Roucariès <rouca@debian.org>  Mon, 29 Jan 2024 21:04:51 +0000
+
 curl (7.52.1-5+deb9u20) stretch-security; urgency=medium
 
   * Non-maintainer upload by the ELTS team.
