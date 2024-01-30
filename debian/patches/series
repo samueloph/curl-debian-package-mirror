@@ -65,7 +65,13 @@ CVE-2023-27535.patch
 CVE-2023-38546.patch
 CVE-2023-27534.patch
 CVE-2023-28321.patch
-
+0069-CVE-2023-28322-lib-unify-the-upload-method-handling.patch
+0070-Add-Curl_strntolower.patch
+0071-strcase-fix-raw-lowercasing-the-letter-X.patch
+0072-strcase-turn-Curl_raw_tolower-into-static.patch
+0073-psl-use-latest-psl-and-refresh-it-periodically.patch
+time_t_max.patch
+0074-CVE-2023-46218-cookie-lowercase-the-domain-names-bef.patch
 # Always add CVE patches before these two patches
 90_gnutls.patch
 99_nss.patch

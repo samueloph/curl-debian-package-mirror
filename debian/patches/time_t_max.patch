@@ -1,0 +1,67 @@
+From 1c39128d974666107fc6d9ea15f294036851f224 Mon Sep 17 00:00:00 2001
+From: Daniel Stenberg <daniel@haxx.se>
+Date: Thu, 18 Jan 2018 20:24:05 +0100
+Subject: Minimal TIME_T_MAX definition
+
+
+[backport: drop uneeded fix we only need TIME_T_MAX]
+
+origin: https://github.com/curl/curl/commit/1c39128d974666107fc6d9ea15f294036851f224.patch
+
+Index: curl/configure.ac
+===================================================================
+--- curl.orig/configure.ac
++++ curl/configure.ac
+@@ -3204,6 +3204,23 @@ AC_CHECK_TYPE([bool],[
+ #endif
+ ])
+ 
++AC_MSG_CHECKING([if time_t is unsigned])
++AC_RUN_IFELSE([
++  AC_LANG_SOURCE([[
++  #include <time.h>
++  #include <limits.h>
++  time_t t = ULONG_MAX;
++  return (t > 0);
++  ]])] ,[
++  AC_MSG_RESULT([yes])
++  AC_DEFINE(HAVE_TIME_T_UNSIGNED, 1, [Define this if time_t is unsigned])
++],[
++  AC_MSG_RESULT([no])
++],[
++  dnl cross-compiling, most systems are unsigned
++  AC_MSG_RESULT([no])
++])
++
+ CURL_CONFIGURE_CURL_SOCKLEN_T
+ 
+ CURL_CONFIGURE_PULL_SYS_POLL
+Index: curl/lib/curl_setup.h
+===================================================================
+--- curl.orig/lib/curl_setup.h
++++ curl/lib/curl_setup.h
+@@ -431,6 +431,24 @@
+ #define SIZE_T_MAX 4294967295U
+ #endif
+ 
++#if (SIZEOF_TIME_T == 4)
++#  ifdef HAVE_TIME_T_UNSIGNED
++#  define TIME_T_MAX UINT_MAX
++#  define TIME_T_MIN 0
++#  else
++#  define TIME_T_MAX INT_MAX
++#  define TIME_T_MIN INT_MIN
++#  endif
++#else
++#  ifdef HAVE_TIME_T_UNSIGNED
++#  define TIME_T_MAX 0xFFFFFFFFFFFFFFFF
++#  define TIME_T_MIN 0
++#  else
++#  define TIME_T_MAX 0x7FFFFFFFFFFFFFFF
++#  define TIME_T_MIN -0x10000000000000000
++#  endif
++#endif
++
+ /*
+  * Arg 2 type for gethostname in case it hasn't been defined in config file.
+  */
