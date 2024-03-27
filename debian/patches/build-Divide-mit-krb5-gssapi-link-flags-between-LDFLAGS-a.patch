@@ -16,11 +16,11 @@ Signed-off-by: Simon McVittie <smcv@collabora.com>
  configure.ac | 3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
-Index: curl/configure.ac
-===================================================================
---- curl.orig/configure.ac
-+++ curl/configure.ac
-@@ -1978,7 +1978,8 @@ if test x"$want_gss" = xyes; then
+diff --git a/configure.ac b/configure.ac
+index 49371a7..0f8d8b5 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -1909,7 +1909,8 @@ if test x"$want_gss" = xyes; then
             gss_libs=`$GSSAPI_ROOT/bin/$host_alias-krb5-config --libs gssapi`
             LIBS="$gss_libs $LIBS"
          elif test "$PKGCONFIG" != "no" ; then

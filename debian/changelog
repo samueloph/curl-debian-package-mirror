@@ -1,8 +1,68 @@
-curl (8.5.0-2+exp1) experimental; urgency=medium
+curl (8.7.1-1) unstable; urgency=medium
 
-  * d/rules: Run tests in parallel
+  * New upstream version 8.7.1
+    - Fix CVE-2024-2004: Usage of disabled protocol
+    - Fix CVE-2024-2398: HTTP/2 push headers memory-leak
+  * d/patches: Drop patches present on this release
 
- -- Samuel Henrique <samueloph@debian.org>  Sat, 06 Jan 2024 09:01:03 -0300
+ -- Samuel Henrique <samueloph@debian.org>  Wed, 27 Mar 2024 19:02:14 +0000
+
+curl (8.6.0-4) unstable; urgency=medium
+
+  [ Carlos Henrique Lima Melara ]
+  * d/libcurl*.links: use substitution variables instead of executable files
+
+  [ Simon McVittie ]
+  * d/control: Add a build-profile that disables LDAP support
+    (closes: #1066981)
+  * Temporarily disable LDAP support on 32-bit non-x86 (closes: #1066982)
+  * Temporarily disable build-time tests on 32-bit non-x86
+
+ -- Samuel Henrique <samueloph@debian.org>  Sat, 16 Mar 2024 17:17:57 +0000
+
+curl (8.6.0-3.2) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Fix wrong X-Time64-Compat for libcurl4t64.  Closes: #1065315.
+
+ -- Steve Langasek <vorlon@debian.org>  Sat, 02 Mar 2024 18:43:58 +0000
+
+curl (8.6.0-3.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Rename libraries for 64-bit time_t transition.  Closes: #1061992
+
+ -- Steve Langasek <vorlon@debian.org>  Sat, 02 Mar 2024 07:11:53 +0000
+
+curl (8.6.0-3) unstable; urgency=medium
+
+  * d/p/vtls_revert_receive_max_buffer_add_test_case.patch: New patch to fix
+    tls regression (closes: #1063462)
+
+ -- Samuel Henrique <samueloph@debian.org>  Mon, 19 Feb 2024 22:16:17 +0000
+
+curl (8.6.0-2) unstable; urgency=medium
+
+  * d/p/sendf_ignore_response_body_to_head.patch: New upstream patch to fix a
+    compat issue (closes: #1063342)
+  * d/control: Switch from pkg-config to pkgconf
+
+ -- Samuel Henrique <samueloph@debian.org>  Tue, 06 Feb 2024 20:52:46 +0000
+
+curl (8.6.0-1) unstable; urgency=medium
+
+  [ Samuel Henrique ]
+  * New upstream version 8.6.0
+    - Fix CVE-2024-0853: OCSP verification bypass with TLS session reuse
+  * Drop upstream patches from 8.6.0
+  * Update approach for installing manpages
+  * d/copyright: Update copyright
+
+  [ Carlos Henrique Lima Melara ]
+  * d/control: exclude dependency on gnutls-bin for tests on ppc64el
+    (Closes: #1059952)
+
+ -- Samuel Henrique <samueloph@debian.org>  Wed, 31 Jan 2024 21:51:05 +0000
 
 curl (8.5.0-2) unstable; urgency=medium
 
