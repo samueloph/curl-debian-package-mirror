@@ -1,3 +1,10 @@
+curl (8.7.1-1+exp1) experimental; urgency=medium
+
+  * d/rules: Run tests in parallel, using uptream's suggestion of 7 workers
+    per thread: https://daniel.haxx.se/blog/2023/06/08/parallel-curl-tests/
+
+ -- Samuel Henrique <samueloph@debian.org>  Wed, 27 Mar 2024 19:51:33 +0000
+
 curl (8.7.1-1) unstable; urgency=medium
 
   * New upstream version 8.7.1
