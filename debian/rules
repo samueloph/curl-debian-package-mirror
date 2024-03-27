@@ -12,8 +12,7 @@ DEB_HOST_MULTIARCH ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
 CONFIGURE_ARGS = -- --disable-dependency-tracking		\
 	--disable-symbol-hiding --enable-versioned-symbols	\
 	--enable-threaded-resolver --with-lber-lib=lber		\
-	--with-gssapi=/usr --with-nghttp2 --with-nghttp3 --with-ngtcp2 	\
-	--with-openssl --with-gnutls 	\
+	--with-gssapi=/usr --with-nghttp2	\
 	--includedir=/usr/include/$(DEB_HOST_MULTIARCH)		\
 	--with-zsh-functions-dir=/usr/share/zsh/vendor-completions
 
@@ -68,7 +67,7 @@ ifeq ($(filter pkg.curl.no-openssl,$(DEB_BUILD_PROFILES)),)
 	cd debian/build && \
 	./buildconf && \
 	cp ../../ltmain.sh . && \
-	dh_auto_configure ${CONFIGURE_ARGS} --with-default-ssl-backend=openssl \
+	dh_auto_configure ${CONFIGURE_ARGS} --with-openssl \
 		--with-ca-path=/etc/ssl/certs \
 		--with-ca-bundle=/etc/ssl/certs/ca-certificates.crt
 endif
@@ -76,7 +75,7 @@ ifeq ($(filter pkg.curl.no-gnutls,$(DEB_BUILD_PROFILES)),)
 	cd debian/build-gnutls && \
 	./buildconf && \
 	cp ../../ltmain.sh . && \
-	dh_auto_configure ${CONFIGURE_ARGS} --with-default-ssl-backend=gnutls \
+	dh_auto_configure ${CONFIGURE_ARGS} --with-gnutls \
 		--with-ca-path=/etc/ssl/certs
 endif
 
