@@ -1,3 +1,11 @@
+curl (7.88.1-10+deb12u6) UNRELEASED; urgency=medium
+
+  * Team upload.
+
+  * Add patches to fix CVE-2024-2004 and CVE-2024-2398.
+
+ -- Guilherme Puida Moreira <guilherme@puida.xyz>  Fri, 29 Mar 2024 17:26:08 -0300
+
 curl (7.88.1-10+deb12u5) bookworm-security; urgency=high
 
   * Add patches to fix CVE-2023-46218 and CVE-2023-46219
