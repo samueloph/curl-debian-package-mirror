@@ -39,6 +39,10 @@ CVE-2023-38546.patch
 CVE-2023-46218.patch
 CVE-2023-46219.patch
 
+# Patches from 8.7.1.
+CVE-2024-2004.patch
+CVE-2024-2398.patch
+
 # Do not add patches below.
 # Used to generate packages for the other crypto libraries.
 90_gnutls.patch
