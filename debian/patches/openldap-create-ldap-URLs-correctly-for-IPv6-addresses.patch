@@ -26,13 +26,13 @@ Bug-Debian: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=1053643
  lib/openldap.c | 9 ++++++---
  1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff --git a/lib/openldap.c b/lib/openldap.c
-index 47266f6..85a37b8 100644
---- a/lib/openldap.c
-+++ b/lib/openldap.c
-@@ -548,9 +548,12 @@ static CURLcode oldap_connect(struct Curl_easy *data, bool *done)
-       return result;
-   }
+Index: curl/lib/openldap.c
+===================================================================
+--- curl.orig/lib/openldap.c
++++ curl/lib/openldap.c
+@@ -547,9 +547,12 @@ static CURLcode oldap_connect(struct Cur
+ 
+   (void)done;
  
 -  hosturl = aprintf("ldap%s://%s:%d",
 -                    conn->handler->flags & PROTOPT_SSL? "s": "",
