@@ -2,9 +2,16 @@ curl (7.88.1-10+deb12u6) UNRELEASED; urgency=medium
 
   * Team upload.
 
-  * Add patches to fix CVE-2024-2004 and CVE-2024-2398.
+  [ Sergio Durigan Junior ]
+  * d/p/openldap-create-ldap-URLs-correctly-for-IPv6-addresses.patch:
+    (Closes: #1053643)
 
- -- Guilherme Puida Moreira <guilherme@puida.xyz>  Fri, 29 Mar 2024 17:26:08 -0300
+  [ Guilherme Puida Moreira ]
+  * Add patches to fix CVE-2024-2004 and CVE-2024-2398.
+  * d/p/openldap-create-ldap-URLs-correctly-for-IPv6-addresses.patch:
+    Refresh patch.
+
+ -- Guilherme Puida Moreira <guilherme@puida.xyz>  Tue, 02 Apr 2024 20:02:10 -0300
 
 curl (7.88.1-10+deb12u5) bookworm-security; urgency=high
 
