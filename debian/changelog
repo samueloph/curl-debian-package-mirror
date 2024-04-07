@@ -8,6 +8,15 @@ curl (7.88.1-10+deb12u6) UNRELEASED; urgency=medium
 
   [ Guilherme Puida Moreira ]
   * Add patches to fix CVE-2024-2004 and CVE-2024-2398.
+    - CVE-2024-2004: When a protocol selection parameter disables all
+      protocols without adding any then the default set of protocols would
+      remain in the allowed set due to an error in the logic for removing
+      protocols.
+    - CVE-2024-2398: When an application tells libcurl it wants to allow
+      HTTP/2 server push and the amount of received headers for the push
+      surpasses the maximum allowed limit (1000), libcurl aborts the server
+      push and leaks the memory allocated for the previously allocated
+      headers.
   * d/p/openldap-create-ldap-URLs-correctly-for-IPv6-addresses.patch:
     Refresh patch.
 
