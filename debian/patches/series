@@ -4,6 +4,15 @@ build-Divide-mit-krb5-gssapi-link-flags-between-LDFLAGS-a.patch
 11_omit-directories-from-config.patch
 Remove-curl-s-LDFLAGS-from-curl-config-static-libs.patch
 
+# Post 8.7.1 patches
+openldap-create-ldap-URLs-correctly-for-IPv6-addresses.patch
+make-manpages-reproducible.patch
+fix-regression-on-chunked-post.patch
+test1901_verify_chunked_POST_from_callback_with_CURLOPT_POSTFIELDSIZ.patch
+fix-regression-in-curlinfo.patch
+curl-8_7_1-h2-ngtcp2-write-error-handling.diff
+content_encoding_brotli_and_others_pass_through_0_length_writes.patch
+
 # Do not add patches below.
 # Used to generate packages for the other crypto libraries.
 90_gnutls.patch

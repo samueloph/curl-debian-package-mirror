@@ -165,11 +165,13 @@ endif
 # 5. Remove -D_DEB_HOST_ARCH from CFLAGS.  This is a (hopefully
 #    temporary) hack needed to properly build curl with NSS PEM
 #    support in Debian.
+# 6. CFLAGS also contain some arch specific hardening flags so we
+#    replace it with dpkg-buildflags call.
 	sed -e "/-lcurl /s|`krb5-config --libs gssapi`|\`krb5-config --libs gssapi\`|" \
-	    -e "/--prefix/s|/$(DEB_HOST_MULTIARCH)'|/'\\\\\`dpkg-architecture -qDEB_HOST_MULTIARCH\\\\\`|g" \
-	    -e "/--prefix/s|=$(DEB_BUILD_GNU_TYPE)'|='\\\\\`dpkg-architecture -qDEB_BUILD_GNU_TYPE\\\\\`|g" \
+	    -e "/--prefix/s|/$(DEB_HOST_MULTIARCH)'|/\\\`dpkg-architecture -qDEB_HOST_MULTIARCH\\\`'|g" \
+	    -e "/--prefix/s|=$(DEB_BUILD_GNU_TYPE)'|=\\\`dpkg-architecture -qDEB_BUILD_GNU_TYPE\\\`'|g" \
 	    -e "/-fdebug-prefix-map=/s|\(-fdebug-prefix-map=\)/[^ ]*=.||" \
-	    -e "/-ffile-prefix-map=/s|\(-ffile-prefix-map=\)/[^ ]*=.||" \
+	    -e "/CFLAGS/s|CFLAGS=.\+\(-DCURL_PATCHSTAMP\)|CFLAGS=\\\`dpkg-buildflags --get CFLAGS \| sed -e \"/-ffile-prefix-map=/s\|\\\\(-ffile-prefix-map=\\\\)/[^ ]*=.\|\|\"\\\` \1|" \
 	    -e "/-D_DEB_HOST_ARCH=/s|-D_DEB_HOST_ARCH=\\\\\"[^ ']*\\\\\"||" \
 	    -i `find . -name curl-config`
 # When we get here, everything has been properly installed.  Because

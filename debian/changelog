@@ -1,9 +1,51 @@
-curl (8.7.1-1+exp1) experimental; urgency=medium
+curl (8.7.1-5) unstable; urgency=high
 
-  * d/rules: Run tests in parallel, using uptream's suggestion of 7 workers
-    per thread: https://daniel.haxx.se/blog/2023/06/08/parallel-curl-tests/
+  * d/p/content_encoding_brotli_and_others...patch: New patch to fix an
+    encoding regression. Thank you to Jeroen Ooms and the curl developers
+    (Daniel Stenberg and Stefan Eissing) for reporting and pointing out the
+    fix.
 
- -- Samuel Henrique <samueloph@debian.org>  Wed, 27 Mar 2024 19:51:33 +0000
+ -- Samuel Henrique <samueloph@debian.org>  Mon, 29 Apr 2024 18:28:54 +0100
+
+curl (8.7.1-4) unstable; urgency=medium
+
+  * d/p/curl-8_7_1-h2-ngtcp2-write-error-handling.diff: New patch to address
+    git+http2 issue. Thanks to Stefan Eissing <stefan@eissing.org> for
+    doing the backport.
+
+ -- Samuel Henrique <samueloph@debian.org>  Sat, 27 Apr 2024 18:00:28 +0100
+
+curl (8.7.1-3) unstable; urgency=medium
+
+  [ Carlos Henrique Lima Melara ]
+  * d/p/fix-regression-in-curlinfo.patch: add patch from upstream, thanks to
+    Antonio Terceiro for reporting it (closes: #1069292)
+
+  [ Samuel Henrique ]
+  * d/libcurl3t64-gnutls.lintian-overrides: Drop unused override
+
+ -- Samuel Henrique <samueloph@debian.org>  Fri, 19 Apr 2024 19:06:23 +0100
+
+curl (8.7.1-2) unstable; urgency=medium
+
+  [ Carlos Henrique Lima Melara ]
+  * d/rules: fix sed substitution regex for curl-config
+  * d/rules: make a call to dpkg-buildflags in curl-config to get CFLAGS
+    (Closes: #1057138)
+  * d/control: suggests dpkg-dev for -dev packages so we get dpkg goodies
+  * d/libcurl4-doc.docs: list each markdown file to be installed
+  * d/make-manpages-reproducible.patch: import from upstream
+  * d/p/fix-regression-on-chunked-post.patch: add new patch from upstream
+
+  [ Sergio Durigan Junior ]
+  * d/p/openldap-create-ldap-URLs-correctly-for-IPv6-addresses.patch:
+    (Closes: #1053643)
+
+  [ Samuel Henrique ]
+  * d/rules: Run tests in parallel
+  * d/p/test1901...: New patch to confirm regression fix
+
+ -- Samuel Henrique <samueloph@debian.org>  Wed, 03 Apr 2024 18:59:41 +0100
 
 curl (8.7.1-1) unstable; urgency=medium
 

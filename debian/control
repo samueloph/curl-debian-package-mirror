@@ -119,7 +119,8 @@ Provides: libcurl-dev,
  libcurl3-dev
 Conflicts: libcurl4-gnutls-dev, libssl1.0-dev
 Depends: ${misc:Depends}, libcurl4t64 (= ${binary:Version})
-Suggests: libcurl4-doc,
+Suggests: dpkg-dev,
+ libcurl4-doc,
  libidn-dev,
  libkrb5-dev,
  libldap2-dev,
@@ -157,7 +158,8 @@ Provides: libcurl-dev,
  libcurl4-dev
 Conflicts: libcurl4-openssl-dev
 Depends: ${misc:Depends}, libcurl3t64-gnutls (= ${binary:Version})
-Suggests: libcurl4-doc,
+Suggests: dpkg-dev,
+ libcurl4-doc,
  libgnutls28-dev,
  libidn-dev,
  libkrb5-dev,

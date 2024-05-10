@@ -1,0 +1,54 @@
+From: Daniel Stenberg <daniel@haxx.se>
+Date: Sun, 31 Mar 2024 00:59:55 +0100
+Subject: cd2nroff/manage: use UTC when SOURCE_DATE_EPOCH is set
+
+Make them independent of the TZ setting. Also set a date string like
+YYYY-MM-DD to avoid a local month name in the date.
+
+Reported-by: Carlos Henrique Lima Melara
+Fixes #13242
+Closes #13243
+
+Origin: upstream, https://github.com/curl/curl/commit/afdd1129166938a4ba952aa1a9503adf0ec1a7a3
+Last-Update: 2024-03-31
+---
+ scripts/cd2nroff | 4 ++--
+ scripts/managen  | 4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/scripts/cd2nroff b/scripts/cd2nroff
+index b0e702a479d538..647a28969ec0db 100755
+--- a/scripts/cd2nroff
++++ b/scripts/cd2nroff
+@@ -77,11 +77,11 @@ HELP
+ use POSIX qw(strftime);
+ my @ts;
+ if (defined($ENV{SOURCE_DATE_EPOCH})) {
+-    @ts = localtime($ENV{SOURCE_DATE_EPOCH});
++    @ts = gmtime($ENV{SOURCE_DATE_EPOCH});
+ } else {
+     @ts = localtime;
+ }
+-my $date = strftime "%B %d %Y", @ts;
++my $date = strftime "%Y-%m-%d", @ts;
+ 
+ sub outseealso {
+     my (@sa) = @_;
+diff --git a/scripts/managen b/scripts/managen
+index ab96861b8f7b45..e5846e64b00b2d 100755
+--- a/scripts/managen
++++ b/scripts/managen
+@@ -50,11 +50,11 @@ my %catlong;
+ use POSIX qw(strftime);
+ my @ts;
+ if (defined($ENV{SOURCE_DATE_EPOCH})) {
+-    @ts = localtime($ENV{SOURCE_DATE_EPOCH});
++    @ts = gmtime($ENV{SOURCE_DATE_EPOCH});
+ } else {
+     @ts = localtime;
+ }
+-my $date = strftime "%B %d %Y", @ts;
++my $date = strftime "%Y-%m-%d", @ts;
+ my $year = strftime "%Y", @ts;
+ my $version = "unknown";
+ my $globals;
