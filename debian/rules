@@ -68,6 +68,8 @@ ifeq ($(filter pkg.curl.no-openssl,$(DEB_BUILD_PROFILES)),)
 	./buildconf && \
 	cp ../../ltmain.sh . && \
 	dh_auto_configure ${CONFIGURE_ARGS} --with-openssl \
+		--without-ngtcp2 \
+		--without-nghttp3 \
 		--with-ca-path=/etc/ssl/certs \
 		--with-ca-bundle=/etc/ssl/certs/ca-certificates.crt
 endif
@@ -76,6 +78,8 @@ ifeq ($(filter pkg.curl.no-gnutls,$(DEB_BUILD_PROFILES)),)
 	./buildconf && \
 	cp ../../ltmain.sh . && \
 	dh_auto_configure ${CONFIGURE_ARGS} --with-gnutls \
+		--with-ngtcp2 \
+		--with-nghttp3 \
 		--with-ca-path=/etc/ssl/certs
 endif
 
