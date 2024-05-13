@@ -14,7 +14,9 @@ CONFIGURE_ARGS = -- --disable-dependency-tracking		\
 	--enable-threaded-resolver --with-lber-lib=lber		\
 	--with-gssapi=/usr --with-nghttp2	\
 	--includedir=/usr/include/$(DEB_HOST_MULTIARCH)		\
-	--with-zsh-functions-dir=/usr/share/zsh/vendor-completions
+	--with-zsh-functions-dir=/usr/share/zsh/vendor-completions \
+	--with-ca-path=/etc/ssl/certs \
+	--with-ca-bundle=/etc/ssl/certs/ca-certificates.crt
 
 # disable libssh2 on Ubuntu (see #888449)
 ifeq ($(shell dpkg-vendor --derives-from Ubuntu && echo yes),yes)
@@ -69,9 +71,7 @@ ifeq ($(filter pkg.curl.no-openssl,$(DEB_BUILD_PROFILES)),)
 	cp ../../ltmain.sh . && \
 	dh_auto_configure ${CONFIGURE_ARGS} --with-openssl \
 		--without-ngtcp2 \
-		--without-nghttp3 \
-		--with-ca-path=/etc/ssl/certs \
-		--with-ca-bundle=/etc/ssl/certs/ca-certificates.crt
+		--without-nghttp3
 endif
 ifeq ($(filter pkg.curl.no-gnutls,$(DEB_BUILD_PROFILES)),)
 	cd debian/build-gnutls && \
@@ -79,8 +79,7 @@ ifeq ($(filter pkg.curl.no-gnutls,$(DEB_BUILD_PROFILES)),)
 	cp ../../ltmain.sh . && \
 	dh_auto_configure ${CONFIGURE_ARGS} --with-gnutls \
 		--with-ngtcp2 \
-		--with-nghttp3 \
-		--with-ca-path=/etc/ssl/certs
+		--with-nghttp3
 endif
 
 override_dh_auto_build:
