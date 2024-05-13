@@ -1,3 +1,10 @@
+curl (8.7.1-5+exp1) experimental; urgency=medium
+
+  * Build libcurl-gnutls with HTTP3 support (build-dep on nghttp3 and ngtcp2)
+  * Build libcurl-gnutls with ca-bundle=/etc/ssl/certs/ca-certificates.crt
+
+ -- Samuel Henrique <samueloph@debian.org>  Mon, 13 May 2024 19:03:28 +0100
+
 curl (8.7.1-5) unstable; urgency=high
 
   * d/p/content_encoding_brotli_and_others...patch: New patch to fix an
