@@ -5,7 +5,7 @@ Maintainer: Debian Curl Maintainers <team+curl@tracker.debian.org>
 Uploaders: Carlos Henrique Lima Melara <charlesmelara@riseup.net>,
            Samuel Henrique <samueloph@debian.org>,
            Sergio Durigan Junior <sergiodj@debian.org>
-Build-Depends: dpkg-dev (>= 1.22.5),
+Build-Depends:
  debhelper-compat (= 13),
  autoconf,
  automake,
@@ -42,7 +42,7 @@ Rules-Requires-Root: no
 
 Package: curl
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libcurl4t64 (= ${binary:Version})
+Depends: ${shlibs:Depends}, ${misc:Depends}, libcurl4 (= ${binary:Version})
 Multi-Arch: foreign
 Description: command line tool for transferring data with URL syntax
  curl is a command line tool for transferring data with URL syntax, supporting
@@ -54,17 +54,14 @@ Description: command line tool for transferring data with URL syntax
  NTLM, Negotiate, kerberos...), file transfer resume, proxy tunneling and a
  busload of other useful tricks.
 
-Package: libcurl4t64
-Provides: ${t64:Provides}
-X-Time64-Compat: libcurl4
-Breaks: libcurl4 (<< ${source:Version})
+Package: libcurl4
 Architecture: any
 Section: libs
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Recommends: ca-certificates
 Pre-Depends: ${misc:Pre-Depends}
 Conflicts: libcurl3
-Replaces: libcurl4, libcurl3
+Replaces: libcurl3
 Multi-Arch: same
 Description: easy-to-use client-side URL transfer library (OpenSSL flavour)
  libcurl is an easy-to-use client-side URL transfer library, supporting DICT,
@@ -82,11 +79,7 @@ Description: easy-to-use client-side URL transfer library (OpenSSL flavour)
  .
  SSL support is provided by OpenSSL.
 
-Package: libcurl3t64-gnutls
-Provides: ${t64:Provides}
-X-Time64-Compat: libcurl3-gnutls
-Replaces: libcurl3-gnutls
-Breaks: libcurl3-gnutls (<< ${source:Version})
+Package: libcurl3-gnutls
 Architecture: any
 Section: libs
 Depends: ${shlibs:Depends}, ${misc:Depends}
@@ -118,7 +111,7 @@ Provides: libcurl-dev,
  libcurl4-dev,
  libcurl3-dev
 Conflicts: libcurl4-gnutls-dev, libssl1.0-dev
-Depends: ${misc:Depends}, libcurl4t64 (= ${binary:Version})
+Depends: ${misc:Depends}, libcurl4 (= ${binary:Version})
 Suggests: dpkg-dev,
  libcurl4-doc,
  libidn-dev,
@@ -157,7 +150,7 @@ Provides: libcurl-dev,
  libcurl3-gnutls-dev,
  libcurl4-dev
 Conflicts: libcurl4-openssl-dev
-Depends: ${misc:Depends}, libcurl3t64-gnutls (= ${binary:Version})
+Depends: ${misc:Depends}, libcurl3-gnutls (= ${binary:Version})
 Suggests: dpkg-dev,
  libcurl4-doc,
  libgnutls28-dev,
