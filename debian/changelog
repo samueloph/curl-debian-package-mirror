@@ -1,3 +1,118 @@
+curl (8.7.1-5) unstable; urgency=high
+
+  * d/p/content_encoding_brotli_and_others...patch: New patch to fix an
+    encoding regression. Thank you to Jeroen Ooms and the curl developers
+    (Daniel Stenberg and Stefan Eissing) for reporting and pointing out the
+    fix.
+
+ -- Samuel Henrique <samueloph@debian.org>  Mon, 29 Apr 2024 18:28:54 +0100
+
+curl (8.7.1-4) unstable; urgency=medium
+
+  * d/p/curl-8_7_1-h2-ngtcp2-write-error-handling.diff: New patch to address
+    git+http2 issue. Thanks to Stefan Eissing <stefan@eissing.org> for
+    doing the backport.
+
+ -- Samuel Henrique <samueloph@debian.org>  Sat, 27 Apr 2024 18:00:28 +0100
+
+curl (8.7.1-3) unstable; urgency=medium
+
+  [ Carlos Henrique Lima Melara ]
+  * d/p/fix-regression-in-curlinfo.patch: add patch from upstream, thanks to
+    Antonio Terceiro for reporting it (closes: #1069292)
+
+  [ Samuel Henrique ]
+  * d/libcurl3t64-gnutls.lintian-overrides: Drop unused override
+
+ -- Samuel Henrique <samueloph@debian.org>  Fri, 19 Apr 2024 19:06:23 +0100
+
+curl (8.7.1-2) unstable; urgency=medium
+
+  [ Carlos Henrique Lima Melara ]
+  * d/rules: fix sed substitution regex for curl-config
+  * d/rules: make a call to dpkg-buildflags in curl-config to get CFLAGS
+    (Closes: #1057138)
+  * d/control: suggests dpkg-dev for -dev packages so we get dpkg goodies
+  * d/libcurl4-doc.docs: list each markdown file to be installed
+  * d/make-manpages-reproducible.patch: import from upstream
+  * d/p/fix-regression-on-chunked-post.patch: add new patch from upstream
+
+  [ Sergio Durigan Junior ]
+  * d/p/openldap-create-ldap-URLs-correctly-for-IPv6-addresses.patch:
+    (Closes: #1053643)
+
+  [ Samuel Henrique ]
+  * d/rules: Run tests in parallel
+  * d/p/test1901...: New patch to confirm regression fix
+
+ -- Samuel Henrique <samueloph@debian.org>  Wed, 03 Apr 2024 18:59:41 +0100
+
+curl (8.7.1-1) unstable; urgency=medium
+
+  * New upstream version 8.7.1
+    - Fix CVE-2024-2004: Usage of disabled protocol
+    - Fix CVE-2024-2398: HTTP/2 push headers memory-leak
+  * d/patches: Drop patches present on this release
+
+ -- Samuel Henrique <samueloph@debian.org>  Wed, 27 Mar 2024 19:02:14 +0000
+
+curl (8.6.0-4) unstable; urgency=medium
+
+  [ Carlos Henrique Lima Melara ]
+  * d/libcurl*.links: use substitution variables instead of executable files
+
+  [ Simon McVittie ]
+  * d/control: Add a build-profile that disables LDAP support
+    (closes: #1066981)
+  * Temporarily disable LDAP support on 32-bit non-x86 (closes: #1066982)
+  * Temporarily disable build-time tests on 32-bit non-x86
+
+ -- Samuel Henrique <samueloph@debian.org>  Sat, 16 Mar 2024 17:17:57 +0000
+
+curl (8.6.0-3.2) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Fix wrong X-Time64-Compat for libcurl4t64.  Closes: #1065315.
+
+ -- Steve Langasek <vorlon@debian.org>  Sat, 02 Mar 2024 18:43:58 +0000
+
+curl (8.6.0-3.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Rename libraries for 64-bit time_t transition.  Closes: #1061992
+
+ -- Steve Langasek <vorlon@debian.org>  Sat, 02 Mar 2024 07:11:53 +0000
+
+curl (8.6.0-3) unstable; urgency=medium
+
+  * d/p/vtls_revert_receive_max_buffer_add_test_case.patch: New patch to fix
+    tls regression (closes: #1063462)
+
+ -- Samuel Henrique <samueloph@debian.org>  Mon, 19 Feb 2024 22:16:17 +0000
+
+curl (8.6.0-2) unstable; urgency=medium
+
+  * d/p/sendf_ignore_response_body_to_head.patch: New upstream patch to fix a
+    compat issue (closes: #1063342)
+  * d/control: Switch from pkg-config to pkgconf
+
+ -- Samuel Henrique <samueloph@debian.org>  Tue, 06 Feb 2024 20:52:46 +0000
+
+curl (8.6.0-1) unstable; urgency=medium
+
+  [ Samuel Henrique ]
+  * New upstream version 8.6.0
+    - Fix CVE-2024-0853: OCSP verification bypass with TLS session reuse
+  * Drop upstream patches from 8.6.0
+  * Update approach for installing manpages
+  * d/copyright: Update copyright
+
+  [ Carlos Henrique Lima Melara ]
+  * d/control: exclude dependency on gnutls-bin for tests on ppc64el
+    (Closes: #1059952)
+
+ -- Samuel Henrique <samueloph@debian.org>  Wed, 31 Jan 2024 21:51:05 +0000
+
 curl (8.5.0-2~bpo12+1) bookworm-backports; urgency=medium
 
   * Rebuild for bookworm-backports.

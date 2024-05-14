@@ -23,9 +23,10 @@ Copyright: 1999, Leon Breedt <ljb@debian.org>
  2014-2011, Helmut Grohne <helmutg@debian.org>
  2022, Paul Gevers <elbrus@debian.org>
  2013, 2022, Salvatore Bonaccorso <carnil@debian.org>
- 2022, Sergio Durigan Junior <sergiodj@debian.org>
- 2021-2022, Samuel Henrique <samueloph@debian.org>
  2023 John Scott <jscott@posteo.net>
+ 2023-2024, Carlos Henrique Lima Melara <charlesmelara@riseup.net>
+ 2022-2024, Sergio Durigan Junior <sergiodj@debian.org>
+ 2021-2024, Samuel Henrique <samueloph@debian.org>
 License: curl
 
 Files: debian/tests/LDAP-bindata.c
@@ -91,7 +92,6 @@ License: ISC
 Files: compile
  depcomp
  missing
- test-driver
 Copyright: 1996-2021, Free Software Foundation, Inc.
 License: GPL-2+ with Autoconf-data exception
 
@@ -182,11 +182,6 @@ License: curl
 Files: tests/libtest/lib1908.c
  tests/libtest/lib1910.c
 Copyright: 2013-2022, Linus Nielsen Feltzing, <linus@haxx.se>
-License: curl
-
-Files: docs/libcurl/opts/CURLOPT_PREREQDATA.3
- docs/libcurl/opts/CURLOPT_PREREQFUNCTION.3
-Copyright: 2022, Max Dymond, <max.dymond@microsoft.com>, et al.
 License: curl
 
 Files: lib/vtls/bearssl.c

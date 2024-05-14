@@ -91,6 +91,12 @@ endif
 # -n disables valgrind usage
 TESTS_GENERAL_PARAMETERS += -n
 
+# -j parallel tests: https://daniel.haxx.se/blog/2023/06/08/parallel-curl-tests/
+ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
+  NUMJOBS = $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
+  TESTS_GENERAL_PARAMETERS += -j$(shell echo $$(( $(NUMJOBS) * 7 )))
+endif
+
 # These tests fail if a IPv6-only builder is used:
 # https://bugs.debian.org/1032343
 # https://github.com/curl/curl/issues/10682
@@ -100,6 +106,9 @@ TESTS_GENERAL_PARAMETERS += $(TESTS_FAILS_ON_IPV6_ONLY_MACHINES)
 
 override_dh_auto_test:
 ifeq ($(filter nocheck,$(DEB_BUILD_PROFILES)),)
+ifeq ($(DEB_HOST_ARCH_BITS)$(filter i386,$(DEB_HOST_ARCH_CPU)),32)
+	: # TODO: Tests temporarily skipped for 64-bit time_t transition
+else
 ifeq ($(filter pkg.curl.no-openssl,$(DEB_BUILD_PROFILES)),)
 # OpenSSL tests.
 	cd debian/build && VERBOSE=1 \
@@ -111,6 +120,7 @@ ifeq ($(filter pkg.curl.no-gnutls,$(DEB_BUILD_PROFILES)),)
 	cd debian/build-gnutls && VERBOSE=1 \
 		TFLAGS="$(TESTS_GENERAL_PARAMETERS)" \
 		$(MAKE) test-nonflaky
+endif
 endif
 endif
 
@@ -125,11 +135,11 @@ ifeq ($(filter pkg.curl.no-gnutls,$(DEB_BUILD_PROFILES)),)
 endif
 	find debian/tmp* -name '*.la' -delete
 ifeq ($(filter pkg.curl.no-openssl,$(DEB_BUILD_PROFILES)),)
-	dh_install -pcurl -plibcurl4 -plibcurl4-openssl-dev -plibcurl4-doc \
+	dh_install -pcurl -plibcurl4t64 -plibcurl4-openssl-dev -plibcurl4-doc \
 		--sourcedir=debian/tmp
 endif
 ifeq ($(filter pkg.curl.no-gnutls,$(DEB_BUILD_PROFILES)),)
-	dh_install -plibcurl3-gnutls -plibcurl4-gnutls-dev	\
+	dh_install -plibcurl3t64-gnutls -plibcurl4-gnutls-dev	\
 		--sourcedir=debian/tmp-gnutls
 endif
 # Modify curl-config to make it architecture-independent:
@@ -155,18 +165,19 @@ endif
 # 5. Remove -D_DEB_HOST_ARCH from CFLAGS.  This is a (hopefully
 #    temporary) hack needed to properly build curl with NSS PEM
 #    support in Debian.
+# 6. CFLAGS also contain some arch specific hardening flags so we
+#    replace it with dpkg-buildflags call.
 	sed -e "/-lcurl /s|`krb5-config --libs gssapi`|\`krb5-config --libs gssapi\`|" \
-	    -e "/--prefix/s|/$(DEB_HOST_MULTIARCH)'|/'\\\\\`dpkg-architecture -qDEB_HOST_MULTIARCH\\\\\`|g" \
-	    -e "/--prefix/s|=$(DEB_BUILD_GNU_TYPE)'|='\\\\\`dpkg-architecture -qDEB_BUILD_GNU_TYPE\\\\\`|g" \
+	    -e "/--prefix/s|/$(DEB_HOST_MULTIARCH)'|/\\\`dpkg-architecture -qDEB_HOST_MULTIARCH\\\`'|g" \
+	    -e "/--prefix/s|=$(DEB_BUILD_GNU_TYPE)'|=\\\`dpkg-architecture -qDEB_BUILD_GNU_TYPE\\\`'|g" \
 	    -e "/-fdebug-prefix-map=/s|\(-fdebug-prefix-map=\)/[^ ]*=.||" \
-	    -e "/-ffile-prefix-map=/s|\(-ffile-prefix-map=\)/[^ ]*=.||" \
+	    -e "/CFLAGS/s|CFLAGS=.\+\(-DCURL_PATCHSTAMP\)|CFLAGS=\\\`dpkg-buildflags --get CFLAGS \| sed -e \"/-ffile-prefix-map=/s\|\\\\(-ffile-prefix-map=\\\\)/[^ ]*=.\|\|\"\\\` \1|" \
 	    -e "/-D_DEB_HOST_ARCH=/s|-D_DEB_HOST_ARCH=\\\\\"[^ ']*\\\\\"||" \
 	    -i `find . -name curl-config`
 # When we get here, everything has been properly installed.  Because
 # of debhelper-compat 13, we have to remove some files that are
 # otherwise flagged as not installed and will cause the build to fail.
-	rm -rfv debian/tmp/usr/share/man/* \
-		debian/tmp/usr/share/fish/* \
+	rm -rfv debian/tmp/usr/share/fish/* \
 		debian/tmp/usr/share/aclocal/*
 
 override_dh_installchangelogs:

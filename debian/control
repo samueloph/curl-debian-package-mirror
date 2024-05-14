@@ -5,7 +5,7 @@ Maintainer: Debian Curl Maintainers <team+curl@tracker.debian.org>
 Uploaders: Carlos Henrique Lima Melara <charlesmelara@riseup.net>,
            Samuel Henrique <samueloph@debian.org>,
            Sergio Durigan Junior <sergiodj@debian.org>
-Build-Depends:
+Build-Depends: dpkg-dev (>= 1.22.5),
  debhelper-compat (= 13),
  autoconf,
  automake,
@@ -16,7 +16,7 @@ Build-Depends:
  libgnutls28-dev,
  libidn2-dev,
  libkrb5-dev,
- libldap2-dev,
+ libldap2-dev [!armel !armhf !hppa !m68k !powerpc !sh4] <!pkg.curl.noldap>,
  libnghttp2-dev,
  libpsl-dev,
  librtmp-dev,
@@ -25,13 +25,13 @@ Build-Depends:
  libssl-dev,
  libtool,
  libzstd-dev,
- locales-all <!nocheck>,
- openssh-server <!nocheck>,
- python3:native <!nocheck>,
- python3-impacket <!nocheck>,
- gnutls-bin [amd64 arm64 armel armhf i386 mips64el mipsel s390x powerpc ppc64 riscv64] <!nocheck>,
+ locales-all [!armel !armhf !hppa !m68k !powerpc !sh4] <!nocheck>,
+ openssh-server [!armel !armhf !hppa !m68k !powerpc !sh4] <!nocheck>,
+ python3:native [!armel !armhf !hppa !m68k !powerpc !sh4] <!nocheck>,
+ python3-impacket [!armel !armhf !hppa !m68k !powerpc !sh4] <!nocheck>,
+ gnutls-bin [!armel !armhf !hppa !m68k !powerpc !sh4 !ppc64el] <!nocheck>,
  quilt,
- stunnel4 <!nocheck>,
+ stunnel4 [!armel !armhf !hppa !m68k !powerpc !sh4] <!nocheck>,
  zlib1g-dev,
 Build-Conflicts: autoconf2.13, automake1.4
 Standards-Version: 4.6.2
@@ -42,7 +42,7 @@ Rules-Requires-Root: no
 
 Package: curl
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libcurl4 (= ${binary:Version})
+Depends: ${shlibs:Depends}, ${misc:Depends}, libcurl4t64 (= ${binary:Version})
 Multi-Arch: foreign
 Description: command line tool for transferring data with URL syntax
  curl is a command line tool for transferring data with URL syntax, supporting
@@ -54,14 +54,17 @@ Description: command line tool for transferring data with URL syntax
  NTLM, Negotiate, kerberos...), file transfer resume, proxy tunneling and a
  busload of other useful tricks.
 
-Package: libcurl4
+Package: libcurl4t64
+Provides: ${t64:Provides}
+X-Time64-Compat: libcurl4
+Breaks: libcurl4 (<< ${source:Version})
 Architecture: any
 Section: libs
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Recommends: ca-certificates
 Pre-Depends: ${misc:Pre-Depends}
 Conflicts: libcurl3
-Replaces: libcurl3
+Replaces: libcurl4, libcurl3
 Multi-Arch: same
 Description: easy-to-use client-side URL transfer library (OpenSSL flavour)
  libcurl is an easy-to-use client-side URL transfer library, supporting DICT,
@@ -79,7 +82,11 @@ Description: easy-to-use client-side URL transfer library (OpenSSL flavour)
  .
  SSL support is provided by OpenSSL.
 
-Package: libcurl3-gnutls
+Package: libcurl3t64-gnutls
+Provides: ${t64:Provides}
+X-Time64-Compat: libcurl3-gnutls
+Replaces: libcurl3-gnutls
+Breaks: libcurl3-gnutls (<< ${source:Version})
 Architecture: any
 Section: libs
 Depends: ${shlibs:Depends}, ${misc:Depends}
@@ -111,15 +118,16 @@ Provides: libcurl-dev,
  libcurl4-dev,
  libcurl3-dev
 Conflicts: libcurl4-gnutls-dev, libssl1.0-dev
-Depends: ${misc:Depends}, libcurl4 (= ${binary:Version})
-Suggests: libcurl4-doc,
+Depends: ${misc:Depends}, libcurl4t64 (= ${binary:Version})
+Suggests: dpkg-dev,
+ libcurl4-doc,
  libidn-dev,
  libkrb5-dev,
  libldap2-dev,
  librtmp-dev,
  libssh2-1-dev,
  libssl-dev,
- pkg-config,
+ pkgconf,
  zlib1g-dev
 Multi-Arch: same
 Description: development files and documentation for libcurl (OpenSSL flavour)
@@ -149,15 +157,16 @@ Provides: libcurl-dev,
  libcurl3-gnutls-dev,
  libcurl4-dev
 Conflicts: libcurl4-openssl-dev
-Depends: ${misc:Depends}, libcurl3-gnutls (= ${binary:Version})
-Suggests: libcurl4-doc,
+Depends: ${misc:Depends}, libcurl3t64-gnutls (= ${binary:Version})
+Suggests: dpkg-dev,
+ libcurl4-doc,
  libgnutls28-dev,
  libidn-dev,
  libkrb5-dev,
  libldap2-dev,
  librtmp-dev,
  libssh2-1-dev,
- pkg-config,
+ pkgconf,
  zlib1g-dev
 Multi-Arch: same
 Description: development files and documentation for libcurl (GnuTLS flavour)
