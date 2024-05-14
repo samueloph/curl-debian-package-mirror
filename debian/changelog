@@ -1,3 +1,12 @@
+curl (8.7.1-5~bpo12+1) bookworm-backports; urgency=medium
+
+  * Team upload.
+  * Rebuild for bookworm-backports.
+  * Revert "Import Debian changes 8.6.0-3.1". This reverts changes related to
+    the time_t migration.
+
+ -- Guilherme Puida Moreira <guilherme@puida.xyz>  Tue, 14 May 2024 18:24:48 -0300
+
 curl (8.7.1-5) unstable; urgency=high
 
   * d/p/content_encoding_brotli_and_others...patch: New patch to fix an
