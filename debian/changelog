@@ -1,4 +1,4 @@
-curl (8.8.0-1~exp1) experimental; urgency=medium
+curl (8.8.0-1+exp1) experimental; urgency=medium
 
   * Build libcurl-gnutls with HTTP3 support (build-dep on nghttp3 and ngtcp2)
   * Build libcurl-gnutls with ca-bundle=/etc/ssl/certs/ca-certificates.crt
