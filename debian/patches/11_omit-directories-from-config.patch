@@ -13,49 +13,50 @@ header and library directories are architecture-dependent, but will always be
 in the C compiler's default search path, so -I and -L options are not
 necessary (and may be harmful in multi-arch environments.)
 ---
- curl-config.in | 15 +++------------
- 1 file changed, 3 insertions(+), 12 deletions(-)
+ curl-config.in | 16 +++-------------
+ 1 file changed, 3 insertions(+), 13 deletions(-)
 
 diff --git a/curl-config.in b/curl-config.in
-index 54f92d9..9df72f1 100644
+index 085bb1e..d90bfbc 100644
 --- a/curl-config.in
 +++ b/curl-config.in
-@@ -25,7 +25,6 @@
- 
- prefix="@prefix@"
+@@ -27,8 +27,6 @@ prefix="@prefix@"
+ # Used in @libdir@
+ # shellcheck disable=SC2034
  exec_prefix=@exec_prefix@
+-# shellcheck disable=SC2034
 -includedir=@includedir@
  cppflag_curl_staticlib=@CPPFLAG_CURL_STATICLIB@
  
  usage()
-@@ -149,19 +148,11 @@ while test $# -gt 0; do
-         else
-           CPPFLAG_CURL_STATICLIB=""
-         fi
--        if test "X@includedir@" = "X/usr/include"; then
--          echo "$CPPFLAG_CURL_STATICLIB"
--        else
--          echo "${CPPFLAG_CURL_STATICLIB}-I@includedir@"
--        fi
-+        echo "$CPPFLAG_CURL_STATICLIB"
-         ;;
+@@ -145,19 +143,11 @@ while test "$#" -gt 0; do
+     else
+       CPPFLAG_CURL_STATICLIB=""
+     fi
+-    if test "X@includedir@" = "X/usr/include"; then
+-      echo "${CPPFLAG_CURL_STATICLIB}"
+-    else
+-      echo "${CPPFLAG_CURL_STATICLIB}-I@includedir@"
+-    fi
++    echo "${CPPFLAG_CURL_STATICLIB}"
+     ;;
  
-     --libs)
--        if test "X@libdir@" != "X/usr/lib" -a "X@libdir@" != "X/usr/lib64"; then
--           CURLLIBDIR="-L@libdir@ "
--        else
--           CURLLIBDIR=""
--        fi
-+        CURLLIBDIR=""
-         if test "X@ENABLE_SHARED@" = "Xno"; then
-           echo ${CURLLIBDIR}-lcurl @LIBCURL_LIBS@
-         else
-@@ -174,7 +165,7 @@ while test $# -gt 0; do
+   --libs)
+-    if test "X@libdir@" != "X/usr/lib" -a "X@libdir@" != "X/usr/lib64"; then
+-      CURLLIBDIR="-L@libdir@ "
+-    else
+-      CURLLIBDIR=""
+-    fi
++    CURLLIBDIR=""
+     if test "X@ENABLE_SHARED@" = "Xno"; then
+       echo "${CURLLIBDIR}-lcurl @LIBCURL_LIBS@"
+     else
+@@ -171,7 +161,7 @@ while test "$#" -gt 0; do
  
-     --static-libs)
-         if test "X@ENABLE_STATIC@" != "Xno" ; then
--          echo "@libdir@/libcurl.@libext@" @LDFLAGS@ @LIBCURL_LIBS@
-+          echo -Wl,-Bstatic -lcurl -Wl,-Bdynamic @LDFLAGS@ @LIBCURL_LIBS@
-         else
-           echo "curl was built with static libraries disabled" >&2
-           exit 1
+   --static-libs)
+     if test "X@ENABLE_STATIC@" != "Xno" ; then
+-      echo "@libdir@/libcurl.@libext@" @LDFLAGS@ @LIBCURL_LIBS@
++      echo -Wl,-Bstatic -lcurl -Wl,-Bdynamic @LDFLAGS@ @LIBCURL_LIBS@
+     else
+       echo 'curl was built with static libraries disabled' >&2
+       exit 1

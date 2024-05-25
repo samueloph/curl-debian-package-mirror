@@ -1,3 +1,14 @@
+curl (8.8.0-1) unstable; urgency=medium
+
+  * New upstream version 8.8.0
+  * Refresh patches
+  * Revert "Temporarily disable LDAP support on 32-bit non-x86"
+  * d/patches: Drop merged patches
+  * d/p/docs_makefile...: Upstream patch to fix curl-config regression
+  * d/libcurl*.symbols: Add new symbol curl_multi_waitfds
+
+ -- Samuel Henrique <samueloph@debian.org>  Wed, 22 May 2024 22:22:28 +0100
+
 curl (8.7.1-5~bpo12+1) bookworm-backports; urgency=medium
 
   * Team upload.

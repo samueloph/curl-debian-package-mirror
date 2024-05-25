@@ -16,7 +16,7 @@ Build-Depends:
  libgnutls28-dev,
  libidn2-dev,
  libkrb5-dev,
- libldap2-dev [!armel !armhf !hppa !m68k !powerpc !sh4] <!pkg.curl.noldap>,
+ libldap2-dev <!pkg.curl.noldap>,
  libnghttp2-dev,
  libpsl-dev,
  librtmp-dev,

@@ -12,10 +12,10 @@ Last-Update: 2016-08-03
  1 file changed, 14 insertions(+)
 
 diff --git a/ltmain.sh b/ltmain.sh
-index 1dea62a..abf6724 100755
+index 9b12fbb..23603ae 100755
 --- a/ltmain.sh
 +++ b/ltmain.sh
-@@ -7488,6 +7488,11 @@ func_mode_link ()
+@@ -7500,6 +7500,11 @@ func_mode_link ()
  	arg=$func_stripname_result
  	;;
  
@@ -27,7 +27,7 @@ index 1dea62a..abf6724 100755
        -Wl,*)
  	func_stripname '-Wl,' '' "$arg"
  	args=$func_stripname_result
-@@ -7887,6 +7892,15 @@ func_mode_link ()
+@@ -7899,6 +7904,15 @@ func_mode_link ()
  	lib=
  	found=false
  	case $deplib in
