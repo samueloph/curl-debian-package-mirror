@@ -1,3 +1,10 @@
+curl (8.8.0-1~exp1) experimental; urgency=medium
+
+  * Build libcurl-gnutls with HTTP3 support (build-dep on nghttp3 and ngtcp2)
+  * Build libcurl-gnutls with ca-bundle=/etc/ssl/certs/ca-certificates.crt
+
+ -- Samuel Henrique <samueloph@debian.org>  Sat, 25 May 2024 22:51:59 +0100
+
 curl (8.8.0-1) unstable; urgency=medium
 
   * New upstream version 8.8.0
