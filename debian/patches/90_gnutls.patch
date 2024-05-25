@@ -12,9 +12,9 @@ Last-Update: 2018-05-23
  lib/libcurl.vers.in            |  2 +-
  src/Makefile.am                |  4 ++--
  tests/http/clients/Makefile.am |  4 ++--
- tests/http/clients/Makefile.in | 32 ++++++++++++++++----------------
+ tests/http/clients/Makefile.in | 36 ++++++++++++++++++------------------
  tests/libtest/Makefile.am      |  8 ++++----
- 7 files changed, 48 insertions(+), 48 deletions(-)
+ 7 files changed, 50 insertions(+), 50 deletions(-)
 
 diff --git a/docs/examples/Makefile.am b/docs/examples/Makefile.am
 index 80ccc59..750000e 100644
@@ -33,19 +33,19 @@ index 80ccc59..750000e 100644
  
  # This might hold -Werror
 diff --git a/lib/Makefile.am b/lib/Makefile.am
-index 1237c8e..aad6b88 100644
+index 96afc59..7708220 100644
 --- a/lib/Makefile.am
 +++ b/lib/Makefile.am
-@@ -31,7 +31,7 @@ EXTRA_DIST = Makefile.mk config-win32.h config-win32ce.h config-plan9.h    \
-  config-os400.h setup-os400.h $(CMAKE_DIST) setup-win32.h .checksrc \
-  Makefile.soname
+@@ -30,7 +30,7 @@ EXTRA_DIST = Makefile.mk config-win32.h config-win32ce.h config-plan9.h \
+  config-amigaos.h config-win32ce.h config-os400.h setup-os400.h         \
+  $(CMAKE_DIST) setup-win32.h .checksrc Makefile.soname
  
 -lib_LTLIBRARIES = libcurl.la
 +lib_LTLIBRARIES = libcurl-gnutls.la
  
  if BUILD_UNITTESTS
  noinst_LTLIBRARIES = libcurlu.la
-@@ -67,55 +67,55 @@ AM_CFLAGS =
+@@ -66,55 +66,55 @@ AM_CFLAGS =
  # Makefile.inc provides the CSOURCES and HHEADERS defines
  include Makefile.inc
  
@@ -135,7 +135,7 @@ index ae978a4..bce5633 100644
    global: curl_*;
    local: *;
 diff --git a/src/Makefile.am b/src/Makefile.am
-index fcc9cfd..ebca953 100644
+index 3bf57d3..e0aaa48 100644
 --- a/src/Makefile.am
 +++ b/src/Makefile.am
 @@ -72,9 +72,9 @@ CFLAGS += @CURL_CFLAG_EXTRAS@
@@ -167,7 +167,7 @@ index 8fdc190..ddc9be4 100644
  
  # This might hold -Werror
 diff --git a/tests/http/clients/Makefile.in b/tests/http/clients/Makefile.in
-index 4be3b4c..b86b58a 100644
+index 70ef7b3..3cf9cf0 100644
 --- a/tests/http/clients/Makefile.in
 +++ b/tests/http/clients/Makefile.in
 @@ -179,9 +179,9 @@ h2_download_SOURCES = h2-download.c
@@ -182,7 +182,7 @@ index 4be3b4c..b86b58a 100644
  AM_V_lt = $(am__v_lt_@AM_V@)
  am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
  am__v_lt_0 = --silent
-@@ -190,44 +190,44 @@ h2_pausing_SOURCES = h2-pausing.c
+@@ -190,51 +190,51 @@ h2_pausing_SOURCES = h2-pausing.c
  h2_pausing_OBJECTS = h2-pausing.$(OBJEXT)
  h2_pausing_LDADD = $(LDADD)
  @USE_EXPLICIT_LIB_DEPS_FALSE@h2_pausing_DEPENDENCIES =  \
@@ -218,6 +218,15 @@ index 4be3b4c..b86b58a 100644
  @USE_EXPLICIT_LIB_DEPS_TRUE@tls_session_reuse_DEPENDENCIES =  \
 -@USE_EXPLICIT_LIB_DEPS_TRUE@	$(LIBDIR)/libcurl.la
 +@USE_EXPLICIT_LIB_DEPS_TRUE@	$(LIBDIR)/libcurl-gnutls.la
+ upload_pausing_SOURCES = upload-pausing.c
+ upload_pausing_OBJECTS = upload-pausing.$(OBJEXT)
+ upload_pausing_LDADD = $(LDADD)
+ @USE_EXPLICIT_LIB_DEPS_FALSE@upload_pausing_DEPENDENCIES =  \
+-@USE_EXPLICIT_LIB_DEPS_FALSE@	$(LIBDIR)/libcurl.la
++@USE_EXPLICIT_LIB_DEPS_FALSE@	$(LIBDIR)/libcurl-gnutls.la
+ @USE_EXPLICIT_LIB_DEPS_TRUE@upload_pausing_DEPENDENCIES =  \
+-@USE_EXPLICIT_LIB_DEPS_TRUE@	$(LIBDIR)/libcurl.la
++@USE_EXPLICIT_LIB_DEPS_TRUE@	$(LIBDIR)/libcurl-gnutls.la
  ws_data_SOURCES = ws-data.c
  ws_data_OBJECTS = ws-data.$(OBJEXT)
  ws_data_LDADD = $(LDADD)
@@ -239,7 +248,7 @@ index 4be3b4c..b86b58a 100644
  AM_V_P = $(am__v_P_@AM_V@)
  am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
  am__v_P_0 = false
-@@ -540,10 +540,10 @@ AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_builddir)/lib \
+@@ -547,10 +547,10 @@ AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_builddir)/lib \
  	-I$(top_srcdir)/lib -DCURL_DISABLE_DEPRECATION \
  	-DCURL_NO_OLDIES $(am__append_1)
  LIBDIR = $(top_builddir)/lib
