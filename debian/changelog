@@ -1,3 +1,10 @@
+curl (8.8.0-1+exp2) experimental; urgency=medium
+
+  * Switch curl package/binary to use gnutls, now with HTTP3 support
+  * d/rules: Build with websockets support
+
+ -- Samuel Henrique <samueloph@debian.org>  Sun, 09 Jun 2024 11:51:44 +0100
+
 curl (8.8.0-1+exp1) experimental; urgency=medium
 
   * Build libcurl-gnutls with HTTP3 support (build-dep on nghttp3 and ngtcp2)
