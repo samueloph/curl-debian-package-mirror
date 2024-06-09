@@ -16,6 +16,7 @@ CONFIGURE_ARGS = -- --disable-dependency-tracking		\
 	--with-gssapi=/usr --with-nghttp2	\
 	--includedir=/usr/include/$(DEB_HOST_MULTIARCH)		\
 	--with-zsh-functions-dir=/usr/share/zsh/vendor-completions \
+	--with-fish-functions-dir=/usr/share/fish/vendor_completions.d \
 	--with-ca-path=/etc/ssl/certs \
 	--with-ca-bundle=/etc/ssl/certs/ca-certificates.crt
 
@@ -181,8 +182,7 @@ endif
 # When we get here, everything has been properly installed.  Because
 # of debhelper-compat 13, we have to remove some files that are
 # otherwise flagged as not installed and will cause the build to fail.
-	rm -rfv debian/tmp/usr/share/fish/* \
-		debian/tmp/usr/share/aclocal/*
+	rm -rfv debian/tmp/usr/share/aclocal/*
 
 override_dh_installchangelogs:
 	dh_installchangelogs CHANGES
