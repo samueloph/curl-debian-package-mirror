@@ -45,7 +45,7 @@ Rules-Requires-Root: no
 
 Package: curl
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libcurl4t64 (= ${binary:Version})
+Depends: ${shlibs:Depends}, ${misc:Depends}, libcurl3t64-gnutls (= ${binary:Version})
 Multi-Arch: foreign
 Description: command line tool for transferring data with URL syntax
  curl is a command line tool for transferring data with URL syntax, supporting

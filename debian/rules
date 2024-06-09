@@ -139,11 +139,11 @@ ifeq ($(filter pkg.curl.no-gnutls,$(DEB_BUILD_PROFILES)),)
 endif
 	find debian/tmp* -name '*.la' -delete
 ifeq ($(filter pkg.curl.no-openssl,$(DEB_BUILD_PROFILES)),)
-	dh_install -pcurl -plibcurl4t64 -plibcurl4-openssl-dev -plibcurl4-doc \
+	dh_install -plibcurl4t64 -plibcurl4-openssl-dev -plibcurl4-doc \
 		--sourcedir=debian/tmp
 endif
 ifeq ($(filter pkg.curl.no-gnutls,$(DEB_BUILD_PROFILES)),)
-	dh_install -plibcurl3t64-gnutls -plibcurl4-gnutls-dev	\
+	dh_install -pcurl -plibcurl3t64-gnutls -plibcurl4-gnutls-dev	\
 		--sourcedir=debian/tmp-gnutls
 endif
 # Modify curl-config to make it architecture-independent:
