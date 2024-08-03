@@ -72,6 +72,7 @@ CVE-2023-28321.patch
 0073-psl-use-latest-psl-and-refresh-it-periodically.patch
 time_t_max.patch
 0074-CVE-2023-46218-cookie-lowercase-the-domain-names-bef.patch
+CVE-2024-7264.patch
 # Always add CVE patches before these two patches
 90_gnutls.patch
 99_nss.patch
