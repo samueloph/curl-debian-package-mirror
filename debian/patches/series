@@ -51,7 +51,8 @@ debian-bug-926148.patch
 0004-strcase-turn-Curl_raw_tolower-into-static.patch
 0005-cookie-lowercase-the-domain-names-before-PSL-checks.patch
 CVE-2023-27534.patch
+CVE-2024-7264.patch
 
-# Always add CVE patches before these two patches
+# Always add patches before this line!
 90_gnutls.patch
 99_nss.patch
