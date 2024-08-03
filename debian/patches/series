@@ -50,7 +50,37 @@
 51_CVE-2019-3823.patch
 52_CVE-2019-5436.patch
 53_CVE-2019-5482.patch
+54_CVE-2020-8177.patch
+55_CVE-2020-8231.patch
+56_CVE-2020-8284.patch
+57_CVE-2020-8285.patch
+urlapi.patch
+CVE-2021-22876.patch
+0001-telnet-check-sscanf-for-correct-number-of-matches.patch
+0002-telnet-fix-option-parser-to-not-send-uninitialized-c.patch
+CVE-2021-22946.patch
+CVE-2021-22947.patch
+CVE-2022-22576.patch
+CVE-2022-27776.patch
+CVE-2022-27781.patch
+CVE-2022-32208.patch
+CVE-2022-27774_1_of_4.patch
+CVE-2022-27774_2_of_4.patch
+CVE-2022-27774_3_of_4.patch
+CVE-2022-27774_4_of_4.patch
+CVE-2022-27782-part1.patch
+CVE-2022-27782-part2.patch
+CVE-2022-32221.patch
+cookie-reject-cookies-with-control-bytes.patch
+test8-verify-that-ctrl-byte-cookies-are-ignored.patch
+CVE-2022-43552.patch
+CVE-2023-27533.patch
+CVE-2023-27535.patch
+CVE-2023-27536.patch
+CVE-2023-27538.patch
+CVE-2023-38546.patch
+CVE-2024-7264.patch
 
-# do not add patches below
+# Always add CVE patches before these two patches
 90_gnutls.patch
 99_nss.patch
