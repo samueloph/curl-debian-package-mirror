@@ -1,3 +1,10 @@
+curl (7.88.1-10+deb12u7) bookworm; urgency=medium
+
+  * debian/patches/CVE-2024-7264*: import and backport upstream patches to fix
+    CVE-2024-7264 - ASN.1 date parser overread. (Closes: #1077656)
+
+ -- Carlos Henrique Lima Melara <charlesmelara@riseup.net>  Sat, 17 Aug 2024 14:06:29 -0300
+
 curl (7.88.1-10+deb12u6) bookworm; urgency=medium
 
   * Team upload.
