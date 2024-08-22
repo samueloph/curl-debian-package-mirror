@@ -51,6 +51,10 @@ CVE-2023-46218.patch
 # Patches from 8.7.0.
 CVE-2024-2398.patch
 
+# Patches from 8.9.1.
+CVE-2024-7264-0.patch
+CVE-2024-7264-1.patch
+
 # Always add CVE patches before these two patches
 90_gnutls.patch
 99_nss.patch
