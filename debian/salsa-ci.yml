@@ -3,4 +3,4 @@ include:
   - https://salsa.debian.org/salsa-ci-team/pipeline/raw/master/recipes/debian.yml
 
 variables:
-  DEB_BUILD_OPTIONS: nocheck
+  SALSA_CI_DPKG_BUILDPACKAGE_ARGS: --build-profiles=nocheck

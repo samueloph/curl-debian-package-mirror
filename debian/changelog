@@ -1,3 +1,101 @@
+curl (8.9.1-2) unstable; urgency=medium
+
+  [ Steve McIntyre ]
+  * Improve the patch for the gnutls build. Instead of calling quilt
+    during the binary package build, use autotools to do the work we
+    need when calling configure etc. Closes: #1077650
+
+  [ Carlos Henrique Lima Melara ]
+  * debian/control: bump Standards-Version to 4.7.0, no changes needed.
+  * debian/patches/ignore-SIGPIPE-after-init.patch: add new patch from
+    upstream. (Closes: #1077854)
+  * debian/tests/build-using-libcurl*: add tests to check if libcurl headers
+    and pkgconf info are correct.
+
+ -- Carlos Henrique Lima Melara <charlesmelara@riseup.net>  Fri, 09 Aug 2024 19:47:58 -0300
+
+curl (8.9.1-1) unstable; urgency=medium
+
+  * New upstream version 8.9.1. (Closes: 1077656)
+    - fix CVE-2024-7264: ASN.1 date parser overread.
+  * debian/patch/build-Divide-mit-[...].patch: refresh patch.
+
+ -- Carlos Henrique Lima Melara <charlesmelara@riseup.net>  Wed, 31 Jul 2024 22:12:06 +0900
+
+curl (8.9.0-3) unstable; urgency=medium
+
+  * debian/control: make libcurl*-dev packages Depends on -dev packages.
+    (Closes: #1077197, #1077190)
+  * debian/rules: decrease tests parallelism multiplier.
+
+ -- Carlos Henrique Lima Melara <charlesmelara@riseup.net>  Sun, 28 Jul 2024 19:26:49 +0900
+
+curl (8.9.0-2) unstable; urgency=medium
+
+  * debian/control: make libcurl*-dev packages Recommends -dev packages.
+    (Closes: #1077197, #1077190)
+
+ -- Carlos Henrique Lima Melara <charlesmelara@riseup.net>  Sat, 27 Jul 2024 12:53:28 +0900
+
+curl (8.9.0-1) unstable; urgency=medium
+
+  [ Samuel Henrique ]
+  * debian/curl.NEWS: Update wcurl description.
+
+  [ Carlos Henrique Lima Melara ]
+  * New upstream version 8.9.0. (Closes: #1076996)
+    - fix CVE-2024-6197: freeing stack buffer in utf8asn1str.
+    - fix CVE-2024-6874: macidn punycode buffer overread.
+  * debian/copyright: drop copyright from removed file.
+  * debian/patches/: drop merged patches and refresh patches against new
+    upstream release.
+      - docs_makefile_am_make_curl_config_1_install.patch: drop.
+      - fix-x509asn1-fallback-to-dotted-OID-representation.patch: drop.
+  * debian/gbp.conf: add upstream-branch definition.
+
+ -- Carlos Henrique Lima Melara <charlesmelara@riseup.net>  Thu, 25 Jul 2024 22:14:54 +0900
+
+curl (8.8.0-4) unstable; urgency=medium
+
+  [ Adrian Bunk ]
+  * Revert "Temporarily disable build-time tests on 32-bit non-x86"
+  * Don't use python3-impacket on non-Rust architectures that lack
+    python-cryptography
+
+  [ Lev Lazinskiy ]
+  * Use SALSA_CI_DPKG_BUILDPACKAGE_ARGS in pipeline
+
+  [ Samuel Henrique ]
+  * Update wcurl to 2024.07.10
+
+ -- Samuel Henrique <samueloph@debian.org>  Wed, 10 Jul 2024 22:36:04 +0100
+
+curl (8.8.0-3) unstable; urgency=medium
+
+  [ Carlos Henrique Lima Melara ]
+  * d/p/fix-x509asn1-fallback-to-dotted-OID-representation.patch: add patch
+    (Closes: #1075796)
+  * d/p/11_omit-directories-from-config.patch: update to remove new issue
+    (Closes: #1075802)
+  * d/p/04_workaround_as_needed_bug.patch: drop patch, not needed anymore
+
+  [ Samuel Henrique ]
+  * Update wcurl to 2024-07-07
+
+ -- Samuel Henrique <samueloph@debian.org>  Sun, 07 Jul 2024 00:42:42 +0100
+
+curl (8.8.0-2) unstable; urgency=medium
+
+  * curl.NEWS: Announce switch to GnuTLS, HTTP3 support and wcurl
+  * Switch curl package/binary to use gnutls, now with HTTP3 support
+  * Build libcurl-gnutls with HTTP3 support (build-dep on nghttp3 and ngtcp2)
+  * Build libcurl-gnutls with ca-bundle=/etc/ssl/certs/ca-certificates.crt
+  * Build with websockets support
+  * Ship fish completion file
+  * Ship wcurl and its manpage
+
+ -- Samuel Henrique <samueloph@debian.org>  Sun, 30 Jun 2024 13:53:05 +0100
+
 curl (8.8.0-1~bpo12+1) bookworm-backports; urgency=medium
 
   * Rebuild for bookworm-backports.
