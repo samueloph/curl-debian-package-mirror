@@ -7,7 +7,7 @@ Bug-Debian: https://bugs.debian.org/731998
 Bug-Debian: https://bugs.debian.org/1075802
 Forwarded: not-needed
 Reviewed-by: Alessandro Ghedini <ghedo@debian.org>
-Last-Update: 2024-07-05
+Last-Update: 2024-09-11
 
 mention of @includedir@ and @libdir@ from the script.  On Debian, the actual
 header and library directories are architecture-dependent, but will always be
@@ -18,7 +18,7 @@ necessary (and may be harmful in multi-arch environments.)
  1 file changed, 3 insertions(+), 14 deletions(-)
 
 diff --git a/curl-config.in b/curl-config.in
-index 5d40bc3..5d43548 100644
+index 294e083..4e37a0a 100644
 --- a/curl-config.in
 +++ b/curl-config.in
 @@ -26,11 +26,8 @@
@@ -30,7 +30,7 @@ index 5d40bc3..5d43548 100644
  exec_prefix=@exec_prefix@
 -# shellcheck disable=SC2034
 -includedir=@includedir@
- cppflag_curl_staticlib=@CPPFLAG_CURL_STATICLIB@
+ cppflag_curl_staticlib=@LIBCURL_PC_CFLAGS@
  
  usage()
 @@ -147,19 +144,11 @@ while test "$#" -gt 0; do
@@ -53,14 +53,14 @@ index 5d40bc3..5d43548 100644
 -    fi
 +    CURLLIBDIR=""
      if test "X@ENABLE_SHARED@" = "Xno"; then
-       echo "${CURLLIBDIR}-lcurl @LIBCURL_LIBS@"
+       echo "${CURLLIBDIR}-lcurl @LIBCURL_PC_LIBS_PRIVATE@"
      else
 @@ -173,7 +162,7 @@ while test "$#" -gt 0; do
  
    --static-libs)
      if test "X@ENABLE_STATIC@" != "Xno" ; then
--      echo "@libdir@/libcurl.@libext@" @LDFLAGS@ @LIBCURL_LIBS@
-+      echo -Wl,-Bstatic -lcurl -Wl,-Bdynamic @LDFLAGS@ @LIBCURL_LIBS@
+-      echo "@libdir@/libcurl.@libext@" @LDFLAGS@ @LIBCURL_PC_LIBS_PRIVATE@
++      echo -Wl,-Bstatic -lcurl -Wl,-Bdynamic @LDFLAGS@ @LIBCURL_PC_LIBS_PRIVATE@
      else
        echo 'curl was built with static libraries disabled' >&2
        exit 1

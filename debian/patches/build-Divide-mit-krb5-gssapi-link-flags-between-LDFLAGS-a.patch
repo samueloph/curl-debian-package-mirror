@@ -17,16 +17,16 @@ Signed-off-by: Simon McVittie <smcv@collabora.com>
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/configure.ac b/configure.ac
-index 1e18b81..6628d01 100644
+index b87b7cf..dcd8ad6 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -1927,7 +1927,8 @@ if test x"$want_gss" = xyes; then
-            gss_libs=`$GSSAPI_ROOT/bin/$host_alias-krb5-config --libs gssapi`
-            LIBS="$gss_libs $LIBS"
-         elif test "$PKGCONFIG" != "no" ; then
--           gss_libs=`$PKGCONFIG --libs mit-krb5-gssapi`
-+           LDFLAGS="$LDFLAGS `$PKGCONFIG --libs-only-L mit-krb5-gssapi`"
-+           gss_libs=`$PKGCONFIG --libs-only-l mit-krb5-gssapi`
-            LIBS="$gss_libs $LIBS"
+@@ -1958,7 +1958,8 @@ if test x"$want_gss" = xyes; then
+           gss_libs=`$GSSAPI_ROOT/bin/$host_alias-krb5-config --libs gssapi`
+           LIBS="$gss_libs $LIBS"
+         elif test "$PKGCONFIG" != "no"; then
+-          gss_libs=`$PKGCONFIG --libs mit-krb5-gssapi`
++          LDFLAGS="$LDFLAGS `$PKGCONFIG --libs-only-L mit-krb5-gssapi`"
++          gss_libs=`$PKGCONFIG --libs-only-l mit-krb5-gssapi`
+           LIBS="$gss_libs $LIBS"
          elif test -f "$KRB5CONFIG"; then
-            dnl krb5-config doesn't have --libs-only-L or similar, put everything
+           dnl krb5-config doesn't have --libs-only-L or similar, put everything

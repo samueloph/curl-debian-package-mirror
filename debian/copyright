@@ -239,11 +239,6 @@ Copyright: 2010, Howard Chu, <hyc@openldap.org>
   2011-2022, Daniel Stenberg, <daniel@haxx.se>, et al.
 License: curl
 
-Files: tests/server/fake_ntlm.c
-Copyright: 2010, Mandy Wu, <mandy.wu@intel.com>
-  2011-2022, Daniel Stenberg, <daniel@haxx.se>, et al.
-License: curl
-
 Files: lib/vtls/schannel.h
 Copyright: 2012, Marc Hoersken, <info@marc-hoersken.de>, et al.
   2012-2022, Daniel Stenberg, <daniel@haxx.se>, et al.

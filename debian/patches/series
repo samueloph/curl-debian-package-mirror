@@ -1,8 +1,4 @@
-# Packaging patches.
 ZZZgnutls-build.patch
 build-Divide-mit-krb5-gssapi-link-flags-between-LDFLAGS-a.patch
 11_omit-directories-from-config.patch
 Remove-curl-s-LDFLAGS-from-curl-config-static-libs.patch
-
-# Post 8.9.1 patches.
-ignore-SIGPIPE-after-init.patch

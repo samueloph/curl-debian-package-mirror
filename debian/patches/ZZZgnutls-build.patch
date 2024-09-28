@@ -4,10 +4,20 @@ Subject: Build with GnuTLS.
 
 Origin: vendor
 Forwarded: not-needed
-Last-Update: 2024-08-05
+Last-Update: 2024-09-12
+---
+ configure.ac                   | 10 ++++++++
+ docs/examples/Makefile.am      |  2 +-
+ lib/Makefile.am                | 53 ++++++++++++++++++++++++++++++++++++++++--
+ lib/libcurl.vers.in            |  2 +-
+ src/Makefile.am                |  2 +-
+ tests/http/clients/Makefile.am |  2 +-
+ tests/http/clients/Makefile.in | 20 ++++++++--------
+ tests/libtest/Makefile.am      |  4 ++--
+ 8 files changed, 77 insertions(+), 18 deletions(-)
 
 diff --git a/configure.ac b/configure.ac
-index fb7e178a7..8cd23d040 100644
+index 269d7bd..b87b7cf 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -264,6 +264,16 @@ AS_HELP_STRING([--with-gnutls=PATH],[where to look for GnuTLS, PATH points to th
@@ -28,28 +38,25 @@ index fb7e178a7..8cd23d040 100644
  AC_ARG_WITH(mbedtls,dnl
  AS_HELP_STRING([--with-mbedtls=PATH],[where to look for mbedTLS, PATH points to the installation root]),[
 diff --git a/docs/examples/Makefile.am b/docs/examples/Makefile.am
-index 80ccc5925..996ce2f16 100644
+index 91f90cf..13874e1 100644
 --- a/docs/examples/Makefile.am
 +++ b/docs/examples/Makefile.am
-@@ -51,9 +51,9 @@ LIBS = $(BLANK_AT_MAKETIME)
+@@ -50,7 +50,7 @@ endif
+ LIBS = $(BLANK_AT_MAKETIME)
  
  # Dependencies
- if USE_EXPLICIT_LIB_DEPS
--LDADD = $(LIBDIR)/libcurl.la @LIBCURL_LIBS@
-+LDADD = $(LIBDIR)/$(LIBCURL_FILESTUB).la @LIBCURL_LIBS@
- else
--LDADD = $(LIBDIR)/libcurl.la
-+LDADD = $(LIBDIR)/$(LIBCURL_FILESTUB).la
- endif
+-LDADD = $(LIBDIR)/libcurl.la @LIBCURL_PC_LIBS_PRIVATE@
++LDADD = $(LIBDIR)/$(LIBCURL_FILESTUB).la @LIBCURL_PC_LIBS_PRIVATE@
  
  # This might hold -Werror
+ CFLAGS += @CURL_CFLAG_EXTRAS@
 diff --git a/lib/Makefile.am b/lib/Makefile.am
-index 413fcd4d5..238099aa6 100644
+index 851cee2..2674a22 100644
 --- a/lib/Makefile.am
 +++ b/lib/Makefile.am
-@@ -30,7 +30,11 @@ EXTRA_DIST = Makefile.mk config-win32.h config-win32ce.h config-plan9.h \
-  config-amigaos.h config-win32ce.h config-os400.h setup-os400.h         \
-  $(CMAKE_DIST) setup-win32.h .checksrc Makefile.soname
+@@ -34,7 +34,11 @@ EXTRA_DIST = Makefile.mk config-win32.h config-win32ce.h config-plan9.h \
+  $(CMAKE_DIST) setup-win32.h Makefile.soname optiontable.pl libcurl.def \
+  $(CHECKSRC_DIST)
  
 +if GNUTLSBUILD
 +lib_LTLIBRARIES = libcurl-gnutls.la
@@ -59,13 +66,13 @@ index 413fcd4d5..238099aa6 100644
  
  if BUILD_UNITTESTS
  noinst_LTLIBRARIES = libcurlu.la
-@@ -66,55 +70,103 @@ AM_CFLAGS =
+@@ -70,52 +74,97 @@ AM_CFLAGS =
  # Makefile.inc provides the CSOURCES and HHEADERS defines
  include Makefile.inc
  
 +if GNUTLSBUILD
 +libcurl_gnutls_la_SOURCES = $(CSOURCES) $(HHEADERS)
-+libcurlu_gnutls_la_SOURCES = $(CSOURCES) $(HHEADERS)
++libcurlu_la_SOURCES = $(CSOURCES) $(HHEADERS)
 +libcurl_gnutls_la_CPPFLAGS_EXTRA =
 +libcurl_gnutls_la_LDFLAGS_EXTRA =
 +libcurl_gnutls_la_CFLAGS_EXTRA =
@@ -148,25 +155,19 @@ index 413fcd4d5..238099aa6 100644
  
 +if GNUTLSBUILD
 +libcurl_gnutls_la_CPPFLAGS = $(AM_CPPFLAGS) $(libcurl_gnutls_la_CPPFLAGS_EXTRA)
-+libcurl_gnutls_la_LDFLAGS = $(AM_LDFLAGS) $(libcurl_gnutls_la_LDFLAGS_EXTRA) $(CURL_LDFLAGS_LIB) $(LIBCURL_LIBS)
++libcurl_gnutls_la_LDFLAGS = $(AM_LDFLAGS) $(libcurl_gnutls_la_LDFLAGS_EXTRA) $(CURL_LDFLAGS_LIB) $(LIBCURL_PC_LIBS_PRIVATE)
 +libcurl_gnutls_la_CFLAGS = $(AM_CFLAGS) $(libcurl_gnutls_la_CFLAGS_EXTRA)
-+libcurlu_gnutls_la_CPPFLAGS = $(AM_CPPFLAGS) -DCURL_STATICLIB -DUNITTESTS
-+libcurlu_gnutls_la_LDFLAGS = $(AM_LDFLAGS) -static $(LIBCURL_LIBS)
-+libcurlu_gnutls_la_CFLAGS = $(AM_CFLAGS)
 +else
  libcurl_la_CPPFLAGS = $(AM_CPPFLAGS) $(libcurl_la_CPPFLAGS_EXTRA)
- libcurl_la_LDFLAGS = $(AM_LDFLAGS) $(libcurl_la_LDFLAGS_EXTRA) $(CURL_LDFLAGS_LIB) $(LIBCURL_LIBS)
+ libcurl_la_LDFLAGS = $(AM_LDFLAGS) $(libcurl_la_LDFLAGS_EXTRA) $(CURL_LDFLAGS_LIB) $(LIBCURL_PC_LIBS_PRIVATE)
  libcurl_la_CFLAGS = $(AM_CFLAGS) $(libcurl_la_CFLAGS_EXTRA)
 -
- libcurlu_la_CPPFLAGS = $(AM_CPPFLAGS) -DCURL_STATICLIB -DUNITTESTS
- libcurlu_la_LDFLAGS = $(AM_LDFLAGS) -static $(LIBCURL_LIBS)
- libcurlu_la_CFLAGS = $(AM_CFLAGS)
 +endif
- 
- CHECKSRC = $(CS_$(V))
- CS_0 = @echo "  RUN     " $@;
+ libcurlu_la_CPPFLAGS = $(AM_CPPFLAGS) -DCURL_STATICLIB -DUNITTESTS
+ libcurlu_la_LDFLAGS = $(AM_LDFLAGS) -static $(LIBCURL_PC_LIBS_PRIVATE)
+ libcurlu_la_CFLAGS = $(AM_CFLAGS)
 diff --git a/lib/libcurl.vers.in b/lib/libcurl.vers.in
-index ae978a485..7fd4c07d0 100644
+index ae978a4..7fd4c07 100644
 --- a/lib/libcurl.vers.in
 +++ b/lib/libcurl.vers.in
 @@ -6,7 +6,7 @@ HIDDEN
@@ -179,149 +180,109 @@ index ae978a485..7fd4c07d0 100644
    global: curl_*;
    local: *;
 diff --git a/src/Makefile.am b/src/Makefile.am
-index 4ce83c923..d163eeda7 100644
+index ebfb98c..5c40513 100644
 --- a/src/Makefile.am
 +++ b/src/Makefile.am
-@@ -68,9 +68,9 @@ CFLAGS += @CURL_CFLAG_EXTRAS@
+@@ -72,7 +72,7 @@ CFLAGS += @CURL_CFLAG_EXTRAS@
+ # Prevent LIBS from being used for all link targets
  LIBS = $(BLANK_AT_MAKETIME)
  
- if USE_EXPLICIT_LIB_DEPS
--curl_LDADD = $(top_builddir)/lib/libcurl.la @LIBCURL_LIBS@
-+curl_LDADD = $(top_builddir)/lib/$(LIBCURL_FILESTUB).la @LIBCURL_LIBS@
- else
--curl_LDADD = $(top_builddir)/lib/libcurl.la @SSL_LIBS@ @ZLIB_LIBS@ @CURL_NETWORK_AND_TIME_LIBS@
-+curl_LDADD = $(top_builddir)/lib/$(LIBCURL_FILESTUB).la @SSL_LIBS@ @ZLIB_LIBS@ @CURL_NETWORK_AND_TIME_LIBS@
- endif
+-curl_LDADD = $(top_builddir)/lib/libcurl.la @LIBCURL_PC_LIBS_PRIVATE@
++curl_LDADD = $(top_builddir)/lib/$(LIBCURL_FILESTUB).la @LIBCURL_PC_LIBS_PRIVATE@
  
  # if unit tests are enabled, build a static library to link them with
+ if BUILD_UNITTESTS
 diff --git a/tests/http/clients/Makefile.am b/tests/http/clients/Makefile.am
-index 8fdc190b9..233ebd235 100644
+index 007de3c..fca0563 100644
 --- a/tests/http/clients/Makefile.am
 +++ b/tests/http/clients/Makefile.am
-@@ -51,9 +51,9 @@ LIBS = $(BLANK_AT_MAKETIME)
+@@ -51,7 +51,7 @@ endif
+ LIBS = $(BLANK_AT_MAKETIME)
  
  # Dependencies
- if USE_EXPLICIT_LIB_DEPS
--LDADD = $(LIBDIR)/libcurl.la @LIBCURL_LIBS@
-+LDADD = $(LIBDIR)/$(LIBCURL_FILESTUB).la @LIBCURL_LIBS@
- else
--LDADD = $(LIBDIR)/libcurl.la
-+LDADD = $(LIBDIR)/$(LIBCURL_FILESTUB).la
- endif
+-LDADD = $(LIBDIR)/libcurl.la @LIBCURL_PC_LIBS_PRIVATE@
++LDADD = $(LIBDIR)/$(LIBCURL_FILESTUB).la @LIBCURL_PC_LIBS_PRIVATE@
  
  # This might hold -Werror
+ CFLAGS += @CURL_CFLAG_EXTRAS@
 diff --git a/tests/http/clients/Makefile.in b/tests/http/clients/Makefile.in
-index 9eb45a0ba..b83858d3f 100644
+index 0dc0d4e..bdcc336 100644
 --- a/tests/http/clients/Makefile.in
 +++ b/tests/http/clients/Makefile.in
-@@ -178,9 +178,9 @@ h2_download_SOURCES = h2-download.c
- h2_download_OBJECTS = h2-download.$(OBJEXT)
- h2_download_LDADD = $(LDADD)
- @USE_EXPLICIT_LIB_DEPS_FALSE@h2_download_DEPENDENCIES =  \
--@USE_EXPLICIT_LIB_DEPS_FALSE@	$(LIBDIR)/libcurl.la
-+@USE_EXPLICIT_LIB_DEPS_FALSE@	$(LIBDIR)/@LIBCURL_FILESTUB@.la
- @USE_EXPLICIT_LIB_DEPS_TRUE@h2_download_DEPENDENCIES =  \
--@USE_EXPLICIT_LIB_DEPS_TRUE@	$(LIBDIR)/libcurl.la
-+@USE_EXPLICIT_LIB_DEPS_TRUE@	$(LIBDIR)/@LIBCURL_FILESTUB@.la
+@@ -177,7 +177,7 @@ CONFIG_CLEAN_VPATH_FILES =
+ h2_pausing_SOURCES = h2-pausing.c
+ h2_pausing_OBJECTS = h2-pausing.$(OBJEXT)
+ h2_pausing_LDADD = $(LDADD)
+-h2_pausing_DEPENDENCIES = $(LIBDIR)/libcurl.la
++h2_pausing_DEPENDENCIES = $(LIBDIR)/$(LIBCURL_FILESTUB).la
  AM_V_lt = $(am__v_lt_@AM_V@)
  am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
  am__v_lt_0 = --silent
-@@ -189,51 +189,51 @@ h2_pausing_SOURCES = h2-pausing.c
- h2_pausing_OBJECTS = h2-pausing.$(OBJEXT)
- h2_pausing_LDADD = $(LDADD)
- @USE_EXPLICIT_LIB_DEPS_FALSE@h2_pausing_DEPENDENCIES =  \
--@USE_EXPLICIT_LIB_DEPS_FALSE@	$(LIBDIR)/libcurl.la
-+@USE_EXPLICIT_LIB_DEPS_FALSE@	$(LIBDIR)/@LIBCURL_FILESTUB@.la
- @USE_EXPLICIT_LIB_DEPS_TRUE@h2_pausing_DEPENDENCIES =  \
--@USE_EXPLICIT_LIB_DEPS_TRUE@	$(LIBDIR)/libcurl.la
-+@USE_EXPLICIT_LIB_DEPS_TRUE@	$(LIBDIR)/@LIBCURL_FILESTUB@.la
+@@ -185,35 +185,35 @@ am__v_lt_1 =
  h2_serverpush_SOURCES = h2-serverpush.c
  h2_serverpush_OBJECTS = h2-serverpush.$(OBJEXT)
  h2_serverpush_LDADD = $(LDADD)
- @USE_EXPLICIT_LIB_DEPS_FALSE@h2_serverpush_DEPENDENCIES =  \
--@USE_EXPLICIT_LIB_DEPS_FALSE@	$(LIBDIR)/libcurl.la
-+@USE_EXPLICIT_LIB_DEPS_FALSE@	$(LIBDIR)/@LIBCURL_FILESTUB@.la
- @USE_EXPLICIT_LIB_DEPS_TRUE@h2_serverpush_DEPENDENCIES =  \
--@USE_EXPLICIT_LIB_DEPS_TRUE@	$(LIBDIR)/libcurl.la
-+@USE_EXPLICIT_LIB_DEPS_TRUE@	$(LIBDIR)/@LIBCURL_FILESTUB@.la
+-h2_serverpush_DEPENDENCIES = $(LIBDIR)/libcurl.la
++h2_serverpush_DEPENDENCIES = $(LIBDIR)/$(LIBCURL_FILESTUB).la
  h2_upgrade_extreme_SOURCES = h2-upgrade-extreme.c
  h2_upgrade_extreme_OBJECTS = h2-upgrade-extreme.$(OBJEXT)
  h2_upgrade_extreme_LDADD = $(LDADD)
- @USE_EXPLICIT_LIB_DEPS_FALSE@h2_upgrade_extreme_DEPENDENCIES =  \
--@USE_EXPLICIT_LIB_DEPS_FALSE@	$(LIBDIR)/libcurl.la
-+@USE_EXPLICIT_LIB_DEPS_FALSE@	$(LIBDIR)/@LIBCURL_FILESTUB@.la
- @USE_EXPLICIT_LIB_DEPS_TRUE@h2_upgrade_extreme_DEPENDENCIES =  \
--@USE_EXPLICIT_LIB_DEPS_TRUE@	$(LIBDIR)/libcurl.la
-+@USE_EXPLICIT_LIB_DEPS_TRUE@	$(LIBDIR)/@LIBCURL_FILESTUB@.la
+-h2_upgrade_extreme_DEPENDENCIES = $(LIBDIR)/libcurl.la
++h2_upgrade_extreme_DEPENDENCIES = $(LIBDIR)/$(LIBCURL_FILESTUB).la
+ hx_download_SOURCES = hx-download.c
+ hx_download_OBJECTS = hx-download.$(OBJEXT)
+ hx_download_LDADD = $(LDADD)
+-hx_download_DEPENDENCIES = $(LIBDIR)/libcurl.la
++hx_download_DEPENDENCIES = $(LIBDIR)/$(LIBCURL_FILESTUB).la
+ hx_upload_SOURCES = hx-upload.c
+ hx_upload_OBJECTS = hx-upload.$(OBJEXT)
+ hx_upload_LDADD = $(LDADD)
+-hx_upload_DEPENDENCIES = $(LIBDIR)/libcurl.la
++hx_upload_DEPENDENCIES = $(LIBDIR)/$(LIBCURL_FILESTUB).la
  tls_session_reuse_SOURCES = tls-session-reuse.c
  tls_session_reuse_OBJECTS = tls-session-reuse.$(OBJEXT)
  tls_session_reuse_LDADD = $(LDADD)
- @USE_EXPLICIT_LIB_DEPS_FALSE@tls_session_reuse_DEPENDENCIES =  \
--@USE_EXPLICIT_LIB_DEPS_FALSE@	$(LIBDIR)/libcurl.la
-+@USE_EXPLICIT_LIB_DEPS_FALSE@	$(LIBDIR)/@LIBCURL_FILESTUB@.la
- @USE_EXPLICIT_LIB_DEPS_TRUE@tls_session_reuse_DEPENDENCIES =  \
--@USE_EXPLICIT_LIB_DEPS_TRUE@	$(LIBDIR)/libcurl.la
-+@USE_EXPLICIT_LIB_DEPS_TRUE@	$(LIBDIR)/@LIBCURL_FILESTUB@.la
+-tls_session_reuse_DEPENDENCIES = $(LIBDIR)/libcurl.la
++tls_session_reuse_DEPENDENCIES = $(LIBDIR)/$(LIBCURL_FILESTUB).la
  upload_pausing_SOURCES = upload-pausing.c
  upload_pausing_OBJECTS = upload-pausing.$(OBJEXT)
  upload_pausing_LDADD = $(LDADD)
- @USE_EXPLICIT_LIB_DEPS_FALSE@upload_pausing_DEPENDENCIES =  \
--@USE_EXPLICIT_LIB_DEPS_FALSE@	$(LIBDIR)/libcurl.la
-+@USE_EXPLICIT_LIB_DEPS_FALSE@	$(LIBDIR)/@LIBCURL_FILESTUB@.la
- @USE_EXPLICIT_LIB_DEPS_TRUE@upload_pausing_DEPENDENCIES =  \
--@USE_EXPLICIT_LIB_DEPS_TRUE@	$(LIBDIR)/libcurl.la
-+@USE_EXPLICIT_LIB_DEPS_TRUE@	$(LIBDIR)/@LIBCURL_FILESTUB@.la
+-upload_pausing_DEPENDENCIES = $(LIBDIR)/libcurl.la
++upload_pausing_DEPENDENCIES = $(LIBDIR)/$(LIBCURL_FILESTUB).la
  ws_data_SOURCES = ws-data.c
  ws_data_OBJECTS = ws-data.$(OBJEXT)
  ws_data_LDADD = $(LDADD)
- @USE_EXPLICIT_LIB_DEPS_FALSE@ws_data_DEPENDENCIES =  \
--@USE_EXPLICIT_LIB_DEPS_FALSE@	$(LIBDIR)/libcurl.la
-+@USE_EXPLICIT_LIB_DEPS_FALSE@	$(LIBDIR)/@LIBCURL_FILESTUB@.la
- @USE_EXPLICIT_LIB_DEPS_TRUE@ws_data_DEPENDENCIES =  \
--@USE_EXPLICIT_LIB_DEPS_TRUE@	$(LIBDIR)/libcurl.la
-+@USE_EXPLICIT_LIB_DEPS_TRUE@	$(LIBDIR)/@LIBCURL_FILESTUB@.la
+-ws_data_DEPENDENCIES = $(LIBDIR)/libcurl.la
++ws_data_DEPENDENCIES = $(LIBDIR)/$(LIBCURL_FILESTUB).la
  ws_pingpong_SOURCES = ws-pingpong.c
  ws_pingpong_OBJECTS = ws-pingpong.$(OBJEXT)
  ws_pingpong_LDADD = $(LDADD)
- @USE_EXPLICIT_LIB_DEPS_FALSE@ws_pingpong_DEPENDENCIES =  \
--@USE_EXPLICIT_LIB_DEPS_FALSE@	$(LIBDIR)/libcurl.la
-+@USE_EXPLICIT_LIB_DEPS_FALSE@	$(LIBDIR)/@LIBCURL_FILESTUB@.la
- @USE_EXPLICIT_LIB_DEPS_TRUE@ws_pingpong_DEPENDENCIES =  \
--@USE_EXPLICIT_LIB_DEPS_TRUE@	$(LIBDIR)/libcurl.la
-+@USE_EXPLICIT_LIB_DEPS_TRUE@	$(LIBDIR)/@LIBCURL_FILESTUB@.la
+-ws_pingpong_DEPENDENCIES = $(LIBDIR)/libcurl.la
++ws_pingpong_DEPENDENCIES = $(LIBDIR)/$(LIBCURL_FILESTUB).la
  AM_V_P = $(am__v_P_@AM_V@)
  am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
  am__v_P_0 = false
-@@ -548,10 +548,10 @@ AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_builddir)/lib \
- 	-I$(top_srcdir)/lib -DCURL_DISABLE_DEPRECATION \
- 	-DCURL_NO_OLDIES $(am__append_1)
+@@ -532,7 +532,7 @@ AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_builddir)/lib \
  LIBDIR = $(top_builddir)/lib
--@USE_EXPLICIT_LIB_DEPS_FALSE@LDADD = $(LIBDIR)/libcurl.la
-+@USE_EXPLICIT_LIB_DEPS_FALSE@LDADD = $(LIBDIR)/@LIBCURL_FILESTUB@.la
  
  # Dependencies
--@USE_EXPLICIT_LIB_DEPS_TRUE@LDADD = $(LIBDIR)/libcurl.la @LIBCURL_LIBS@
-+@USE_EXPLICIT_LIB_DEPS_TRUE@LDADD = $(LIBDIR)/@LIBCURL_FILESTUB@.la @LIBCURL_LIBS@
+-LDADD = $(LIBDIR)/libcurl.la @LIBCURL_PC_LIBS_PRIVATE@
++LDADD = $(LIBDIR)/$(LIBCURL_FILESTUB).la @LIBCURL_PC_LIBS_PRIVATE@
  CHECKSRC = $(CS_$(V))
  CS_0 = @echo "  RUN     " $@;
  CS_1 = 
 diff --git a/tests/libtest/Makefile.am b/tests/libtest/Makefile.am
-index eed916eeb..c2c967273 100644
+index 2e360ca..3123810 100644
 --- a/tests/libtest/Makefile.am
 +++ b/tests/libtest/Makefile.am
-@@ -49,11 +49,11 @@ CLEANFILES = lib1521.c
+@@ -48,8 +48,8 @@ CLEANFILES = lib1521.c
+ # Prevent LIBS from being used for all link targets
  LIBS = $(BLANK_AT_MAKETIME)
  
- if USE_EXPLICIT_LIB_DEPS
--SUPPORTFILES_LIBS = $(top_builddir)/lib/libcurl.la @LIBCURL_LIBS@
--TESTUTIL_LIBS = $(top_builddir)/lib/libcurl.la @LIBCURL_LIBS@
-+SUPPORTFILES_LIBS = $(top_builddir)/lib/$(LIBCURL_FILESTUB).la @LIBCURL_LIBS@
-+TESTUTIL_LIBS = $(top_builddir)/lib/$(LIBCURL_FILESTUB).la @LIBCURL_LIBS@
- else
--SUPPORTFILES_LIBS = $(top_builddir)/lib/libcurl.la @CURL_NETWORK_LIBS@
--TESTUTIL_LIBS = $(top_builddir)/lib/libcurl.la @CURL_NETWORK_AND_TIME_LIBS@
-+SUPPORTFILES_LIBS = $(top_builddir)/lib/$(LIBCURL_FILESTUB).la @CURL_NETWORK_LIBS@
-+TESTUTIL_LIBS = $(top_builddir)/lib/$(LIBCURL_FILESTUB).la @CURL_NETWORK_AND_TIME_LIBS@
- endif
+-SUPPORTFILES_LIBS = $(top_builddir)/lib/libcurl.la @LIBCURL_PC_LIBS_PRIVATE@
+-TESTUTIL_LIBS = $(top_builddir)/lib/libcurl.la @LIBCURL_PC_LIBS_PRIVATE@
++SUPPORTFILES_LIBS = $(top_builddir)/lib/$(LIBCURL_FILESTUB).la @LIBCURL_PC_LIBS_PRIVATE@
++TESTUTIL_LIBS = $(top_builddir)/lib/$(LIBCURL_FILESTUB).la @LIBCURL_PC_LIBS_PRIVATE@
  
  # Dependencies (may need to be overridden)
+ LDADD = $(SUPPORTFILES_LIBS)

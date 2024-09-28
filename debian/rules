@@ -35,6 +35,7 @@ endif
 
 export DEB_CFLAGS_MAINT_APPEND = -D_DEB_HOST_ARCH=\"$(DEB_HOST_MULTIARCH)\" -DCURL_PATCHSTAMP=\"$(DEB_VERSION)\"
 export DEB_CXXFLAGS_MAINT_APPEND = -D_DEB_HOST_ARCH=\"$(DEB_HOST_MULTIARCH)\" -DCURL_PATCHSTAMP=\"$(DEB_VERSION)\"
+export DEB_LDFLAGS_MAINT_APPEND = -Wl,--no-undefined
 
 ifneq ($(filter pkg.curl.openssl-only,$(DEB_BUILD_PROFILES)),)
 	DEB_BUILD_PROFILES += pkg.curl.no-gnutls
@@ -52,7 +53,7 @@ ifeq ($(filter pkg.curl.no-openssl,$(DEB_BUILD_PROFILES)),)
 	tar -cf - --exclude=debian/build* --exclude=.pc . \
 		| tar -xf - -C debian/build
 	cd debian/build && \
-	./buildconf && \
+	autoreconf -fi && \
 	cp ../../ltmain.sh . && \
 	dh_auto_configure ${CONFIGURE_ARGS} --with-openssl \
 		--without-ngtcp2 \
@@ -63,7 +64,7 @@ ifeq ($(filter pkg.curl.no-gnutls,$(DEB_BUILD_PROFILES)),)
 	tar -cf - --exclude=debian/build* --exclude=.pc . \
 		| tar -xf - -C debian/build-gnutls
 	cd debian/build-gnutls && \
-	./buildconf && \
+	autoreconf -fi && \
 	cp ../../ltmain.sh . && \
 	dh_auto_configure ${CONFIGURE_ARGS} --with-gnutls \
 		--with-ngtcp2 \
@@ -167,7 +168,7 @@ endif
 	rm -rfv debian/tmp/usr/share/aclocal/*
 
 override_dh_installchangelogs:
-	dh_installchangelogs CHANGES
+	dh_installchangelogs CHANGES.md
 
 override_dh_compress:
 	dh_compress -X.pdf
