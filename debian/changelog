@@ -1,3 +1,9 @@
+curl (8.10.1-1~bpo12+1) bookworm-backports; urgency=medium
+
+  * Rebuild for bookworm-backports.
+
+ -- Samuel Henrique <samueloph@debian.org>  Sat, 28 Sep 2024 12:16:21 +0100
+
 curl (8.10.1-1) unstable; urgency=medium
 
   * New upstream version 8.10.1
