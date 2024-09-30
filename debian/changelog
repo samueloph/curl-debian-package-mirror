@@ -1,3 +1,15 @@
+curl (7.74.0-1.3+deb11u14) UNRELEASED; urgency=medium
+
+  * Team upload.
+  * Import patch for CVE-2024-8096
+    - CVE-2024-8096: When the TLS backend is GnuTLS, curl may incorrectly
+      handle OCSP stapling. If the OCSP status reports an error other than
+      "revoked" (e.g., "unauthorized"), it is not treated as a bad certificate,
+      potentially allowing invalid certificates to be considered valid.
+  * d/p/CVE-2024-8096.patch: Backport patch.
+
+ -- Aquila Macedo Costa <aquilamacedo@riseup.net>  Mon, 30 Sep 2024 19:45:41 -0300
+
 curl (7.74.0-1.3+deb11u13) bullseye; urgency=medium
 
   * Team upload.
