@@ -1,4 +1,4 @@
-curl (7.74.0-1.3+deb11u14) UNRELEASED; urgency=medium
+curl (7.74.0-1.3+deb11u14) bullseye; urgency=medium
 
   * Team upload.
   * Import patch for CVE-2024-8096
