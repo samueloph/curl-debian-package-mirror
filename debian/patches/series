@@ -51,6 +51,10 @@ CVE-2024-7264-1.patch
 # Patches from 8.10.0.
 CVE-2024-8096.patch
 
+# Patches from 8.11.0.
+CVE-2024-9681-0.patch
+CVE-2024-9681-1.patch
+
 # Do not add patches below.
 # Used to generate packages for the other crypto libraries.
 90_gnutls.patch
