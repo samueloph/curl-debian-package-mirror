@@ -1,3 +1,16 @@
+curl (7.88.1-10+deb12u9) UNRELEASED; urgency=medium
+
+  * Team upload.
+  * Import patches for CVE-2024-9681
+    - A vulnerability in curl's HSTS handling allows a subdomain’s expiry time
+      to overwrite its parent domain’s cache entry. This can lead to unintended
+      HTTPS upgrades or premature reversion to HTTP when both subdomains and
+      parent domains are used. Affects applications with HSTS enabled,
+      potentially disrupting access when a domain stops supporting HTTPS.
+  * d/p/CVE-2024-9681-*.patch: Backport patches.
+
+ -- Aquila Macedo Costa <aquilamacedo@riseup.net>  Sat, 30 Nov 2024 10:13:50 -0300
+
 curl (7.88.1-10+deb12u8) bookworm; urgency=medium
 
   * Team upload.
