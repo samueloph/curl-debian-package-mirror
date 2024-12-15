@@ -1,9 +1,9 @@
 Tests: upstream-tests-openssl
-Depends: curl, @builddeps@
+Depends: @builddeps@
 Restrictions: allow-stderr
 
 Tests: upstream-tests-gnutls
-Depends: @builddeps@
+Depends: curl, @builddeps@
 Restrictions: allow-stderr
 
 Tests: curl-ldapi-test

@@ -1,3 +1,60 @@
+curl (8.11.1-1) unstable; urgency=medium
+
+  [ Samuel Henrique ]
+  * New upstream version 8.11.1
+    - Fix CVE-2024-11053: netrc and redirect credential leak (closes: #1089682)
+  * Update wcurl to 2024.12.08
+  * New patches:
+    - async_thread_avoid_closing_eventfd_twice: Fix file descriptor issue with eventfd
+    - sectransp_free_certificate_on_error: Fix memory leak
+  * Refresh patches:
+    - ZZZgnutls-build
+    - build-Divide-mit-krb5-gssapi-link-flags-between-LDFLAGS-a
+  * d/p/11_omit-directories-from-config: Update patch
+  * Drop merged patches:
+    - cmdline_ech_md_formatting_cleanups
+    - duphandle_also_init_netrc
+    - libssh_when_using_IPv6_numerical_address_add_brackets
+    - netrc_support_large_file_longer_lines_longer_tokens
+    - setopt_fix_CURLOPT_HTTP_CONTENT_DECODING
+  * d/p/Remove-curl-s-LDFLAGS-from-curl-config-static-libs: Remove patch, not needed anymore
+
+  [ Carlos Henrique Lima Melara ]
+  * d/t/upstream-tests-*: test gnutls backend against installed curl
+  * d/t/control: install curl on upstream-tests-gnutls and remove on openssl
+
+ -- Samuel Henrique <samueloph@debian.org>  Thu, 12 Dec 2024 21:38:04 +0000
+
+curl (8.11.0-1) unstable; urgency=medium
+
+  [ Samuel Henrique ]
+  * New upstream version 8.11.0
+  * Fix CVE-2024-9681: HSTS subdomain overwrites parent cache entry
+   (closes: #1086804)
+  * Update patches for the new release
+  * d/rules: Drop '--enable-websockets', it's enabled by default now
+  * d/libcurl*.symbols: Remove HIDDEN@HIDDEN 7.16.2
+  * Add 5 upstream patches to fix regressions:
+    - cmdline_ech_md_formatting_cleanups.patch
+    - duphandle_also_init_netrc.patch
+    - libssh_when_using_IPv6_numerical_address_add_brackets.patch
+    - netrc_support_large_file_longer_lines_longer_tokens.patch
+    - setopt_fix_CURLOPT_HTTP_CONTENT_DECODING.patch
+
+  [ Carlos Henrique Lima Melara ]
+  * d/rules: add sed rule to make curl-config get CPPFLAGS in run-time
+  * d/control: move libldap2-dev to Depends and use newer libldap-dev name
+  * d/control: move libkrb5-dev from Suggests to Depends for -dev packages
+
+ -- Samuel Henrique <samueloph@debian.org>  Sat, 09 Nov 2024 17:34:22 +0000
+
+curl (8.10.1-2) unstable; urgency=medium
+
+  * d/patches/gtls_add_p12_format_support.patch: New upstream patch for P12
+    support
+
+ -- Samuel Henrique <samueloph@debian.org>  Thu, 10 Oct 2024 23:22:24 +0100
+
 curl (8.10.1-1~bpo12+1) bookworm-backports; urgency=medium
 
   * Rebuild for bookworm-backports.

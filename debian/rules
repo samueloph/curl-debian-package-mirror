@@ -12,7 +12,6 @@ DEB_HOST_MULTIARCH ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
 CONFIGURE_ARGS = -- --disable-dependency-tracking		\
 	--disable-symbol-hiding --enable-versioned-symbols	\
 	--enable-threaded-resolver --with-lber-lib=lber		\
-	--enable-websockets \
 	--with-gssapi=/usr --with-nghttp2	\
 	--includedir=/usr/include/$(DEB_HOST_MULTIARCH)		\
 	--with-zsh-functions-dir=/usr/share/zsh/vendor-completions \
@@ -155,12 +154,15 @@ endif
 #    support in Debian.
 # 6. CFLAGS also contain some arch specific hardening flags so we
 #    replace it with dpkg-buildflags call.
+# 7. After t64 transition, CPPFLAGS also differ on 32bits t64 arches, so we
+#    replace it with dpkg-buildflags
 	sed -e "/-lcurl /s|`krb5-config --libs gssapi`|\`krb5-config --libs gssapi\`|" \
 	    -e "/--prefix/s|/$(DEB_HOST_MULTIARCH)'|/\\\`dpkg-architecture -qDEB_HOST_MULTIARCH\\\`'|g" \
 	    -e "/--prefix/s|=$(DEB_BUILD_GNU_TYPE)'|=\\\`dpkg-architecture -qDEB_BUILD_GNU_TYPE\\\`'|g" \
 	    -e "/-fdebug-prefix-map=/s|\(-fdebug-prefix-map=\)/[^ ]*=.||" \
 	    -e "/CFLAGS/s|CFLAGS=.\+\(-DCURL_PATCHSTAMP\)|CFLAGS=\\\`dpkg-buildflags --get CFLAGS \| sed -e \"/-ffile-prefix-map=/s\|\\\\(-ffile-prefix-map=\\\\)/[^ ]*=.\|\|\"\\\` \1|" \
 	    -e "/-D_DEB_HOST_ARCH=/s|-D_DEB_HOST_ARCH=\\\\\"[^ ']*\\\\\"||" \
+	    -e "/CPPFLAGS/s|CPPFLAGS=.\+\'|CPPFLAGS=\\\`dpkg-buildflags --get CPPFLAGS\\\`'\"|" \
 	    -i `find . -name curl-config`
 # When we get here, everything has been properly installed.  Because
 # of debhelper-compat 13, we have to remove some files that are

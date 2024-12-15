@@ -7,13 +7,11 @@ set -e
 # It might be possible to patch the makefile to have libauthretry link against
 # the system's installed libcurl, patches welcome.
 #
-# openssl tests run against the system's installed curl.
+# openssl tests run against the built curl and libcurl rather than the installed
+# one as we don't ship a curl linked against openssl (only openssl libraries).
 
 export DEB_BUILD_PROFILES="pkg.curl.openssl-only"
 export VERBOSE=1
-TESTS_GENERAL_PARAMETERS="-c /usr/bin/curl"
-TESTS_GENERAL_PARAMETERS="-vc /usr/bin/curl"
-export TESTS_GENERAL_PARAMETERS
 
 # Don't skip tests which fail on ipv6-only environments for autopkgtests.
 # I'm not aware of runners with this configuration for debci, and a retry

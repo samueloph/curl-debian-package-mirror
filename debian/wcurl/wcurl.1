@@ -1,11 +1,35 @@
-.TH wcurl "1" "2024.07.10" "wcurl" "User Commands"
+.\" **************************************************************************
+.\" *                                  _   _ ____  _
+.\" *  Project                     ___| | | |  _ \| |
+.\" *                             / __| | | | |_) | |
+.\" *                            | (__| |_| |  _ <| |___
+.\" *                             \___|\___/|_| \_\_____|
+.\" *
+.\" * Copyright (C) Samuel Henrique <samueloph@debian.org>, et al.
+.\" *
+.\" * This software is licensed as described in the file COPYING, which
+.\" * you should have received as part of this distribution. The terms
+.\" * are also available at https://curl.se/docs/copyright.html.
+.\" *
+.\" * You may opt to use, copy, modify, merge, publish, distribute and/or sell
+.\" * copies of the Software, and permit persons to whom the Software is
+.\" * furnished to do so, under the terms of the COPYING file.
+.\" *
+.\" * This software is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY
+.\" * KIND, either express or implied.
+.\" *
+.\" * SPDX-License-Identifier: curl
+.\" *
+.\" **************************************************************************
+.TH wcurl "1" "2024.12.08" "wcurl" "User Commands"
 .SH NAME
 .B wcurl
 - a simple wrapper around curl to easily download files.
 .SH SYNOPSIS
 .nf
-\fBwcurl [\-\-curl\-options \fI<CURL_OPTIONS>\fP]... [\-\-dry\-run] [\-\-] \fI<URL>\fP...\fR
-\fBwcurl [\-\-curl\-options=\fI<CURL_OPTIONS>\fP]... [\-\-dry\-run] [\-\-] \fI<URL>\fP...\fR
+\fBwcurl \fI<URL>\fP...\fR
+\fBwcurl [\-\-curl\-options \fI<CURL_OPTIONS>\fP]... [\-\-dry\-run] [\-\-no\-decode\-filename] [\-o|\-O|\-\-output <PATH>] [\-\-] \fI<URL>\fP...\fR
+\fBwcurl [\-\-curl\-options=\fI<CURL_OPTIONS>\fP]... [\-\-dry\-run] [\-\-no\-decode\-filename] [\-\-output=<PATH>] [\-\-] \fI<URL>\fP...\fR
 \fBwcurl \-V|\-\-version\fR
 \fBwcurl \-h|\-\-help\fR
 .fi
@@ -23,7 +47,7 @@ should be using curl directly if your use case is not covered.
 .TP
 By default, \fBwcurl\fR will:
 .br
-\[bu]  Encode whitespaces in URLs;
+\[bu]  Percent-encode whitespaces in URLs;
 .br
 \[bu]  Download multiple URLs in parallel if the installed curl's version is >= 7.66.0;
 .br
@@ -37,13 +61,23 @@ By default, \fBwcurl\fR will:
 .br
 \[bu]  Set the downloaded file timestamp to the value provided by the server, if available;
 .br
-\[bu]  Default to the protocol used as https if the URL doesn't contain any.
+\[bu]  Default to the protocol used as https if the URL doesn't contain any;
 .br
 \[bu]  Disable \fBcurl\fR's URL globbing parser so \fB{}\fR and \fB[]\fR characters in URLs are not treated specially.
+.br
+\[bu]  Percent-decode the resulting filename.
+.br
+\[bu]  Use "index.html" as default filename if there's none in the URL.
 .SH OPTIONS
 .TP
 \fB\-\-curl\-options, \-\-curl\-options=\fI<CURL_OPTIONS>\fR...\fR
 Specify extra options to be passed when invoking curl. May be specified more than once.
+.TP
+\fB\-o, \-O, \-\-output=\fI<PATH>\fR...\fR
+Use the provided output path instead of getting it from the URL. If multiple
+URLs are provided, all files will have the same name with a number appended to
+the end (curl >= 7.83.0). If this option is provided multiple times, only the
+last value is considered.
 .TP
 \fB\-\-dry\-run\fR
 Don't actually execute curl, just print what would be invoked.
@@ -58,7 +92,7 @@ Any option supported by curl can be set here.
 This is not used by \fBwcurl\fR; it's instead forwarded to the curl invocation.
 .SH URL
 Anything which is not a parameter will be considered an URL.
-\fBwcurl\fR will encode whitespaces and pass that to curl, which will perform the
+\fBwcurl\fR will percent-encode whitespaces and pass that to curl, which will perform the
 parsing of the URL.
 .SH EXAMPLES
 Download a single file:
@@ -81,18 +115,12 @@ Samuel Henrique <samueloph@debian.org>
 .br
 Sergio durigan junior <sergiodj@debian.org>
 .br
-Ryan Carsten Schmidt <git@ryandesign.com>
-.br
-Ben Zanin
+and many contributors, see the AUTHORS file.
 .SH REPORTING BUGS
 If you experience any problems with \fBwcurl\fR that you do not experience with curl,
-submit an issue on the Debian Bug Tracking System.
-.PP
-Alternatively, you can also submit an issue on Github or Debian's salsa:
+submit an issue on Github:
 .br
-https://github.com/Debian/wcurl
-.br
-https://salsa.debian.org/debian/wcurl
+https://github.com/curl/wcurl
 .SH COPYRIGHT
 \fBwcurl\fR is licensed under the curl license
 .SH SEE ALSO
