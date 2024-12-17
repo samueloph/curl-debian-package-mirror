@@ -9,6 +9,11 @@ This allows test cases to require this feature to run and to be used in
 Large here means larger than 32 bits. Ie does not suffer from y2038.
 
 Closes #11696
+
+Backported by: Aquila Macedo Costa <aquilamacedo@riseup.net>.
+
+Changes:
+- Refresh patch context
 ---
  tests/FILEFORMAT.md     | 1 +
  tests/runtests.pl       | 1 +
@@ -16,10 +21,10 @@ Closes #11696
  3 files changed, 5 insertions(+)
 
 diff --git a/tests/FILEFORMAT.md b/tests/FILEFORMAT.md
-index 0e8f55115919c7..82e5f6c27c45b2 100644
+index aff0e2d..65df41c 100644
 --- a/tests/FILEFORMAT.md
 +++ b/tests/FILEFORMAT.md
-@@ -428,6 +428,7 @@ Features testable here are:
+@@ -417,6 +417,7 @@ Features testable here are:
  - `ipv6`
  - `Kerberos`
  - `large_file`
@@ -28,25 +33,25 @@ index 0e8f55115919c7..82e5f6c27c45b2 100644
  - `libssh2`
  - `libssh`
 diff --git a/tests/runtests.pl b/tests/runtests.pl
-index 4127c9c73417a2..01a8a0aa68e655 100755
+index 1510527..c4c7717 100755
 --- a/tests/runtests.pl
 +++ b/tests/runtests.pl
-@@ -793,6 +793,7 @@ sub checksystemfeatures {
+@@ -3064,6 +3064,7 @@ sub setupfeatures {
      $feature{"wakeup"} = 1;
      $feature{"headers-api"} = 1;
      $feature{"xattr"} = 1;
 +    $feature{"large-time"} = 1;
- 
-     # make each protocol an enabled "feature"
-     for my $p (@protocols) {
+     $feature{"nghttpx"} = !!$ENV{'NGHTTPX'};
+     $feature{"nghttpx-h3"} = !!$nghttpx_h3;
+ }
 diff --git a/tests/server/disabled.c b/tests/server/disabled.c
-index a04b355020bd2d..a9b43b8355bfbd 100644
+index 7ce2903..48cf878 100644
 --- a/tests/server/disabled.c
 +++ b/tests/server/disabled.c
-@@ -84,6 +84,9 @@ static const char *disabled[]={
+@@ -78,6 +78,9 @@ static const char *disabled[]={
  #endif
- #ifdef CURL_DISABLE_FORM_API
-   "form-api",
+ #ifndef USE_XATTR
+   "xattr",
 +#endif
 +#if (SIZEOF_TIME_T < 5)
 +  "large-time",
