@@ -1,0 +1,55 @@
+From 1c3fcbdaa99a2859ea008061782223f4d1b40cce Mon Sep 17 00:00:00 2001
+From: Daniel Stenberg <daniel@haxx.se>
+Date: Sat, 19 Aug 2023 21:20:03 +0200
+Subject: [PATCH] tests: add 'large-time' as a testable feature
+
+This allows test cases to require this feature to run and to be used in
+%if conditions.
+
+Large here means larger than 32 bits. Ie does not suffer from y2038.
+
+Closes #11696
+---
+ tests/FILEFORMAT.md     | 1 +
+ tests/runtests.pl       | 1 +
+ tests/server/disabled.c | 3 +++
+ 3 files changed, 5 insertions(+)
+
+diff --git a/tests/FILEFORMAT.md b/tests/FILEFORMAT.md
+index 0e8f55115919c7..82e5f6c27c45b2 100644
+--- a/tests/FILEFORMAT.md
++++ b/tests/FILEFORMAT.md
+@@ -428,6 +428,7 @@ Features testable here are:
+ - `ipv6`
+ - `Kerberos`
+ - `large_file`
++- `large-time` (time_t is larger than 32 bit)
+ - `ld_preload`
+ - `libssh2`
+ - `libssh`
+diff --git a/tests/runtests.pl b/tests/runtests.pl
+index 4127c9c73417a2..01a8a0aa68e655 100755
+--- a/tests/runtests.pl
++++ b/tests/runtests.pl
+@@ -793,6 +793,7 @@ sub checksystemfeatures {
+     $feature{"wakeup"} = 1;
+     $feature{"headers-api"} = 1;
+     $feature{"xattr"} = 1;
++    $feature{"large-time"} = 1;
+ 
+     # make each protocol an enabled "feature"
+     for my $p (@protocols) {
+diff --git a/tests/server/disabled.c b/tests/server/disabled.c
+index a04b355020bd2d..a9b43b8355bfbd 100644
+--- a/tests/server/disabled.c
++++ b/tests/server/disabled.c
+@@ -84,6 +84,9 @@ static const char *disabled[]={
+ #endif
+ #ifdef CURL_DISABLE_FORM_API
+   "form-api",
++#endif
++#if (SIZEOF_TIME_T < 5)
++  "large-time",
+ #endif
+   NULL
+ };
