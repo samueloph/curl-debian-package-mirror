@@ -7,9 +7,18 @@ curl (7.88.1-10+deb12u9) UNRELEASED; urgency=medium
       HTTPS upgrades or premature reversion to HTTP when both subdomains and
       parent domains are used. Affects applications with HSTS enabled,
       potentially disrupting access when a domain stops supporting HTTPS.
-  * d/p/CVE-2024-9681-*.patch: Backport patches.
+  * d/patches:
+    - CVE-2024-9681-*.patch: Backport patches.
+    - CVE-2024-9681-1: fix backport inconsistencies
+    - large-time-testable-feature.patch: Import 'large-time' feature for tests
+    - large-time-testable-feature.patch: Backport patch.
+    - dont-stop-stunnel-before-retry.patch: Import patch to avoid stopping
+      stunnel before retrying
+    - dont-stop-stunnel-before-retry.patch: Backport patch.
+    - Add dont-stop-stunnel-before-retry.patch to the series file.
+    - Add large-time-testable-feature.patch to the series file.
 
- -- Aquila Macedo Costa <aquilamacedo@riseup.net>  Sat, 30 Nov 2024 10:13:50 -0300
+ -- Aquila Macedo Costa <aquilamacedo@riseup.net>  Thu, 02 Jan 2025 21:11:56 -0300
 
 curl (7.88.1-10+deb12u8) bookworm; urgency=medium
 
