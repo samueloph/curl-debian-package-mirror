@@ -56,6 +56,7 @@ CVE-2024-8096.patch
 # Patches from 8.11.0.
 CVE-2024-9681-0.patch
 CVE-2024-9681-1.patch
+url-use-same-credentials-on-redirect.patch
 
 # Do not add patches below.
 # Used to generate packages for the other crypto libraries.
