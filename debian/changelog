@@ -1,4 +1,4 @@
-curl (7.88.1-10+deb12u9) UNRELEASED; urgency=medium
+curl (7.88.1-10+deb12u9) bookworm; urgency=medium
 
   * Team upload.
   * Import patches for CVE-2024-9681
