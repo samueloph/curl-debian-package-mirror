@@ -1,3 +1,20 @@
+curl (7.88.1-10+deb12u10) UNRELEASED; urgency=medium
+
+  * Team upload.
+  * Import patch for CVE-2024-11053
+    - When asked to both use a `.netrc` file for credentials and to follow HTTP
+      redirects, curl could leak the password used for the first host to the
+      followed-to host under certain circumstances.
+  * d/patches:
+    - url-use-same-credentials-on-redirect.patch: Backport upstream patch to
+      fix the issue of reusing closed connections when the server disconnects
+      unexpectedly, and ensure redirects keep both username and password.
+      This patch is required for CVE-2024-11053.
+    - CVE-2024-11053.patch: Import and backport upstream patch to
+      fix CVE-2024-11053
+
+ -- Matheus Polkorny <mpolkorny@gmail.com>  Sun, 19 Jan 2025 23:22:01 -0300
+
 curl (7.88.1-10+deb12u9) bookworm; urgency=medium
 
   * Team upload.
