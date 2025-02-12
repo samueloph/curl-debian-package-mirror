@@ -17,6 +17,8 @@ libcurl.so.4 libcurl4 #MINVER#
  curl_easy_reset@CURL_OPENSSL_4 7.16.2
  curl_easy_send@CURL_OPENSSL_4 7.18.2
  curl_easy_setopt@CURL_OPENSSL_4 7.16.2
+ curl_easy_ssls_export@CURL_OPENSSL_4 8.12.0
+ curl_easy_ssls_import@CURL_OPENSSL_4 8.12.0
  curl_easy_strerror@CURL_OPENSSL_4 7.16.2
  curl_easy_unescape@CURL_OPENSSL_4 7.16.2
  curl_easy_upkeep@CURL_OPENSSL_4 7.63.0

@@ -1,3 +1,18 @@
+curl (8.12.0+git20250209.89ed161+ds-1) unstable; urgency=medium
+
+  [ Samuel Henrique ]
+  * d/curl.NEWS: Update wcurl's list of features
+
+  [ Carlos Henrique Lima Melara ]
+  * New upstream version 8.12.0+git20250209.89ed161+ds.
+  * d/copyright: update maintainer's copyright years.
+  * d/libcurl*.symbols: add symbols introduced in 8.12.0.
+  * d/patches/: rebase patches against 8.12.0
+      - async_thread_avoid_closing_eventfd_twice.patch: drop, present in 8.12.0.
+      - sectransp_free_certificate_on_error.patch: drop, present in 8.12.0.
+
+ -- Carlos Henrique Lima Melara <charlesmelara@riseup.net>  Sun, 09 Feb 2025 00:08:26 +0100
+
 curl (8.11.1-1~bpo12+1) bookworm-backports; urgency=medium
 
   * Rebuild for bookworm-backports.

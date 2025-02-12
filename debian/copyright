@@ -1,6 +1,11 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: curl
 Source: https://curl.se/
+Files-Excluded: projects
+ winbuild
+Comment: normal releases don't include .gitattributes, snapshots do. This is
+ causing some confusion about windows line endings, so let's just remove
+ Windows related stuff.
 
 Files: *
 Copyright: 1997-2022, Daniel Stenberg, <daniel@haxx.se>, et al.
@@ -24,7 +29,7 @@ Copyright: 1999, Leon Breedt <ljb@debian.org>
  2022, Paul Gevers <elbrus@debian.org>
  2013, 2022, Salvatore Bonaccorso <carnil@debian.org>
  2023 John Scott <jscott@posteo.net>
- 2023-2024, Carlos Henrique Lima Melara <charlesmelara@riseup.net>
+ 2023-2025, Carlos Henrique Lima Melara <charlesmelara@riseup.net>
  2022-2024, Sergio Durigan Junior <sergiodj@debian.org>
  2021-2024, Samuel Henrique <samueloph@debian.org>
 License: curl

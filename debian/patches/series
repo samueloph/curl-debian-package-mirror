@@ -1,7 +1,3 @@
 ZZZgnutls-build.patch
 build-Divide-mit-krb5-gssapi-link-flags-between-LDFLAGS-a.patch
 11_omit-directories-from-config.patch
-
-# Post 8.11.1 upstream patches
-async_thread_avoid_closing_eventfd_twice.patch
-sectransp_free_certificate_on_error.patch
