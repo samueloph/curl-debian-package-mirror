@@ -1,4 +1,4 @@
-curl (7.88.1-10+deb12u11) UNRELEASED; urgency=medium
+curl (7.88.1-10+deb12u11) bookworm; urgency=medium
 
  * Import patch for CVE-2025-0167.
    - When asked to use a `.netrc` file for credentials **and** to follow HTTP
