@@ -1,3 +1,12 @@
+curl (8.12.1-2~bpo12+1) bookworm-backports; urgency=medium
+
+  * Rebuild for bookworm-backports.
+  * Revert the changes as OpenSSL is not new enough for HTTP/3:
+    - d/rules: Build OpenSSL with HTTP3 support.
+    - d/control: libcurl4-openssl-dev: Depend on libnghttp3-dev.
+
+ -- Samuel Henrique <samueloph@debian.org>  Sat, 22 Feb 2025 22:23:47 +0000
+
 curl (8.12.1-2) unstable; urgency=medium
 
   * Revert "Use valgrind in tests"
