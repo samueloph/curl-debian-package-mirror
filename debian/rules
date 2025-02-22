@@ -55,8 +55,8 @@ ifeq ($(filter pkg.curl.no-openssl,$(DEB_BUILD_PROFILES)),)
 	autoreconf -fi && \
 	cp ../../ltmain.sh . && \
 	dh_auto_configure ${CONFIGURE_ARGS} --with-openssl \
-		--without-ngtcp2 \
-		--without-nghttp3
+		--with-openssl-quic \
+		--with-nghttp3
 endif
 ifeq ($(filter pkg.curl.no-gnutls,$(DEB_BUILD_PROFILES)),)
 	mkdir -p debian/build-gnutls

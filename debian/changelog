@@ -1,3 +1,25 @@
+curl (8.12.1-2) unstable; urgency=medium
+
+  * Revert "Use valgrind in tests"
+    valgrind is not available on all archs, and there were too many test
+    failures on some that have it.
+    We should instead enable valgrind on experimental first, then address
+    those issues, and only then do it on unstable.
+  * d/copyright: Remove entry for projects/build-wolfssl.bat, removed file
+
+ -- Samuel Henrique <samueloph@debian.org>  Fri, 14 Feb 2025 21:27:50 +0000
+
+curl (8.12.1-1) unstable; urgency=medium
+
+  * New upstream version 8.12.1.
+  * Revert "d/copyright: exclude Windows related stuff from upstream tarball".
+    Not needed when using upstream releases or daily snapshots.
+  * Use valgrind in tests.
+  * d/control: libcurl4-openssl-dev: Depend on libnghttp3-dev.
+  * d/rules: Build OpenSSL with HTTP3 support.
+
+ -- Samuel Henrique <samueloph@debian.org>  Thu, 13 Feb 2025 22:17:23 +0000
+
 curl (8.12.0+git20250209.89ed161+ds-1~bpo12+1) bookworm-backports; urgency=medium
 
   * Rebuild for bookworm-backports.
