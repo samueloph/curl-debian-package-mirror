@@ -59,6 +59,9 @@ CVE-2024-9681-1.patch
 url-use-same-credentials-on-redirect.patch
 CVE-2024-11053.patch
 
+# Patches from 8.12.0.
+CVE-2025-0167.patch
+
 # Do not add patches below.
 # Used to generate packages for the other crypto libraries.
 90_gnutls.patch

@@ -1,3 +1,14 @@
+curl (7.88.1-10+deb12u11) UNRELEASED; urgency=medium
+
+ * Import patch for CVE-2025-0167.
+   - When asked to use a `.netrc` file for credentials **and** to follow HTTP
+     redirects, curl could leak the password used for the first host to the
+     followed-to host under certain circumstances. This flaw only manifests
+     itself if the netrc file has a `default` entry that omits both login
+     and password. A rare circumstance.
+
+ -- Dr. Tobias Quathamer <toddy@debian.org>  Mon, 10 Feb 2025 11:45:37 +0100
+
 curl (7.88.1-10+deb12u10) bookworm; urgency=medium
 
   * Team upload.
