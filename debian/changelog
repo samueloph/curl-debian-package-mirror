@@ -1,3 +1,13 @@
+curl (8.12.1-3) unstable; urgency=medium
+
+  [ Carlos Henrique Lima Melara ]
+  * d/p/fix-managen-script: cherry-pick from upstream to fix manpage
+
+  [ Samuel Henrique ]
+  * Update wcurl to 2025.02.24
+
+ -- Samuel Henrique <samueloph@debian.org>  Tue, 25 Feb 2025 19:30:46 +0000
+
 curl (8.12.1-2~bpo12+1) bookworm-backports; urgency=medium
 
   * Rebuild for bookworm-backports.

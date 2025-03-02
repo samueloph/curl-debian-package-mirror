@@ -1,3 +1,6 @@
 ZZZgnutls-build.patch
 build-Divide-mit-krb5-gssapi-link-flags-between-LDFLAGS-a.patch
 11_omit-directories-from-config.patch
+
+# Post 8.12.1
+fix-managen-script.patch

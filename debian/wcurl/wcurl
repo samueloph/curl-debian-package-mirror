@@ -29,7 +29,7 @@
 # Stop on errors and on usage of unset variables.
 set -eu
 
-VERSION="2024.12.08"
+VERSION="2025.02.24"
 
 PROGRAM_NAME="$(basename "$0")"
 readonly PROGRAM_NAME
@@ -273,6 +273,12 @@ while [ -n "${1-}" ]; do
             shift
             HAS_USER_SET_OUTPUT="true"
             OUTPUT_PATH="${1}"
+            ;;
+
+        -o*|-O*)
+            opt=$(printf "%s\n" "${1}" | sed 's/^-[oO]//')
+            HAS_USER_SET_OUTPUT="true"
+            OUTPUT_PATH="${opt}"
             ;;
 
         --no-decode-filename)
