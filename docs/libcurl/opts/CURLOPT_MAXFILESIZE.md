@@ -9,6 +9,7 @@ See-also:
   - CURLOPT_MAX_RECV_SPEED_LARGE (3)
 Protocol:
   - All
+Added-in: 7.10.8
 ---
 
 # NAME
@@ -44,6 +45,8 @@ threshold.
 
 0, meaning disabled.
 
+# %PROTOCOLS%
+
 # EXAMPLE
 
 ~~~c
@@ -53,18 +56,18 @@ int main(void)
   if(curl) {
     CURLcode ret;
     curl_easy_setopt(curl, CURLOPT_URL, "https://example.com/");
-    /* refuse to download if larger than 1000 bytes! */
+    /* refuse to download if larger than 1000 bytes */
     curl_easy_setopt(curl, CURLOPT_MAXFILESIZE, 1000L);
     ret = curl_easy_perform(curl);
   }
 }
 ~~~
 
-# AVAILABILITY
-
-Always
+# %AVAILABILITY%
 
 # RETURN VALUE
 
-Returns CURLE_OK if the size passed is valid or CURLE_BAD_FUNCTION_ARGUMENT if
-not.
+curl_easy_setopt(3) returns a CURLcode indicating success or error.
+
+CURLE_OK (0) means everything was OK, non-zero means an error occurred, see
+libcurl-errors(3).

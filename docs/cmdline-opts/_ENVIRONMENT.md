@@ -50,7 +50,7 @@ addresses starting with "192.168".
 
 ## `APPDATA` <dir>
 On Windows, this variable is used when trying to find the home directory. If
-the primary home variable are all unset.
+the primary home variables are all unset.
 
 ## `COLUMNS` <terminal width>
 If set, the specified number of characters is used as the terminal width when
@@ -87,7 +87,7 @@ names named after the destination connection id (in hex). Do note that these
 files can become rather large. Works with the ngtcp2 and quiche QUIC backends.
 
 ## `SHELL`
-Used on VMS when trying to detect if using a **DCL** or a **unix** shell.
+Used on VMS when trying to detect if using a **DCL** or a **Unix** shell.
 
 ## `SSL_CERT_DIR` <dir>
 If set, it is used as the --capath value. This environment variable is ignored

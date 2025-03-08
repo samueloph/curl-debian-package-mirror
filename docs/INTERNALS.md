@@ -26,16 +26,17 @@ versions of libs and build tools.
 
  - OpenSSL      0.9.7
  - GnuTLS       3.1.10
- - zlib         1.1.4
- - libssh2      1.0
- - c-ares       1.16.0
+ - zlib         1.2.0.4
+ - libssh2      1.2.8
+ - c-ares       1.6.0
+ - libssh       0.9.0
  - libidn2      2.0.0
- - wolfSSL      2.0.0
+ - wolfSSL      3.4.6
  - OpenLDAP     2.0
  - MIT Kerberos 1.2.4
  - Heimdal      ?
  - nghttp2      1.15.0
- - WinSock      2.2 (on Windows 95+ and Windows CE .NET 4.1+)
+ - Winsock      2.2 (on Windows 95+ and Windows CE .NET 4.1+)
 
 ## Build tools
 
@@ -47,7 +48,7 @@ versions of libs and build tools.
  - GNU Autoconf 2.59
  - GNU Automake 1.7
  - GNU M4       1.4
- - perl         5.6
+ - perl         5.8
  - roffit       0.5
  - cmake        3.7
 

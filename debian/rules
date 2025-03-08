@@ -12,7 +12,6 @@ DEB_HOST_MULTIARCH ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
 CONFIGURE_ARGS = -- --disable-dependency-tracking		\
 	--disable-symbol-hiding --enable-versioned-symbols	\
 	--enable-threaded-resolver --with-lber-lib=lber		\
-	--enable-websockets \
 	--with-gssapi=/usr --with-nghttp2	\
 	--includedir=/usr/include/$(DEB_HOST_MULTIARCH)		\
 	--with-zsh-functions-dir=/usr/share/zsh/vendor-completions \
@@ -35,6 +34,7 @@ endif
 
 export DEB_CFLAGS_MAINT_APPEND = -D_DEB_HOST_ARCH=\"$(DEB_HOST_MULTIARCH)\" -DCURL_PATCHSTAMP=\"$(DEB_VERSION)\"
 export DEB_CXXFLAGS_MAINT_APPEND = -D_DEB_HOST_ARCH=\"$(DEB_HOST_MULTIARCH)\" -DCURL_PATCHSTAMP=\"$(DEB_VERSION)\"
+export DEB_LDFLAGS_MAINT_APPEND = -Wl,--no-undefined
 
 ifneq ($(filter pkg.curl.openssl-only,$(DEB_BUILD_PROFILES)),)
 	DEB_BUILD_PROFILES += pkg.curl.no-gnutls
@@ -49,35 +49,21 @@ endif
 override_dh_auto_configure:
 ifeq ($(filter pkg.curl.no-openssl,$(DEB_BUILD_PROFILES)),)
 	mkdir -p debian/build
+	tar -cf - --exclude=debian/build* --exclude=.pc . \
+		| tar -xf - -C debian/build
+	cd debian/build && \
+	autoreconf -fi && \
+	cp ../../ltmain.sh . && \
+	dh_auto_configure ${CONFIGURE_ARGS} --with-openssl \
+		--with-openssl-quic \
+		--with-nghttp3
 endif
 ifeq ($(filter pkg.curl.no-gnutls,$(DEB_BUILD_PROFILES)),)
 	mkdir -p debian/build-gnutls
-endif
-# pop the last patch (gnutls)
-	quilt pop
-ifeq ($(filter pkg.curl.no-openssl,$(DEB_BUILD_PROFILES)),)
-# get the source without gnutls patch
-	tar -cf - --exclude=debian/build* --exclude=.pc . \
-		| tar -xf - -C debian/build
-endif
-# push the last patch which must be gnutls
-	quilt push
-ifeq ($(filter pkg.curl.no-gnutls,$(DEB_BUILD_PROFILES)),)
-# get the source with gnutls patch applied
 	tar -cf - --exclude=debian/build* --exclude=.pc . \
 		| tar -xf - -C debian/build-gnutls
-endif
-ifeq ($(filter pkg.curl.no-openssl,$(DEB_BUILD_PROFILES)),)
-	cd debian/build && \
-	./buildconf && \
-	cp ../../ltmain.sh . && \
-	dh_auto_configure ${CONFIGURE_ARGS} --with-openssl \
-		--without-ngtcp2 \
-		--without-nghttp3
-endif
-ifeq ($(filter pkg.curl.no-gnutls,$(DEB_BUILD_PROFILES)),)
 	cd debian/build-gnutls && \
-	./buildconf && \
+	autoreconf -fi && \
 	cp ../../ltmain.sh . && \
 	dh_auto_configure ${CONFIGURE_ARGS} --with-gnutls \
 		--with-ngtcp2 \
@@ -99,7 +85,7 @@ TESTS_GENERAL_PARAMETERS += -n
 # -j parallel tests: https://daniel.haxx.se/blog/2023/06/08/parallel-curl-tests/
 ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
   NUMJOBS = $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
-  TESTS_GENERAL_PARAMETERS += -j$(shell echo $$(( $(NUMJOBS) * 7 )))
+  TESTS_GENERAL_PARAMETERS += -j$(shell echo $$(( $(NUMJOBS) * 4 )))
 endif
 
 # These tests fail if a IPv6-only builder is used:
@@ -111,9 +97,6 @@ TESTS_GENERAL_PARAMETERS += $(TESTS_FAILS_ON_IPV6_ONLY_MACHINES)
 
 override_dh_auto_test:
 ifeq ($(filter nocheck,$(DEB_BUILD_PROFILES)),)
-ifeq ($(DEB_HOST_ARCH_BITS)$(filter i386,$(DEB_HOST_ARCH_CPU)),32)
-	: # TODO: Tests temporarily skipped for 64-bit time_t transition
-else
 ifeq ($(filter pkg.curl.no-openssl,$(DEB_BUILD_PROFILES)),)
 # OpenSSL tests.
 	cd debian/build && VERBOSE=1 \
@@ -125,7 +108,6 @@ ifeq ($(filter pkg.curl.no-gnutls,$(DEB_BUILD_PROFILES)),)
 	cd debian/build-gnutls && VERBOSE=1 \
 		TFLAGS="$(TESTS_GENERAL_PARAMETERS)" \
 		$(MAKE) test-nonflaky
-endif
 endif
 endif
 
@@ -172,12 +154,15 @@ endif
 #    support in Debian.
 # 6. CFLAGS also contain some arch specific hardening flags so we
 #    replace it with dpkg-buildflags call.
+# 7. After t64 transition, CPPFLAGS also differ on 32bits t64 arches, so we
+#    replace it with dpkg-buildflags
 	sed -e "/-lcurl /s|`krb5-config --libs gssapi`|\`krb5-config --libs gssapi\`|" \
 	    -e "/--prefix/s|/$(DEB_HOST_MULTIARCH)'|/\\\`dpkg-architecture -qDEB_HOST_MULTIARCH\\\`'|g" \
 	    -e "/--prefix/s|=$(DEB_BUILD_GNU_TYPE)'|=\\\`dpkg-architecture -qDEB_BUILD_GNU_TYPE\\\`'|g" \
 	    -e "/-fdebug-prefix-map=/s|\(-fdebug-prefix-map=\)/[^ ]*=.||" \
 	    -e "/CFLAGS/s|CFLAGS=.\+\(-DCURL_PATCHSTAMP\)|CFLAGS=\\\`dpkg-buildflags --get CFLAGS \| sed -e \"/-ffile-prefix-map=/s\|\\\\(-ffile-prefix-map=\\\\)/[^ ]*=.\|\|\"\\\` \1|" \
 	    -e "/-D_DEB_HOST_ARCH=/s|-D_DEB_HOST_ARCH=\\\\\"[^ ']*\\\\\"||" \
+	    -e "/CPPFLAGS/s|CPPFLAGS=.\+\'|CPPFLAGS=\\\`dpkg-buildflags --get CPPFLAGS\\\`'\"|" \
 	    -i `find . -name curl-config`
 # When we get here, everything has been properly installed.  Because
 # of debhelper-compat 13, we have to remove some files that are
@@ -185,7 +170,7 @@ endif
 	rm -rfv debian/tmp/usr/share/aclocal/*
 
 override_dh_installchangelogs:
-	dh_installchangelogs CHANGES
+	dh_installchangelogs CHANGES.md
 
 override_dh_compress:
 	dh_compress -X.pdf

@@ -12,6 +12,7 @@ See-also:
   - libcurl-multi (3)
   - libcurl-security (3)
   - libcurl-thread (3)
+Added-in: n/a
 ---
 # libcurl symbols
 
@@ -24,7 +25,7 @@ since that version no new code should be written to use the symbol as it is
 marked for getting removed in a future.
 
 The last version that featured the specific symbol. Using the symbol in source
-code will make it no longer compile error-free after that specified version.
+code makes it no longer compile error-free after that specified version.
 
 This man page is automatically generated from the symbols-in-versions file.
 
@@ -524,7 +525,7 @@ Introduced in 7.56.0. See curl_version_info(3).
 Introduced in 7.10.6. See curl_version_info(3).
 
 ## CURL_VERSION_NTLM_WB
-Introduced in 7.22.0. See curl_version_info(3).
+Introduced in 7.22.0. Deprecated since 8.8.0.
 
 ## CURL_VERSION_PSL
 Introduced in 7.47.0. See curl_version_info(3).
@@ -623,7 +624,7 @@ Introduced in 7.10.6. See CURLOPT_HTTPAUTH(3).
 Introduced in 7.10.6. See CURLOPT_HTTPAUTH(3).
 
 ## CURLAUTH_NTLM_WB
-Introduced in 7.22.0. See CURLOPT_HTTPAUTH(3).
+Introduced in 7.22.0. Deprecated since 8.8.0.
 
 ## CURLAUTH_ONLY
 Introduced in 7.21.3. See CURLOPT_HTTPAUTH(3).
@@ -1297,6 +1298,9 @@ Introduced in 7.9.6. See CURLOPT_DEBUGFUNCTION(3).
 ## CURLINFO_DOUBLE
 Introduced in 7.4.1.
 
+## CURLINFO_EARLYDATA_SENT_T
+Introduced in 8.11.0.
+
 ## CURLINFO_EFFECTIVE_METHOD
 Introduced in 7.72.0.
 
@@ -1335,6 +1339,9 @@ Introduced in 7.50.0.
 
 ## CURLINFO_HTTPAUTH_AVAIL
 Introduced in 7.10.8.
+
+## CURLINFO_HTTPAUTH_USED
+Introduced in 8.12.0.
 
 ## CURLINFO_LASTONE
 Introduced in 7.4.1.
@@ -1378,6 +1385,9 @@ Introduced in 7.4.1.
 ## CURLINFO_PRETRANSFER_TIME_T
 Introduced in 7.61.0.
 
+## CURLINFO_POSTTRANSFER_TIME_T
+Introduced in 8.10.0.
+
 ## CURLINFO_PRIMARY_IP
 Introduced in 7.19.0.
 
@@ -1398,6 +1408,9 @@ Introduced in 7.52.0.
 
 ## CURLINFO_PROXYAUTH_AVAIL
 Introduced in 7.10.8.
+
+## CURLINFO_PROXYAUTH_USED
+Introduced in 8.12.0.
 
 ## CURLINFO_PTR
 Introduced in 7.54.1.
@@ -2584,6 +2597,9 @@ Introduced in 7.25.0. See CURLOPT_TCP_KEEPIDLE(3).
 ## CURLOPT_TCP_KEEPINTVL
 Introduced in 7.25.0. See CURLOPT_TCP_KEEPINTVL(3).
 
+## CURLOPT_TCP_KEEPCNT
+Introduced in 8.9.0. See CURLOPT_TCP_KEEPCNT(3).
+
 ## CURLOPT_TCP_NODELAY
 Introduced in 7.11.2. See CURLOPT_TCP_NODELAY(3).
 
@@ -3148,6 +3164,9 @@ Introduced in 7.44.0. See CURLOPT_SSL_OPTIONS(3).
 ## CURLSSLOPT_REVOKE_BEST_EFFORT
 Introduced in 7.70.0. See CURLOPT_SSL_OPTIONS(3).
 
+## CURLSSLOPT_EARLYDATA
+Introduced in 8.11.0. See CURLOPT_SSL_OPTIONS(3).
+
 ## CURLSSLSET_NO_BACKENDS
 Introduced in 7.56.0. See curl_global_sslset(3).
 
@@ -3195,6 +3214,9 @@ Introduced in 7.67.0. See curl_url_get(3).
 
 ## CURLU_NO_DEFAULT_PORT
 Introduced in 7.62.0. See curl_url_get(3).
+
+## CURLU_NO_GUESS_SCHEME
+Introduced in 8.9.0. See curl_url_get(3).
 
 ## CURLU_NON_SUPPORT_SCHEME
 Introduced in 7.62.0. See curl_url_get(3).

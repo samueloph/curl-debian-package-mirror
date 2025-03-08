@@ -11,6 +11,7 @@ See-also:
   - curl_share_setopt (3)
 Protocol:
   - All
+Added-in: 7.10.3
 ---
 
 # NAME
@@ -40,19 +41,23 @@ Cookie data is shared across the easy handles using this shared object. Note
 that this does not activate an easy handle's cookie handling. You can do that
 separately by using CURLOPT_COOKIEFILE(3) for example.
 
+It is not supported to share cookies between multiple concurrent threads.
+
 ## CURL_LOCK_DATA_DNS
 
 Cached DNS hosts are shared across the easy handles using this shared
 object. Note that when you use the multi interface, all easy handles added to
-the same multi handle share DNS cache by default without using this option.
+the same multi handle share the DNS cache by default without using this option.
 
 ## CURL_LOCK_DATA_SSL_SESSION
 
-SSL session IDs are shared across the easy handles using this shared
+SSL sessions are shared across the easy handles using this shared
 object. This reduces the time spent in the SSL handshake when reconnecting to
-the same server. Note SSL session IDs are reused within the same easy handle
-by default. Note this symbol was added in 7.10.3 but was not implemented until
+the same server. This symbol was added in 7.10.3 but was not implemented until
 7.23.0.
+
+Note that when you use the multi interface, all easy handles added to the same
+multi handle share the SSL session cache by default without using this option.
 
 ## CURL_LOCK_DATA_CONNECT
 
@@ -70,7 +75,7 @@ Support for **CURL_LOCK_DATA_CONNECT** was added in 7.57.0, but the symbol
 existed before this.
 
 Note that when you use the multi interface, all easy handles added to the same
-multi handle shares connection cache by default without using this option.
+multi handle share the connection cache by default without using this option.
 
 ## CURL_LOCK_DATA_PSL
 
@@ -81,7 +86,7 @@ refreshed, this avoids updates in too many different contexts.
 Added in 7.61.0.
 
 Note that when you use the multi interface, all easy handles added to the same
-multi handle shares PSL cache by default without using this option.
+multi handle share the PSL cache by default without using this option.
 
 ## CURL_LOCK_DATA_HSTS
 
@@ -90,6 +95,8 @@ The in-memory HSTS cache.
 It is not supported to share the HSTS between multiple concurrent threads.
 
 Added in 7.88.0
+
+# %PROTOCOLS%
 
 # EXAMPLE
 
@@ -104,9 +111,7 @@ int main(void)
 }
 ~~~
 
-# AVAILABILITY
-
-Added in 7.10
+# %AVAILABILITY%
 
 # RETURN VALUE
 

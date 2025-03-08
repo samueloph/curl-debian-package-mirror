@@ -11,6 +11,7 @@ See-also:
   - curl_easy_setopt (3)
 Protocol:
   - All
+Added-in: 7.45.0
 ---
 
 # NAME
@@ -39,6 +40,8 @@ CURLOPT_CONNECT_ONLY(3), which skips the transfer phase.
 
 CURLINFO_ACTIVESOCKET(3) was added as a replacement for
 CURLINFO_LASTSOCKET(3) since that one is not working on all platforms.
+
+# %PROTOCOLS%
 
 # EXAMPLE
 
@@ -71,10 +74,11 @@ int main(void)
 }
 ~~~
 
-# AVAILABILITY
-
-Added in 7.45.0
+# %AVAILABILITY%
 
 # RETURN VALUE
 
-Returns CURLE_OK if the option is supported, and CURLE_UNKNOWN_OPTION if not.
+curl_easy_getinfo(3) returns a CURLcode indicating success or error.
+
+CURLE_OK (0) means everything was OK, non-zero means an error occurred, see
+libcurl-errors(3).

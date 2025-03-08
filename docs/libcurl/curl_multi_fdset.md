@@ -14,11 +14,12 @@ See-also:
   - select (2)
 Protocol:
   - All
+Added-in: 7.9.6
 ---
 
 # NAME
 
-curl_multi_fdset - extracts file descriptor information from a multi handle
+curl_multi_fdset - extract file descriptor information from a multi handle
 
 # SYNOPSIS
 
@@ -78,6 +79,8 @@ which can cause crashes, or worse. The effect of NOT storing it might possibly
 save you from the crash, but makes your program NOT wait for sockets it should
 wait for...
 
+# %PROTOCOLS%
+
 # EXAMPLE
 
 ~~~c
@@ -112,11 +115,11 @@ int main(void)
 }
 ~~~
 
-# AVAILABILITY
-
-Added in 7.9.6
+# %AVAILABILITY%
 
 # RETURN VALUE
 
-**CURLMcode** type, general libcurl multi interface error code. See
-libcurl-errors(3)
+This function returns a CURLMcode indicating success or error.
+
+CURLM_OK (0) means everything was OK, non-zero means an error occurred, see
+libcurl-errors(3).

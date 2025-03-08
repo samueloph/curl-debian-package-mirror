@@ -24,7 +24,7 @@ Copyright: 1999, Leon Breedt <ljb@debian.org>
  2022, Paul Gevers <elbrus@debian.org>
  2013, 2022, Salvatore Bonaccorso <carnil@debian.org>
  2023 John Scott <jscott@posteo.net>
- 2023-2024, Carlos Henrique Lima Melara <charlesmelara@riseup.net>
+ 2023-2025, Carlos Henrique Lima Melara <charlesmelara@riseup.net>
  2022-2024, Sergio Durigan Junior <sergiodj@debian.org>
  2021-2024, Samuel Henrique <samueloph@debian.org>
 License: curl
@@ -81,7 +81,6 @@ License: curl
 Files: m4/xc-am-iface.m4
  m4/xc-cc-check.m4
  m4/xc-lt-iface.m4
- m4/xc-translit.m4
  m4/xc-val-flgs.m4
  m4/zz40-xc-ovr.m4
  m4/zz50-xc-ovr.m4
@@ -240,11 +239,6 @@ Copyright: 2010, Howard Chu, <hyc@openldap.org>
   2011-2022, Daniel Stenberg, <daniel@haxx.se>, et al.
 License: curl
 
-Files: tests/server/fake_ntlm.c
-Copyright: 2010, Mandy Wu, <mandy.wu@intel.com>
-  2011-2022, Daniel Stenberg, <daniel@haxx.se>, et al.
-License: curl
-
 Files: lib/vtls/schannel.h
 Copyright: 2012, Marc Hoersken, <info@marc-hoersken.de>, et al.
   2012-2022, Daniel Stenberg, <daniel@haxx.se>, et al.
@@ -265,11 +259,6 @@ License: curl
 
 Files: lib/curl_rtmp.h
 Copyright: 2010-2022, Howard Chu, <hyc@highlandsun.com>
-License: curl
-
-Files: projects/build-wolfssl.bat
-Copyright: 2012-2020, Steve Holme, <steve_holme@hotmail.com>.
-  2015-2022, Jay Satiro, <raysatiro@yahoo.com>.
 License: curl
 
 Files: docs/examples/crawler.c

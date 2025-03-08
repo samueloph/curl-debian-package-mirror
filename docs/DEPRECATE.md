@@ -23,33 +23,37 @@ and use TLS 1.3, or else it is not good enough.
 As of May 2024, the libraries that need to get fixed to remain supported after
 May 2025 are: BearSSL and Secure Transport.
 
-## space-separated `NOPROXY` patterns
+## msh3 support
 
-When specifying patterns/domain names for curl that should *not* go through a
-proxy, the curl tool features the `--noproxy` command line option and the
-library supports the `NO_PROXY` environment variable and the `CURLOPT_NOPROXY`
-libcurl option.
+The msh3 backed for QUIC and HTTP/3 was introduced in April 2022 but has never
+been made to work properly. It has seen no visible traction or developer
+activity from the msh3 main author (or anyone else seemingly interested) in
+two years. As a non-functional backend, it only adds friction and "weight" to
+the development and maintenance.
 
-They all set the same list of patterns. This list is documented to be a set of
-**comma-separated** names, but can also be provided separated with just
-space. The ability to just use spaces for this has never been documented but
-some users may still have come to rely on this.
+Meanwhile, we have a fully working backend in the ngtcp2 one and we have two
+fully working backends in OpenSSL-QUIC and quiche well on their way of ending
+their experimental status in a future.
 
-Several other tools and utilities also parse the `NO_PROXY` environment
-variable but do not consider a space to be a valid separator. Using spaces for
-separator is probably less portable and might cause more friction than commas
-do. Users should use commas for this for greater portability.
+We remove msh3 support from the curl source tree in July 2025.
 
-curl removes the support for space-separated names in July 2024.
+## winbuild build system
 
-## past removals
+curl drops support for the winbuild build method after September 2025.
+
+We recommend migrating to CMake. See the migration guide in
+`docs/INSTALL-CMAKE.md`.
+
+## Past removals
 
  - Pipelining
  - axTLS
  - PolarSSL
  - NPN
- - Support for systems without 64 bit data types
+ - Support for systems without 64-bit data types
  - NSS
  - gskit
- - mingw v1
+ - MinGW v1
  - NTLM_WB
+ - space-separated `NOPROXY` patterns
+ - hyper

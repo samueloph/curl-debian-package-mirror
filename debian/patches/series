@@ -1,12 +1,6 @@
-# Packaging patches.
-04_workaround_as_needed_bug.patch
+ZZZgnutls-build.patch
 build-Divide-mit-krb5-gssapi-link-flags-between-LDFLAGS-a.patch
 11_omit-directories-from-config.patch
-Remove-curl-s-LDFLAGS-from-curl-config-static-libs.patch
 
-# Post 8.8.0 patches.
-docs_makefile_am_make_curl_config_1_install.patch
-
-# Do not add patches below.
-# Used to generate packages for the other crypto libraries.
-90_gnutls.patch
+# Post 8.12.1
+fix-managen-script.patch

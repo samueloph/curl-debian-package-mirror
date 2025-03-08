@@ -1,62 +1,64 @@
 From: Benjamin Moody <benjamin.moody@gmail.com>
 Date: Wed, 27 Mar 2024 18:10:56 +0000
-Subject: In order to (partially) multi-arch-ify curl-config, remove all
+Subject: Omit directories embedding arch info from curl-config
 
-Origin: vendor
-Bug-Debian: http://bugs.debian.org/731998
-Forwarded: not-needed
-Reviewed-by: Alessandro Ghedini <ghedo@debian.org>
-Last-Update: 2017-01-10
-
+In order to (partially) multi-arch-ify curl-config, remove all
 mention of @includedir@ and @libdir@ from the script.  On Debian, the actual
 header and library directories are architecture-dependent, but will always be
 in the C compiler's default search path, so -I and -L options are not
 necessary (and may be harmful in multi-arch environments.)
+
+Origin: vendor
+Bug-Debian: https://bugs.debian.org/731998
+Bug-Debian: https://bugs.debian.org/1075802
+Forwarded: not-needed
+Reviewed-by: Alessandro Ghedini <ghedo@debian.org>
+Last-Update: 2025-02-05
 ---
  curl-config.in | 16 +++-------------
  1 file changed, 3 insertions(+), 13 deletions(-)
 
 diff --git a/curl-config.in b/curl-config.in
-index 085bb1e..d90bfbc 100644
+index 5518416..2eba92e 100644
 --- a/curl-config.in
 +++ b/curl-config.in
-@@ -27,8 +27,6 @@ prefix="@prefix@"
- # Used in @libdir@
+@@ -29,8 +29,6 @@ prefix='@prefix@'
+ # Used in 'libdir'
  # shellcheck disable=SC2034
- exec_prefix=@exec_prefix@
+ exec_prefix="@exec_prefix@"
 -# shellcheck disable=SC2034
--includedir=@includedir@
- cppflag_curl_staticlib=@CPPFLAG_CURL_STATICLIB@
+-includedir="@includedir@"
  
  usage()
-@@ -145,19 +143,11 @@ while test "$#" -gt 0; do
-     else
-       CPPFLAG_CURL_STATICLIB=""
-     fi
--    if test "X@includedir@" = "X/usr/include"; then
--      echo "${CPPFLAG_CURL_STATICLIB}"
+ {
+@@ -141,19 +139,11 @@ while test "$#" -gt 0; do
+     ;;
+ 
+   --cflags)
+-    if test "X@includedir@" = 'X/usr/include'; then
+-      echo '@LIBCURL_PC_CFLAGS@'
 -    else
--      echo "${CPPFLAG_CURL_STATICLIB}-I@includedir@"
+-      echo "@LIBCURL_PC_CFLAGS@ -I@includedir@"
 -    fi
-+    echo "${CPPFLAG_CURL_STATICLIB}"
++    echo '@LIBCURL_PC_CFLAGS@'
      ;;
  
    --libs)
--    if test "X@libdir@" != "X/usr/lib" -a "X@libdir@" != "X/usr/lib64"; then
--      CURLLIBDIR="-L@libdir@ "
+-    if test "X@libdir@" != 'X/usr/lib' -a "X@libdir@" != 'X/usr/lib64'; then
+-      curllibdir="-L@libdir@ "
 -    else
--      CURLLIBDIR=""
+-      curllibdir=''
 -    fi
-+    CURLLIBDIR=""
-     if test "X@ENABLE_SHARED@" = "Xno"; then
-       echo "${CURLLIBDIR}-lcurl @LIBCURL_LIBS@"
++    curllibdir=''
+     if test 'X@ENABLE_SHARED@' = 'Xno'; then
+       echo "${curllibdir}-lcurl @LIBCURL_PC_LIBS_PRIVATE@"
      else
-@@ -171,7 +161,7 @@ while test "$#" -gt 0; do
+@@ -167,7 +157,7 @@ while test "$#" -gt 0; do
  
    --static-libs)
-     if test "X@ENABLE_STATIC@" != "Xno" ; then
--      echo "@libdir@/libcurl.@libext@" @LDFLAGS@ @LIBCURL_LIBS@
-+      echo -Wl,-Bstatic -lcurl -Wl,-Bdynamic @LDFLAGS@ @LIBCURL_LIBS@
+     if test 'X@ENABLE_STATIC@' != 'Xno'; then
+-      echo "@libdir@/libcurl.@libext@ @LIBCURL_PC_LDFLAGS_PRIVATE@ @LIBCURL_PC_LIBS_PRIVATE@"
++      echo -Wl,-Bstatic -lcurl -Wl,-Bdynamic @LIBCURL_PC_LIBS_PRIVATE@
      else
        echo 'curl was built with static libraries disabled' >&2
        exit 1

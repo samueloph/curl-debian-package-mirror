@@ -36,7 +36,6 @@ from testenv import Env, CurlClient, ExecResult
 log = logging.getLogger(__name__)
 
 
-@pytest.mark.skipif(condition=Env().ci_run, reason="not suitable for CI runs")
 class TestGoAway:
 
     @pytest.fixture(autouse=True, scope='class')
@@ -47,7 +46,7 @@ class TestGoAway:
         httpd.reload()
 
     # download files sequentially with delay, reload server for GOAWAY
-    def test_03_01_h2_goaway(self, env: Env, httpd, nghttpx, repeat):
+    def test_03_01_h2_goaway(self, env: Env, httpd, nghttpx):
         proto = 'h2'
         count = 3
         self.r = None
@@ -79,12 +78,10 @@ class TestGoAway:
 
     # download files sequentially with delay, reload server for GOAWAY
     @pytest.mark.skipif(condition=not Env.have_h3(), reason="h3 not supported")
-    def test_03_02_h3_goaway(self, env: Env, httpd, nghttpx, repeat):
+    def test_03_02_h3_goaway(self, env: Env, httpd, nghttpx):
         proto = 'h3'
         if proto == 'h3' and env.curl_uses_lib('msh3'):
             pytest.skip("msh3 stalls here")
-        if proto == 'h3' and env.curl_uses_lib('quiche'):
-            pytest.skip("does not work in CI, but locally for some reason")
         if proto == 'h3' and env.curl_uses_ossl_quic():
             pytest.skip('OpenSSL QUIC fails here')
         count = 3
@@ -115,7 +112,7 @@ class TestGoAway:
                 log.debug(f'request {idx} connected')
 
     # download files sequentially with delay, reload server for GOAWAY
-    def test_03_03_h1_goaway(self, env: Env, httpd, nghttpx, repeat):
+    def test_03_03_h1_goaway(self, env: Env, httpd, nghttpx):
         proto = 'http/1.1'
         count = 3
         self.r = None

@@ -1,7 +1,6 @@
 libcurl-gnutls.so.4 libcurl3t64-gnutls #MINVER#
 * Build-Depends-Package: libcurl4-gnutls-dev
  CURL_GNUTLS_3@CURL_GNUTLS_3 7.16.2
- HIDDEN@HIDDEN 7.16.2
  curl_easy_cleanup@CURL_GNUTLS_3 7.16.2
  curl_easy_duphandle@CURL_GNUTLS_3 7.16.2
  curl_easy_escape@CURL_GNUTLS_3 7.16.2
@@ -18,6 +17,8 @@ libcurl-gnutls.so.4 libcurl3t64-gnutls #MINVER#
  curl_easy_reset@CURL_GNUTLS_3 7.16.2
  curl_easy_send@CURL_GNUTLS_3 7.18.2
  curl_easy_setopt@CURL_GNUTLS_3 7.16.2
+ curl_easy_ssls_export@CURL_GNUTLS_3 8.12.0
+ curl_easy_ssls_import@CURL_GNUTLS_3 8.12.0
  curl_easy_strerror@CURL_GNUTLS_3 7.16.2
  curl_easy_unescape@CURL_GNUTLS_3 7.16.2
  curl_easy_upkeep@CURL_GNUTLS_3 7.63.0
