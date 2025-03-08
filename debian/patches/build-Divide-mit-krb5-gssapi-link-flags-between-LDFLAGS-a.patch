@@ -17,16 +17,16 @@ Signed-off-by: Simon McVittie <smcv@collabora.com>
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/configure.ac b/configure.ac
-index 6e134a2..7644855 100644
+index 7b985d2..6f99f58 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -1959,7 +1959,8 @@ if test x"$want_gss" = xyes; then
-           gss_libs=`$GSSAPI_ROOT/bin/$host_alias-krb5-config --libs gssapi`
-           LIBS="$gss_libs $LIBS"
-         elif test "$PKGCONFIG" != "no"; then
--          gss_libs=`$PKGCONFIG --libs mit-krb5-gssapi`
-+          LDFLAGS="$LDFLAGS `$PKGCONFIG --libs-only-L mit-krb5-gssapi`"
-+          gss_libs=`$PKGCONFIG --libs-only-l mit-krb5-gssapi`
-           LIBS="$gss_libs $LIBS"
-           link_pkgconfig=1
-         elif test -f "$KRB5CONFIG"; then
+@@ -2002,7 +2002,8 @@ if test x"$want_gss" = xyes; then
+         gss_libs=`$GSSAPI_ROOT/bin/$host_alias-krb5-config --libs gssapi`
+         LIBS="$gss_libs $LIBS"
+       elif test "$PKGCONFIG" != "no"; then
+-        gss_libs=`$PKGCONFIG --libs mit-krb5-gssapi`
++        LDFLAGS="$LDFLAGS `$PKGCONFIG --libs-only-L mit-krb5-gssapi`"
++        gss_libs=`$PKGCONFIG --libs-only-l mit-krb5-gssapi`
+         LIBS="$gss_libs $LIBS"
+         link_pkgconfig=1
+       elif test -f "$KRB5CONFIG"; then
