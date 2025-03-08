@@ -113,9 +113,9 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 @DOING_NATIVE_WINDOWS_TRUE@am__append_1 = -DCURL_STATICLIB
-noinst_PROGRAMS = getpart$(EXEEXT) resolve$(EXEEXT) rtspd$(EXEEXT) \
-	sockfilt$(EXEEXT) sws$(EXEEXT) tftpd$(EXEEXT) socksd$(EXEEXT) \
-	disabled$(EXEEXT) mqttd$(EXEEXT)
+noinst_PROGRAMS = resolve$(EXEEXT) rtspd$(EXEEXT) sockfilt$(EXEEXT) \
+	sws$(EXEEXT) tftpd$(EXEEXT) socksd$(EXEEXT) disabled$(EXEEXT) \
+	mqttd$(EXEEXT)
 subdir = tests/server
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/curl-amissl.m4 \
@@ -159,30 +159,11 @@ am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
 am__dirstamp = $(am__leading_dot)dirstamp
-am__objects_1 = ../../lib/getpart-mprintf.$(OBJEXT) \
-	../../lib/getpart-nonblock.$(OBJEXT) \
-	../../lib/getpart-strtoofft.$(OBJEXT) \
-	../../lib/getpart-warnless.$(OBJEXT) \
-	../../lib/getpart-timediff.$(OBJEXT) \
-	../../lib/getpart-dynbuf.$(OBJEXT) \
-	../../lib/getpart-strdup.$(OBJEXT) \
-	../../lib/getpart-strcase.$(OBJEXT) \
-	../../lib/getpart-curl_get_line.$(OBJEXT) \
-	../../lib/getpart-curl_multibyte.$(OBJEXT)
-am__objects_2 =
-am__objects_3 = getpart-getpart.$(OBJEXT) \
-	../../lib/getpart-base64.$(OBJEXT) \
-	../../lib/getpart-memdebug.$(OBJEXT)
-am_getpart_OBJECTS = $(am__objects_1) $(am__objects_2) \
-	$(am__objects_3) getpart-testpart.$(OBJEXT)
-getpart_OBJECTS = $(am_getpart_OBJECTS)
-getpart_DEPENDENCIES =
-getpart_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(getpart_CFLAGS) \
-	$(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-am__objects_4 = ../../lib/mqttd-mprintf.$(OBJEXT) \
+am__objects_1 = ../../lib/mqttd-mprintf.$(OBJEXT) \
 	../../lib/mqttd-nonblock.$(OBJEXT) \
 	../../lib/mqttd-strtoofft.$(OBJEXT) \
+	../../lib/mqttd-strparse.$(OBJEXT) \
+	../../lib/mqttd-strequal.$(OBJEXT) \
 	../../lib/mqttd-warnless.$(OBJEXT) \
 	../../lib/mqttd-timediff.$(OBJEXT) \
 	../../lib/mqttd-dynbuf.$(OBJEXT) \
@@ -190,21 +171,24 @@ am__objects_4 = ../../lib/mqttd-mprintf.$(OBJEXT) \
 	../../lib/mqttd-strcase.$(OBJEXT) \
 	../../lib/mqttd-curl_get_line.$(OBJEXT) \
 	../../lib/mqttd-curl_multibyte.$(OBJEXT)
-am__objects_5 = mqttd-getpart.$(OBJEXT) \
+am__objects_2 =
+am__objects_3 = mqttd-getpart.$(OBJEXT) \
 	../../lib/mqttd-base64.$(OBJEXT) \
 	../../lib/mqttd-memdebug.$(OBJEXT)
-am__objects_6 = mqttd-util.$(OBJEXT)
-am_mqttd_OBJECTS = $(am__objects_4) $(am__objects_2) $(am__objects_5) \
-	$(am__objects_6) mqttd-mqttd.$(OBJEXT) \
-	../../lib/mqttd-inet_pton.$(OBJEXT)
+am__objects_4 = mqttd-util.$(OBJEXT) \
+	../../lib/mqttd-strerror.$(OBJEXT)
+am_mqttd_OBJECTS = $(am__objects_1) $(am__objects_2) $(am__objects_3) \
+	$(am__objects_4) mqttd-mqttd.$(OBJEXT)
 mqttd_OBJECTS = $(am_mqttd_OBJECTS)
 mqttd_DEPENDENCIES =
 mqttd_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(mqttd_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-am__objects_7 = ../../lib/resolve-mprintf.$(OBJEXT) \
+am__objects_5 = ../../lib/resolve-mprintf.$(OBJEXT) \
 	../../lib/resolve-nonblock.$(OBJEXT) \
 	../../lib/resolve-strtoofft.$(OBJEXT) \
+	../../lib/resolve-strparse.$(OBJEXT) \
+	../../lib/resolve-strequal.$(OBJEXT) \
 	../../lib/resolve-warnless.$(OBJEXT) \
 	../../lib/resolve-timediff.$(OBJEXT) \
 	../../lib/resolve-dynbuf.$(OBJEXT) \
@@ -212,20 +196,23 @@ am__objects_7 = ../../lib/resolve-mprintf.$(OBJEXT) \
 	../../lib/resolve-strcase.$(OBJEXT) \
 	../../lib/resolve-curl_get_line.$(OBJEXT) \
 	../../lib/resolve-curl_multibyte.$(OBJEXT)
-am__objects_8 = resolve-getpart.$(OBJEXT) \
+am__objects_6 = resolve-getpart.$(OBJEXT) \
 	../../lib/resolve-base64.$(OBJEXT) \
 	../../lib/resolve-memdebug.$(OBJEXT)
-am__objects_9 = resolve-util.$(OBJEXT)
-am_resolve_OBJECTS = $(am__objects_7) $(am__objects_2) \
-	$(am__objects_8) $(am__objects_9) resolve-resolve.$(OBJEXT)
+am__objects_7 = resolve-util.$(OBJEXT) \
+	../../lib/resolve-strerror.$(OBJEXT)
+am_resolve_OBJECTS = $(am__objects_5) $(am__objects_2) \
+	$(am__objects_6) $(am__objects_7) resolve-resolve.$(OBJEXT)
 resolve_OBJECTS = $(am_resolve_OBJECTS)
 resolve_DEPENDENCIES =
 resolve_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(resolve_CFLAGS) \
 	$(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-am__objects_10 = ../../lib/rtspd-mprintf.$(OBJEXT) \
+am__objects_8 = ../../lib/rtspd-mprintf.$(OBJEXT) \
 	../../lib/rtspd-nonblock.$(OBJEXT) \
 	../../lib/rtspd-strtoofft.$(OBJEXT) \
+	../../lib/rtspd-strparse.$(OBJEXT) \
+	../../lib/rtspd-strequal.$(OBJEXT) \
 	../../lib/rtspd-warnless.$(OBJEXT) \
 	../../lib/rtspd-timediff.$(OBJEXT) \
 	../../lib/rtspd-dynbuf.$(OBJEXT) \
@@ -233,20 +220,23 @@ am__objects_10 = ../../lib/rtspd-mprintf.$(OBJEXT) \
 	../../lib/rtspd-strcase.$(OBJEXT) \
 	../../lib/rtspd-curl_get_line.$(OBJEXT) \
 	../../lib/rtspd-curl_multibyte.$(OBJEXT)
-am__objects_11 = rtspd-getpart.$(OBJEXT) \
+am__objects_9 = rtspd-getpart.$(OBJEXT) \
 	../../lib/rtspd-base64.$(OBJEXT) \
 	../../lib/rtspd-memdebug.$(OBJEXT)
-am__objects_12 = rtspd-util.$(OBJEXT)
-am_rtspd_OBJECTS = $(am__objects_10) $(am__objects_2) \
-	$(am__objects_11) $(am__objects_12) rtspd-rtspd.$(OBJEXT)
+am__objects_10 = rtspd-util.$(OBJEXT) \
+	../../lib/rtspd-strerror.$(OBJEXT)
+am_rtspd_OBJECTS = $(am__objects_8) $(am__objects_2) $(am__objects_9) \
+	$(am__objects_10) rtspd-rtspd.$(OBJEXT)
 rtspd_OBJECTS = $(am_rtspd_OBJECTS)
 rtspd_DEPENDENCIES =
 rtspd_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(rtspd_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-am__objects_13 = ../../lib/sockfilt-mprintf.$(OBJEXT) \
+am__objects_11 = ../../lib/sockfilt-mprintf.$(OBJEXT) \
 	../../lib/sockfilt-nonblock.$(OBJEXT) \
 	../../lib/sockfilt-strtoofft.$(OBJEXT) \
+	../../lib/sockfilt-strparse.$(OBJEXT) \
+	../../lib/sockfilt-strequal.$(OBJEXT) \
 	../../lib/sockfilt-warnless.$(OBJEXT) \
 	../../lib/sockfilt-timediff.$(OBJEXT) \
 	../../lib/sockfilt-dynbuf.$(OBJEXT) \
@@ -254,22 +244,25 @@ am__objects_13 = ../../lib/sockfilt-mprintf.$(OBJEXT) \
 	../../lib/sockfilt-strcase.$(OBJEXT) \
 	../../lib/sockfilt-curl_get_line.$(OBJEXT) \
 	../../lib/sockfilt-curl_multibyte.$(OBJEXT)
-am__objects_14 = sockfilt-getpart.$(OBJEXT) \
+am__objects_12 = sockfilt-getpart.$(OBJEXT) \
 	../../lib/sockfilt-base64.$(OBJEXT) \
 	../../lib/sockfilt-memdebug.$(OBJEXT)
-am__objects_15 = sockfilt-util.$(OBJEXT)
-am_sockfilt_OBJECTS = $(am__objects_13) $(am__objects_2) \
-	$(am__objects_14) $(am__objects_15) \
-	sockfilt-sockfilt.$(OBJEXT) \
-	../../lib/sockfilt-inet_pton.$(OBJEXT)
+am__objects_13 = sockfilt-util.$(OBJEXT) \
+	../../lib/sockfilt-strerror.$(OBJEXT)
+am__objects_14 = ../../lib/sockfilt-inet_pton.$(OBJEXT)
+am_sockfilt_OBJECTS = $(am__objects_11) $(am__objects_2) \
+	$(am__objects_12) $(am__objects_13) $(am__objects_14) \
+	sockfilt-sockfilt.$(OBJEXT)
 sockfilt_OBJECTS = $(am_sockfilt_OBJECTS)
 sockfilt_DEPENDENCIES =
 sockfilt_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(sockfilt_CFLAGS) \
 	$(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-am__objects_16 = ../../lib/socksd-mprintf.$(OBJEXT) \
+am__objects_15 = ../../lib/socksd-mprintf.$(OBJEXT) \
 	../../lib/socksd-nonblock.$(OBJEXT) \
 	../../lib/socksd-strtoofft.$(OBJEXT) \
+	../../lib/socksd-strparse.$(OBJEXT) \
+	../../lib/socksd-strequal.$(OBJEXT) \
 	../../lib/socksd-warnless.$(OBJEXT) \
 	../../lib/socksd-timediff.$(OBJEXT) \
 	../../lib/socksd-dynbuf.$(OBJEXT) \
@@ -277,13 +270,15 @@ am__objects_16 = ../../lib/socksd-mprintf.$(OBJEXT) \
 	../../lib/socksd-strcase.$(OBJEXT) \
 	../../lib/socksd-curl_get_line.$(OBJEXT) \
 	../../lib/socksd-curl_multibyte.$(OBJEXT)
-am__objects_17 = socksd-getpart.$(OBJEXT) \
+am__objects_16 = socksd-getpart.$(OBJEXT) \
 	../../lib/socksd-base64.$(OBJEXT) \
 	../../lib/socksd-memdebug.$(OBJEXT)
-am__objects_18 = socksd-util.$(OBJEXT)
-am_socksd_OBJECTS = $(am__objects_16) $(am__objects_2) \
-	$(am__objects_17) $(am__objects_18) socksd-socksd.$(OBJEXT) \
-	../../lib/socksd-inet_pton.$(OBJEXT)
+am__objects_17 = socksd-util.$(OBJEXT) \
+	../../lib/socksd-strerror.$(OBJEXT)
+am__objects_18 = ../../lib/socksd-inet_pton.$(OBJEXT)
+am_socksd_OBJECTS = $(am__objects_15) $(am__objects_2) \
+	$(am__objects_16) $(am__objects_17) $(am__objects_18) \
+	socksd-socksd.$(OBJEXT)
 socksd_OBJECTS = $(am_socksd_OBJECTS)
 socksd_DEPENDENCIES =
 socksd_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
@@ -292,6 +287,8 @@ socksd_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 am__objects_19 = ../../lib/sws-mprintf.$(OBJEXT) \
 	../../lib/sws-nonblock.$(OBJEXT) \
 	../../lib/sws-strtoofft.$(OBJEXT) \
+	../../lib/sws-strparse.$(OBJEXT) \
+	../../lib/sws-strequal.$(OBJEXT) \
 	../../lib/sws-warnless.$(OBJEXT) \
 	../../lib/sws-timediff.$(OBJEXT) \
 	../../lib/sws-dynbuf.$(OBJEXT) ../../lib/sws-strdup.$(OBJEXT) \
@@ -300,18 +297,20 @@ am__objects_19 = ../../lib/sws-mprintf.$(OBJEXT) \
 	../../lib/sws-curl_multibyte.$(OBJEXT)
 am__objects_20 = sws-getpart.$(OBJEXT) ../../lib/sws-base64.$(OBJEXT) \
 	../../lib/sws-memdebug.$(OBJEXT)
-am__objects_21 = sws-util.$(OBJEXT)
+am__objects_21 = sws-util.$(OBJEXT) ../../lib/sws-strerror.$(OBJEXT)
+am__objects_22 = ../../lib/sws-inet_pton.$(OBJEXT)
 am_sws_OBJECTS = $(am__objects_19) $(am__objects_2) $(am__objects_20) \
-	$(am__objects_21) sws-sws.$(OBJEXT) \
-	../../lib/sws-inet_pton.$(OBJEXT)
+	$(am__objects_21) $(am__objects_22) sws-sws.$(OBJEXT)
 sws_OBJECTS = $(am_sws_OBJECTS)
 sws_DEPENDENCIES =
 sws_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(sws_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-am__objects_22 = ../../lib/tftpd-mprintf.$(OBJEXT) \
+am__objects_23 = ../../lib/tftpd-mprintf.$(OBJEXT) \
 	../../lib/tftpd-nonblock.$(OBJEXT) \
 	../../lib/tftpd-strtoofft.$(OBJEXT) \
+	../../lib/tftpd-strparse.$(OBJEXT) \
+	../../lib/tftpd-strequal.$(OBJEXT) \
 	../../lib/tftpd-warnless.$(OBJEXT) \
 	../../lib/tftpd-timediff.$(OBJEXT) \
 	../../lib/tftpd-dynbuf.$(OBJEXT) \
@@ -319,12 +318,13 @@ am__objects_22 = ../../lib/tftpd-mprintf.$(OBJEXT) \
 	../../lib/tftpd-strcase.$(OBJEXT) \
 	../../lib/tftpd-curl_get_line.$(OBJEXT) \
 	../../lib/tftpd-curl_multibyte.$(OBJEXT)
-am__objects_23 = tftpd-getpart.$(OBJEXT) \
+am__objects_24 = tftpd-getpart.$(OBJEXT) \
 	../../lib/tftpd-base64.$(OBJEXT) \
 	../../lib/tftpd-memdebug.$(OBJEXT)
-am__objects_24 = tftpd-util.$(OBJEXT)
-am_tftpd_OBJECTS = $(am__objects_22) $(am__objects_2) \
-	$(am__objects_23) $(am__objects_24) tftpd-tftpd.$(OBJEXT)
+am__objects_25 = tftpd-util.$(OBJEXT) \
+	../../lib/tftpd-strerror.$(OBJEXT)
+am_tftpd_OBJECTS = $(am__objects_23) $(am__objects_2) \
+	$(am__objects_24) $(am__objects_25) tftpd-tftpd.$(OBJEXT)
 tftpd_OBJECTS = $(am_tftpd_OBJECTS)
 tftpd_DEPENDENCIES =
 tftpd_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
@@ -345,28 +345,18 @@ am__v_at_1 =
 DEFAULT_INCLUDES = 
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__maybe_remake_depfiles = depfiles
-am__depfiles_remade = ../../lib/$(DEPDIR)/getpart-base64.Po \
-	../../lib/$(DEPDIR)/getpart-curl_get_line.Po \
-	../../lib/$(DEPDIR)/getpart-curl_multibyte.Po \
-	../../lib/$(DEPDIR)/getpart-dynbuf.Po \
-	../../lib/$(DEPDIR)/getpart-memdebug.Po \
-	../../lib/$(DEPDIR)/getpart-mprintf.Po \
-	../../lib/$(DEPDIR)/getpart-nonblock.Po \
-	../../lib/$(DEPDIR)/getpart-strcase.Po \
-	../../lib/$(DEPDIR)/getpart-strdup.Po \
-	../../lib/$(DEPDIR)/getpart-strtoofft.Po \
-	../../lib/$(DEPDIR)/getpart-timediff.Po \
-	../../lib/$(DEPDIR)/getpart-warnless.Po \
-	../../lib/$(DEPDIR)/mqttd-base64.Po \
+am__depfiles_remade = ../../lib/$(DEPDIR)/mqttd-base64.Po \
 	../../lib/$(DEPDIR)/mqttd-curl_get_line.Po \
 	../../lib/$(DEPDIR)/mqttd-curl_multibyte.Po \
 	../../lib/$(DEPDIR)/mqttd-dynbuf.Po \
-	../../lib/$(DEPDIR)/mqttd-inet_pton.Po \
 	../../lib/$(DEPDIR)/mqttd-memdebug.Po \
 	../../lib/$(DEPDIR)/mqttd-mprintf.Po \
 	../../lib/$(DEPDIR)/mqttd-nonblock.Po \
 	../../lib/$(DEPDIR)/mqttd-strcase.Po \
 	../../lib/$(DEPDIR)/mqttd-strdup.Po \
+	../../lib/$(DEPDIR)/mqttd-strequal.Po \
+	../../lib/$(DEPDIR)/mqttd-strerror.Po \
+	../../lib/$(DEPDIR)/mqttd-strparse.Po \
 	../../lib/$(DEPDIR)/mqttd-strtoofft.Po \
 	../../lib/$(DEPDIR)/mqttd-timediff.Po \
 	../../lib/$(DEPDIR)/mqttd-warnless.Po \
@@ -379,6 +369,9 @@ am__depfiles_remade = ../../lib/$(DEPDIR)/getpart-base64.Po \
 	../../lib/$(DEPDIR)/resolve-nonblock.Po \
 	../../lib/$(DEPDIR)/resolve-strcase.Po \
 	../../lib/$(DEPDIR)/resolve-strdup.Po \
+	../../lib/$(DEPDIR)/resolve-strequal.Po \
+	../../lib/$(DEPDIR)/resolve-strerror.Po \
+	../../lib/$(DEPDIR)/resolve-strparse.Po \
 	../../lib/$(DEPDIR)/resolve-strtoofft.Po \
 	../../lib/$(DEPDIR)/resolve-timediff.Po \
 	../../lib/$(DEPDIR)/resolve-warnless.Po \
@@ -391,6 +384,9 @@ am__depfiles_remade = ../../lib/$(DEPDIR)/getpart-base64.Po \
 	../../lib/$(DEPDIR)/rtspd-nonblock.Po \
 	../../lib/$(DEPDIR)/rtspd-strcase.Po \
 	../../lib/$(DEPDIR)/rtspd-strdup.Po \
+	../../lib/$(DEPDIR)/rtspd-strequal.Po \
+	../../lib/$(DEPDIR)/rtspd-strerror.Po \
+	../../lib/$(DEPDIR)/rtspd-strparse.Po \
 	../../lib/$(DEPDIR)/rtspd-strtoofft.Po \
 	../../lib/$(DEPDIR)/rtspd-timediff.Po \
 	../../lib/$(DEPDIR)/rtspd-warnless.Po \
@@ -404,6 +400,9 @@ am__depfiles_remade = ../../lib/$(DEPDIR)/getpart-base64.Po \
 	../../lib/$(DEPDIR)/sockfilt-nonblock.Po \
 	../../lib/$(DEPDIR)/sockfilt-strcase.Po \
 	../../lib/$(DEPDIR)/sockfilt-strdup.Po \
+	../../lib/$(DEPDIR)/sockfilt-strequal.Po \
+	../../lib/$(DEPDIR)/sockfilt-strerror.Po \
+	../../lib/$(DEPDIR)/sockfilt-strparse.Po \
 	../../lib/$(DEPDIR)/sockfilt-strtoofft.Po \
 	../../lib/$(DEPDIR)/sockfilt-timediff.Po \
 	../../lib/$(DEPDIR)/sockfilt-warnless.Po \
@@ -417,6 +416,9 @@ am__depfiles_remade = ../../lib/$(DEPDIR)/getpart-base64.Po \
 	../../lib/$(DEPDIR)/socksd-nonblock.Po \
 	../../lib/$(DEPDIR)/socksd-strcase.Po \
 	../../lib/$(DEPDIR)/socksd-strdup.Po \
+	../../lib/$(DEPDIR)/socksd-strequal.Po \
+	../../lib/$(DEPDIR)/socksd-strerror.Po \
+	../../lib/$(DEPDIR)/socksd-strparse.Po \
 	../../lib/$(DEPDIR)/socksd-strtoofft.Po \
 	../../lib/$(DEPDIR)/socksd-timediff.Po \
 	../../lib/$(DEPDIR)/socksd-warnless.Po \
@@ -430,6 +432,9 @@ am__depfiles_remade = ../../lib/$(DEPDIR)/getpart-base64.Po \
 	../../lib/$(DEPDIR)/sws-nonblock.Po \
 	../../lib/$(DEPDIR)/sws-strcase.Po \
 	../../lib/$(DEPDIR)/sws-strdup.Po \
+	../../lib/$(DEPDIR)/sws-strequal.Po \
+	../../lib/$(DEPDIR)/sws-strerror.Po \
+	../../lib/$(DEPDIR)/sws-strparse.Po \
 	../../lib/$(DEPDIR)/sws-strtoofft.Po \
 	../../lib/$(DEPDIR)/sws-timediff.Po \
 	../../lib/$(DEPDIR)/sws-warnless.Po \
@@ -442,10 +447,12 @@ am__depfiles_remade = ../../lib/$(DEPDIR)/getpart-base64.Po \
 	../../lib/$(DEPDIR)/tftpd-nonblock.Po \
 	../../lib/$(DEPDIR)/tftpd-strcase.Po \
 	../../lib/$(DEPDIR)/tftpd-strdup.Po \
+	../../lib/$(DEPDIR)/tftpd-strequal.Po \
+	../../lib/$(DEPDIR)/tftpd-strerror.Po \
+	../../lib/$(DEPDIR)/tftpd-strparse.Po \
 	../../lib/$(DEPDIR)/tftpd-strtoofft.Po \
 	../../lib/$(DEPDIR)/tftpd-timediff.Po \
 	../../lib/$(DEPDIR)/tftpd-warnless.Po ./$(DEPDIR)/disabled.Po \
-	./$(DEPDIR)/getpart-getpart.Po ./$(DEPDIR)/getpart-testpart.Po \
 	./$(DEPDIR)/mqttd-getpart.Po ./$(DEPDIR)/mqttd-mqttd.Po \
 	./$(DEPDIR)/mqttd-util.Po ./$(DEPDIR)/resolve-getpart.Po \
 	./$(DEPDIR)/resolve-resolve.Po ./$(DEPDIR)/resolve-util.Po \
@@ -476,12 +483,12 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(disabled_SOURCES) $(getpart_SOURCES) $(mqttd_SOURCES) \
-	$(resolve_SOURCES) $(rtspd_SOURCES) $(sockfilt_SOURCES) \
-	$(socksd_SOURCES) $(sws_SOURCES) $(tftpd_SOURCES)
-DIST_SOURCES = $(disabled_SOURCES) $(getpart_SOURCES) $(mqttd_SOURCES) \
-	$(resolve_SOURCES) $(rtspd_SOURCES) $(sockfilt_SOURCES) \
-	$(socksd_SOURCES) $(sws_SOURCES) $(tftpd_SOURCES)
+SOURCES = $(disabled_SOURCES) $(mqttd_SOURCES) $(resolve_SOURCES) \
+	$(rtspd_SOURCES) $(sockfilt_SOURCES) $(socksd_SOURCES) \
+	$(sws_SOURCES) $(tftpd_SOURCES)
+DIST_SOURCES = $(disabled_SOURCES) $(mqttd_SOURCES) $(resolve_SOURCES) \
+	$(rtspd_SOURCES) $(sockfilt_SOURCES) $(socksd_SOURCES) \
+	$(sws_SOURCES) $(tftpd_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -522,7 +529,7 @@ BLANK_AT_MAKETIME = @BLANK_AT_MAKETIME@
 CADDY = @CADDY@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
-CFLAGS = @CFLAGS@
+CFLAGS = @CFLAGS@ @CURL_CFLAG_EXTRAS@
 CFLAG_CURL_SYMBOL_HIDING = @CFLAG_CURL_SYMBOL_HIDING@
 CONFIGURE_OPTIONS = @CONFIGURE_OPTIONS@
 CPP = @CPP@
@@ -707,12 +714,13 @@ AUTOMAKE_OPTIONS = foreign nostdinc
 # $(top_builddir)/lib is for libcurl's generated lib/curl_config.h file
 # $(top_srcdir)/lib for libcurl's lib/curl_setup.h and other "borrowed" files
 AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_builddir)/lib \
-	-I$(top_srcdir)/lib -I$(top_srcdir)/src $(am__append_1) \
-	-DCURL_NO_GETADDRINFO_OVERRIDE
+	-I$(top_srcdir)/lib -I$(top_srcdir)/src $(am__append_1)
 CURLX_SRCS = \
  ../../lib/mprintf.c \
  ../../lib/nonblock.c \
  ../../lib/strtoofft.c \
+ ../../lib/strparse.c \
+ ../../lib/strequal.c \
  ../../lib/warnless.c \
  ../../lib/timediff.c \
  ../../lib/dynbuf.c \
@@ -725,10 +733,12 @@ CURLX_HDRS = \
  ../../lib/curlx.h \
  ../../lib/nonblock.h \
  ../../lib/strtoofft.h \
+ ../../lib/strcase.h \
  ../../lib/warnless.h \
  ../../lib/timediff.h \
  ../../lib/curl_ctype.h \
  ../../lib/dynbuf.h \
+ ../../lib/strcase.h \
  ../../lib/strdup.h \
  ../../lib/curl_get_line.h \
  ../../lib/curl_multibyte.h
@@ -742,15 +752,15 @@ USEFUL = \
  ../../lib/memdebug.c \
  ../../lib/memdebug.h
 
+INET_PTON = \
+ ../../lib/inet_pton.c
+
 UTIL = \
  util.c \
- util.h
+ util.h \
+ ../../lib/strerror.c \
+ ../../lib/strerror.h
 
-getpart_SOURCES = $(CURLX_SRCS) $(CURLX_HDRS) $(USEFUL) \
- testpart.c
-
-getpart_LDADD = @CURL_NETWORK_AND_TIME_LIBS@
-getpart_CFLAGS = $(AM_CFLAGS)
 resolve_SOURCES = $(CURLX_SRCS) $(CURLX_HDRS) $(USEFUL) $(UTIL) \
  resolve.c
 
@@ -762,29 +772,25 @@ rtspd_SOURCES = $(CURLX_SRCS) $(CURLX_HDRS) $(USEFUL) $(UTIL) \
 
 rtspd_LDADD = @CURL_NETWORK_AND_TIME_LIBS@
 rtspd_CFLAGS = $(AM_CFLAGS)
-sockfilt_SOURCES = $(CURLX_SRCS) $(CURLX_HDRS) $(USEFUL) $(UTIL) \
+sockfilt_SOURCES = $(CURLX_SRCS) $(CURLX_HDRS) $(USEFUL) $(UTIL) $(INET_PTON) \
  server_sockaddr.h \
- sockfilt.c \
- ../../lib/inet_pton.c
+ sockfilt.c
 
 sockfilt_LDADD = @CURL_NETWORK_AND_TIME_LIBS@
 sockfilt_CFLAGS = $(AM_CFLAGS)
-socksd_SOURCES = $(CURLX_SRCS) $(CURLX_HDRS) $(USEFUL) $(UTIL) \
- server_sockaddr.h socksd.c \
- ../../lib/inet_pton.c
+socksd_SOURCES = $(CURLX_SRCS) $(CURLX_HDRS) $(USEFUL) $(UTIL) $(INET_PTON) \
+ server_sockaddr.h socksd.c
 
 socksd_LDADD = @CURL_NETWORK_AND_TIME_LIBS@
 socksd_CFLAGS = $(AM_CFLAGS)
 mqttd_SOURCES = $(CURLX_SRCS) $(CURLX_HDRS) $(USEFUL) $(UTIL) \
- server_sockaddr.h mqttd.c \
- ../../lib/inet_pton.c
+ server_sockaddr.h mqttd.c
 
 mqttd_LDADD = @CURL_NETWORK_AND_TIME_LIBS@
 mqttd_CFLAGS = $(AM_CFLAGS)
-sws_SOURCES = $(CURLX_SRCS) $(CURLX_HDRS) $(USEFUL) $(UTIL) \
+sws_SOURCES = $(CURLX_SRCS) $(CURLX_HDRS) $(USEFUL) $(UTIL) $(INET_PTON) \
  server_sockaddr.h \
- sws.c \
- ../../lib/inet_pton.c
+ sws.c
 
 sws_LDADD = @CURL_NETWORK_AND_TIME_LIBS@
 sws_CFLAGS = $(AM_CFLAGS)
@@ -856,39 +862,15 @@ disabled$(EXEEXT): $(disabled_OBJECTS) $(disabled_DEPENDENCIES) $(EXTRA_disabled
 ../../lib/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) ../../lib/$(DEPDIR)
 	@: > ../../lib/$(DEPDIR)/$(am__dirstamp)
-../../lib/getpart-mprintf.$(OBJEXT): ../../lib/$(am__dirstamp) \
-	../../lib/$(DEPDIR)/$(am__dirstamp)
-../../lib/getpart-nonblock.$(OBJEXT): ../../lib/$(am__dirstamp) \
-	../../lib/$(DEPDIR)/$(am__dirstamp)
-../../lib/getpart-strtoofft.$(OBJEXT): ../../lib/$(am__dirstamp) \
-	../../lib/$(DEPDIR)/$(am__dirstamp)
-../../lib/getpart-warnless.$(OBJEXT): ../../lib/$(am__dirstamp) \
-	../../lib/$(DEPDIR)/$(am__dirstamp)
-../../lib/getpart-timediff.$(OBJEXT): ../../lib/$(am__dirstamp) \
-	../../lib/$(DEPDIR)/$(am__dirstamp)
-../../lib/getpart-dynbuf.$(OBJEXT): ../../lib/$(am__dirstamp) \
-	../../lib/$(DEPDIR)/$(am__dirstamp)
-../../lib/getpart-strdup.$(OBJEXT): ../../lib/$(am__dirstamp) \
-	../../lib/$(DEPDIR)/$(am__dirstamp)
-../../lib/getpart-strcase.$(OBJEXT): ../../lib/$(am__dirstamp) \
-	../../lib/$(DEPDIR)/$(am__dirstamp)
-../../lib/getpart-curl_get_line.$(OBJEXT): ../../lib/$(am__dirstamp) \
-	../../lib/$(DEPDIR)/$(am__dirstamp)
-../../lib/getpart-curl_multibyte.$(OBJEXT): ../../lib/$(am__dirstamp) \
-	../../lib/$(DEPDIR)/$(am__dirstamp)
-../../lib/getpart-base64.$(OBJEXT): ../../lib/$(am__dirstamp) \
-	../../lib/$(DEPDIR)/$(am__dirstamp)
-../../lib/getpart-memdebug.$(OBJEXT): ../../lib/$(am__dirstamp) \
-	../../lib/$(DEPDIR)/$(am__dirstamp)
-
-getpart$(EXEEXT): $(getpart_OBJECTS) $(getpart_DEPENDENCIES) $(EXTRA_getpart_DEPENDENCIES) 
-	@rm -f getpart$(EXEEXT)
-	$(AM_V_CCLD)$(getpart_LINK) $(getpart_OBJECTS) $(getpart_LDADD) $(LIBS)
 ../../lib/mqttd-mprintf.$(OBJEXT): ../../lib/$(am__dirstamp) \
 	../../lib/$(DEPDIR)/$(am__dirstamp)
 ../../lib/mqttd-nonblock.$(OBJEXT): ../../lib/$(am__dirstamp) \
 	../../lib/$(DEPDIR)/$(am__dirstamp)
 ../../lib/mqttd-strtoofft.$(OBJEXT): ../../lib/$(am__dirstamp) \
+	../../lib/$(DEPDIR)/$(am__dirstamp)
+../../lib/mqttd-strparse.$(OBJEXT): ../../lib/$(am__dirstamp) \
+	../../lib/$(DEPDIR)/$(am__dirstamp)
+../../lib/mqttd-strequal.$(OBJEXT): ../../lib/$(am__dirstamp) \
 	../../lib/$(DEPDIR)/$(am__dirstamp)
 ../../lib/mqttd-warnless.$(OBJEXT): ../../lib/$(am__dirstamp) \
 	../../lib/$(DEPDIR)/$(am__dirstamp)
@@ -908,7 +890,7 @@ getpart$(EXEEXT): $(getpart_OBJECTS) $(getpart_DEPENDENCIES) $(EXTRA_getpart_DEP
 	../../lib/$(DEPDIR)/$(am__dirstamp)
 ../../lib/mqttd-memdebug.$(OBJEXT): ../../lib/$(am__dirstamp) \
 	../../lib/$(DEPDIR)/$(am__dirstamp)
-../../lib/mqttd-inet_pton.$(OBJEXT): ../../lib/$(am__dirstamp) \
+../../lib/mqttd-strerror.$(OBJEXT): ../../lib/$(am__dirstamp) \
 	../../lib/$(DEPDIR)/$(am__dirstamp)
 
 mqttd$(EXEEXT): $(mqttd_OBJECTS) $(mqttd_DEPENDENCIES) $(EXTRA_mqttd_DEPENDENCIES) 
@@ -919,6 +901,10 @@ mqttd$(EXEEXT): $(mqttd_OBJECTS) $(mqttd_DEPENDENCIES) $(EXTRA_mqttd_DEPENDENCIE
 ../../lib/resolve-nonblock.$(OBJEXT): ../../lib/$(am__dirstamp) \
 	../../lib/$(DEPDIR)/$(am__dirstamp)
 ../../lib/resolve-strtoofft.$(OBJEXT): ../../lib/$(am__dirstamp) \
+	../../lib/$(DEPDIR)/$(am__dirstamp)
+../../lib/resolve-strparse.$(OBJEXT): ../../lib/$(am__dirstamp) \
+	../../lib/$(DEPDIR)/$(am__dirstamp)
+../../lib/resolve-strequal.$(OBJEXT): ../../lib/$(am__dirstamp) \
 	../../lib/$(DEPDIR)/$(am__dirstamp)
 ../../lib/resolve-warnless.$(OBJEXT): ../../lib/$(am__dirstamp) \
 	../../lib/$(DEPDIR)/$(am__dirstamp)
@@ -938,6 +924,8 @@ mqttd$(EXEEXT): $(mqttd_OBJECTS) $(mqttd_DEPENDENCIES) $(EXTRA_mqttd_DEPENDENCIE
 	../../lib/$(DEPDIR)/$(am__dirstamp)
 ../../lib/resolve-memdebug.$(OBJEXT): ../../lib/$(am__dirstamp) \
 	../../lib/$(DEPDIR)/$(am__dirstamp)
+../../lib/resolve-strerror.$(OBJEXT): ../../lib/$(am__dirstamp) \
+	../../lib/$(DEPDIR)/$(am__dirstamp)
 
 resolve$(EXEEXT): $(resolve_OBJECTS) $(resolve_DEPENDENCIES) $(EXTRA_resolve_DEPENDENCIES) 
 	@rm -f resolve$(EXEEXT)
@@ -947,6 +935,10 @@ resolve$(EXEEXT): $(resolve_OBJECTS) $(resolve_DEPENDENCIES) $(EXTRA_resolve_DEP
 ../../lib/rtspd-nonblock.$(OBJEXT): ../../lib/$(am__dirstamp) \
 	../../lib/$(DEPDIR)/$(am__dirstamp)
 ../../lib/rtspd-strtoofft.$(OBJEXT): ../../lib/$(am__dirstamp) \
+	../../lib/$(DEPDIR)/$(am__dirstamp)
+../../lib/rtspd-strparse.$(OBJEXT): ../../lib/$(am__dirstamp) \
+	../../lib/$(DEPDIR)/$(am__dirstamp)
+../../lib/rtspd-strequal.$(OBJEXT): ../../lib/$(am__dirstamp) \
 	../../lib/$(DEPDIR)/$(am__dirstamp)
 ../../lib/rtspd-warnless.$(OBJEXT): ../../lib/$(am__dirstamp) \
 	../../lib/$(DEPDIR)/$(am__dirstamp)
@@ -966,6 +958,8 @@ resolve$(EXEEXT): $(resolve_OBJECTS) $(resolve_DEPENDENCIES) $(EXTRA_resolve_DEP
 	../../lib/$(DEPDIR)/$(am__dirstamp)
 ../../lib/rtspd-memdebug.$(OBJEXT): ../../lib/$(am__dirstamp) \
 	../../lib/$(DEPDIR)/$(am__dirstamp)
+../../lib/rtspd-strerror.$(OBJEXT): ../../lib/$(am__dirstamp) \
+	../../lib/$(DEPDIR)/$(am__dirstamp)
 
 rtspd$(EXEEXT): $(rtspd_OBJECTS) $(rtspd_DEPENDENCIES) $(EXTRA_rtspd_DEPENDENCIES) 
 	@rm -f rtspd$(EXEEXT)
@@ -975,6 +969,10 @@ rtspd$(EXEEXT): $(rtspd_OBJECTS) $(rtspd_DEPENDENCIES) $(EXTRA_rtspd_DEPENDENCIE
 ../../lib/sockfilt-nonblock.$(OBJEXT): ../../lib/$(am__dirstamp) \
 	../../lib/$(DEPDIR)/$(am__dirstamp)
 ../../lib/sockfilt-strtoofft.$(OBJEXT): ../../lib/$(am__dirstamp) \
+	../../lib/$(DEPDIR)/$(am__dirstamp)
+../../lib/sockfilt-strparse.$(OBJEXT): ../../lib/$(am__dirstamp) \
+	../../lib/$(DEPDIR)/$(am__dirstamp)
+../../lib/sockfilt-strequal.$(OBJEXT): ../../lib/$(am__dirstamp) \
 	../../lib/$(DEPDIR)/$(am__dirstamp)
 ../../lib/sockfilt-warnless.$(OBJEXT): ../../lib/$(am__dirstamp) \
 	../../lib/$(DEPDIR)/$(am__dirstamp)
@@ -994,6 +992,8 @@ rtspd$(EXEEXT): $(rtspd_OBJECTS) $(rtspd_DEPENDENCIES) $(EXTRA_rtspd_DEPENDENCIE
 	../../lib/$(DEPDIR)/$(am__dirstamp)
 ../../lib/sockfilt-memdebug.$(OBJEXT): ../../lib/$(am__dirstamp) \
 	../../lib/$(DEPDIR)/$(am__dirstamp)
+../../lib/sockfilt-strerror.$(OBJEXT): ../../lib/$(am__dirstamp) \
+	../../lib/$(DEPDIR)/$(am__dirstamp)
 ../../lib/sockfilt-inet_pton.$(OBJEXT): ../../lib/$(am__dirstamp) \
 	../../lib/$(DEPDIR)/$(am__dirstamp)
 
@@ -1005,6 +1005,10 @@ sockfilt$(EXEEXT): $(sockfilt_OBJECTS) $(sockfilt_DEPENDENCIES) $(EXTRA_sockfilt
 ../../lib/socksd-nonblock.$(OBJEXT): ../../lib/$(am__dirstamp) \
 	../../lib/$(DEPDIR)/$(am__dirstamp)
 ../../lib/socksd-strtoofft.$(OBJEXT): ../../lib/$(am__dirstamp) \
+	../../lib/$(DEPDIR)/$(am__dirstamp)
+../../lib/socksd-strparse.$(OBJEXT): ../../lib/$(am__dirstamp) \
+	../../lib/$(DEPDIR)/$(am__dirstamp)
+../../lib/socksd-strequal.$(OBJEXT): ../../lib/$(am__dirstamp) \
 	../../lib/$(DEPDIR)/$(am__dirstamp)
 ../../lib/socksd-warnless.$(OBJEXT): ../../lib/$(am__dirstamp) \
 	../../lib/$(DEPDIR)/$(am__dirstamp)
@@ -1024,6 +1028,8 @@ sockfilt$(EXEEXT): $(sockfilt_OBJECTS) $(sockfilt_DEPENDENCIES) $(EXTRA_sockfilt
 	../../lib/$(DEPDIR)/$(am__dirstamp)
 ../../lib/socksd-memdebug.$(OBJEXT): ../../lib/$(am__dirstamp) \
 	../../lib/$(DEPDIR)/$(am__dirstamp)
+../../lib/socksd-strerror.$(OBJEXT): ../../lib/$(am__dirstamp) \
+	../../lib/$(DEPDIR)/$(am__dirstamp)
 ../../lib/socksd-inet_pton.$(OBJEXT): ../../lib/$(am__dirstamp) \
 	../../lib/$(DEPDIR)/$(am__dirstamp)
 
@@ -1035,6 +1041,10 @@ socksd$(EXEEXT): $(socksd_OBJECTS) $(socksd_DEPENDENCIES) $(EXTRA_socksd_DEPENDE
 ../../lib/sws-nonblock.$(OBJEXT): ../../lib/$(am__dirstamp) \
 	../../lib/$(DEPDIR)/$(am__dirstamp)
 ../../lib/sws-strtoofft.$(OBJEXT): ../../lib/$(am__dirstamp) \
+	../../lib/$(DEPDIR)/$(am__dirstamp)
+../../lib/sws-strparse.$(OBJEXT): ../../lib/$(am__dirstamp) \
+	../../lib/$(DEPDIR)/$(am__dirstamp)
+../../lib/sws-strequal.$(OBJEXT): ../../lib/$(am__dirstamp) \
 	../../lib/$(DEPDIR)/$(am__dirstamp)
 ../../lib/sws-warnless.$(OBJEXT): ../../lib/$(am__dirstamp) \
 	../../lib/$(DEPDIR)/$(am__dirstamp)
@@ -1054,6 +1064,8 @@ socksd$(EXEEXT): $(socksd_OBJECTS) $(socksd_DEPENDENCIES) $(EXTRA_socksd_DEPENDE
 	../../lib/$(DEPDIR)/$(am__dirstamp)
 ../../lib/sws-memdebug.$(OBJEXT): ../../lib/$(am__dirstamp) \
 	../../lib/$(DEPDIR)/$(am__dirstamp)
+../../lib/sws-strerror.$(OBJEXT): ../../lib/$(am__dirstamp) \
+	../../lib/$(DEPDIR)/$(am__dirstamp)
 ../../lib/sws-inet_pton.$(OBJEXT): ../../lib/$(am__dirstamp) \
 	../../lib/$(DEPDIR)/$(am__dirstamp)
 
@@ -1065,6 +1077,10 @@ sws$(EXEEXT): $(sws_OBJECTS) $(sws_DEPENDENCIES) $(EXTRA_sws_DEPENDENCIES)
 ../../lib/tftpd-nonblock.$(OBJEXT): ../../lib/$(am__dirstamp) \
 	../../lib/$(DEPDIR)/$(am__dirstamp)
 ../../lib/tftpd-strtoofft.$(OBJEXT): ../../lib/$(am__dirstamp) \
+	../../lib/$(DEPDIR)/$(am__dirstamp)
+../../lib/tftpd-strparse.$(OBJEXT): ../../lib/$(am__dirstamp) \
+	../../lib/$(DEPDIR)/$(am__dirstamp)
+../../lib/tftpd-strequal.$(OBJEXT): ../../lib/$(am__dirstamp) \
 	../../lib/$(DEPDIR)/$(am__dirstamp)
 ../../lib/tftpd-warnless.$(OBJEXT): ../../lib/$(am__dirstamp) \
 	../../lib/$(DEPDIR)/$(am__dirstamp)
@@ -1084,6 +1100,8 @@ sws$(EXEEXT): $(sws_OBJECTS) $(sws_DEPENDENCIES) $(EXTRA_sws_DEPENDENCIES)
 	../../lib/$(DEPDIR)/$(am__dirstamp)
 ../../lib/tftpd-memdebug.$(OBJEXT): ../../lib/$(am__dirstamp) \
 	../../lib/$(DEPDIR)/$(am__dirstamp)
+../../lib/tftpd-strerror.$(OBJEXT): ../../lib/$(am__dirstamp) \
+	../../lib/$(DEPDIR)/$(am__dirstamp)
 
 tftpd$(EXEEXT): $(tftpd_OBJECTS) $(tftpd_DEPENDENCIES) $(EXTRA_tftpd_DEPENDENCIES) 
 	@rm -f tftpd$(EXEEXT)
@@ -1096,28 +1114,18 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/getpart-base64.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/getpart-curl_get_line.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/getpart-curl_multibyte.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/getpart-dynbuf.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/getpart-memdebug.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/getpart-mprintf.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/getpart-nonblock.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/getpart-strcase.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/getpart-strdup.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/getpart-strtoofft.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/getpart-timediff.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/getpart-warnless.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/mqttd-base64.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/mqttd-curl_get_line.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/mqttd-curl_multibyte.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/mqttd-dynbuf.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/mqttd-inet_pton.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/mqttd-memdebug.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/mqttd-mprintf.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/mqttd-nonblock.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/mqttd-strcase.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/mqttd-strdup.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/mqttd-strequal.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/mqttd-strerror.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/mqttd-strparse.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/mqttd-strtoofft.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/mqttd-timediff.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/mqttd-warnless.Po@am__quote@ # am--include-marker
@@ -1130,6 +1138,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/resolve-nonblock.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/resolve-strcase.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/resolve-strdup.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/resolve-strequal.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/resolve-strerror.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/resolve-strparse.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/resolve-strtoofft.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/resolve-timediff.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/resolve-warnless.Po@am__quote@ # am--include-marker
@@ -1142,6 +1153,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/rtspd-nonblock.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/rtspd-strcase.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/rtspd-strdup.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/rtspd-strequal.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/rtspd-strerror.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/rtspd-strparse.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/rtspd-strtoofft.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/rtspd-timediff.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/rtspd-warnless.Po@am__quote@ # am--include-marker
@@ -1155,6 +1169,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/sockfilt-nonblock.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/sockfilt-strcase.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/sockfilt-strdup.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/sockfilt-strequal.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/sockfilt-strerror.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/sockfilt-strparse.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/sockfilt-strtoofft.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/sockfilt-timediff.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/sockfilt-warnless.Po@am__quote@ # am--include-marker
@@ -1168,6 +1185,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/socksd-nonblock.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/socksd-strcase.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/socksd-strdup.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/socksd-strequal.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/socksd-strerror.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/socksd-strparse.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/socksd-strtoofft.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/socksd-timediff.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/socksd-warnless.Po@am__quote@ # am--include-marker
@@ -1181,6 +1201,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/sws-nonblock.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/sws-strcase.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/sws-strdup.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/sws-strequal.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/sws-strerror.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/sws-strparse.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/sws-strtoofft.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/sws-timediff.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/sws-warnless.Po@am__quote@ # am--include-marker
@@ -1193,12 +1216,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/tftpd-nonblock.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/tftpd-strcase.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/tftpd-strdup.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/tftpd-strequal.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/tftpd-strerror.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/tftpd-strparse.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/tftpd-strtoofft.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/tftpd-timediff.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/tftpd-warnless.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/disabled.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/getpart-getpart.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/getpart-testpart.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mqttd-getpart.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mqttd-mqttd.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mqttd-util.Po@am__quote@ # am--include-marker
@@ -1251,202 +1275,6 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
 
-../../lib/getpart-mprintf.o: ../../lib/mprintf.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -MT ../../lib/getpart-mprintf.o -MD -MP -MF ../../lib/$(DEPDIR)/getpart-mprintf.Tpo -c -o ../../lib/getpart-mprintf.o `test -f '../../lib/mprintf.c' || echo '$(srcdir)/'`../../lib/mprintf.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/getpart-mprintf.Tpo ../../lib/$(DEPDIR)/getpart-mprintf.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/mprintf.c' object='../../lib/getpart-mprintf.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -c -o ../../lib/getpart-mprintf.o `test -f '../../lib/mprintf.c' || echo '$(srcdir)/'`../../lib/mprintf.c
-
-../../lib/getpart-mprintf.obj: ../../lib/mprintf.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -MT ../../lib/getpart-mprintf.obj -MD -MP -MF ../../lib/$(DEPDIR)/getpart-mprintf.Tpo -c -o ../../lib/getpart-mprintf.obj `if test -f '../../lib/mprintf.c'; then $(CYGPATH_W) '../../lib/mprintf.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/mprintf.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/getpart-mprintf.Tpo ../../lib/$(DEPDIR)/getpart-mprintf.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/mprintf.c' object='../../lib/getpart-mprintf.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -c -o ../../lib/getpart-mprintf.obj `if test -f '../../lib/mprintf.c'; then $(CYGPATH_W) '../../lib/mprintf.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/mprintf.c'; fi`
-
-../../lib/getpart-nonblock.o: ../../lib/nonblock.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -MT ../../lib/getpart-nonblock.o -MD -MP -MF ../../lib/$(DEPDIR)/getpart-nonblock.Tpo -c -o ../../lib/getpart-nonblock.o `test -f '../../lib/nonblock.c' || echo '$(srcdir)/'`../../lib/nonblock.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/getpart-nonblock.Tpo ../../lib/$(DEPDIR)/getpart-nonblock.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/nonblock.c' object='../../lib/getpart-nonblock.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -c -o ../../lib/getpart-nonblock.o `test -f '../../lib/nonblock.c' || echo '$(srcdir)/'`../../lib/nonblock.c
-
-../../lib/getpart-nonblock.obj: ../../lib/nonblock.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -MT ../../lib/getpart-nonblock.obj -MD -MP -MF ../../lib/$(DEPDIR)/getpart-nonblock.Tpo -c -o ../../lib/getpart-nonblock.obj `if test -f '../../lib/nonblock.c'; then $(CYGPATH_W) '../../lib/nonblock.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/nonblock.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/getpart-nonblock.Tpo ../../lib/$(DEPDIR)/getpart-nonblock.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/nonblock.c' object='../../lib/getpart-nonblock.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -c -o ../../lib/getpart-nonblock.obj `if test -f '../../lib/nonblock.c'; then $(CYGPATH_W) '../../lib/nonblock.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/nonblock.c'; fi`
-
-../../lib/getpart-strtoofft.o: ../../lib/strtoofft.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -MT ../../lib/getpart-strtoofft.o -MD -MP -MF ../../lib/$(DEPDIR)/getpart-strtoofft.Tpo -c -o ../../lib/getpart-strtoofft.o `test -f '../../lib/strtoofft.c' || echo '$(srcdir)/'`../../lib/strtoofft.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/getpart-strtoofft.Tpo ../../lib/$(DEPDIR)/getpart-strtoofft.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strtoofft.c' object='../../lib/getpart-strtoofft.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -c -o ../../lib/getpart-strtoofft.o `test -f '../../lib/strtoofft.c' || echo '$(srcdir)/'`../../lib/strtoofft.c
-
-../../lib/getpart-strtoofft.obj: ../../lib/strtoofft.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -MT ../../lib/getpart-strtoofft.obj -MD -MP -MF ../../lib/$(DEPDIR)/getpart-strtoofft.Tpo -c -o ../../lib/getpart-strtoofft.obj `if test -f '../../lib/strtoofft.c'; then $(CYGPATH_W) '../../lib/strtoofft.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strtoofft.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/getpart-strtoofft.Tpo ../../lib/$(DEPDIR)/getpart-strtoofft.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strtoofft.c' object='../../lib/getpart-strtoofft.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -c -o ../../lib/getpart-strtoofft.obj `if test -f '../../lib/strtoofft.c'; then $(CYGPATH_W) '../../lib/strtoofft.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strtoofft.c'; fi`
-
-../../lib/getpart-warnless.o: ../../lib/warnless.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -MT ../../lib/getpart-warnless.o -MD -MP -MF ../../lib/$(DEPDIR)/getpart-warnless.Tpo -c -o ../../lib/getpart-warnless.o `test -f '../../lib/warnless.c' || echo '$(srcdir)/'`../../lib/warnless.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/getpart-warnless.Tpo ../../lib/$(DEPDIR)/getpart-warnless.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/warnless.c' object='../../lib/getpart-warnless.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -c -o ../../lib/getpart-warnless.o `test -f '../../lib/warnless.c' || echo '$(srcdir)/'`../../lib/warnless.c
-
-../../lib/getpart-warnless.obj: ../../lib/warnless.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -MT ../../lib/getpart-warnless.obj -MD -MP -MF ../../lib/$(DEPDIR)/getpart-warnless.Tpo -c -o ../../lib/getpart-warnless.obj `if test -f '../../lib/warnless.c'; then $(CYGPATH_W) '../../lib/warnless.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/warnless.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/getpart-warnless.Tpo ../../lib/$(DEPDIR)/getpart-warnless.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/warnless.c' object='../../lib/getpart-warnless.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -c -o ../../lib/getpart-warnless.obj `if test -f '../../lib/warnless.c'; then $(CYGPATH_W) '../../lib/warnless.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/warnless.c'; fi`
-
-../../lib/getpart-timediff.o: ../../lib/timediff.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -MT ../../lib/getpart-timediff.o -MD -MP -MF ../../lib/$(DEPDIR)/getpart-timediff.Tpo -c -o ../../lib/getpart-timediff.o `test -f '../../lib/timediff.c' || echo '$(srcdir)/'`../../lib/timediff.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/getpart-timediff.Tpo ../../lib/$(DEPDIR)/getpart-timediff.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/timediff.c' object='../../lib/getpart-timediff.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -c -o ../../lib/getpart-timediff.o `test -f '../../lib/timediff.c' || echo '$(srcdir)/'`../../lib/timediff.c
-
-../../lib/getpart-timediff.obj: ../../lib/timediff.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -MT ../../lib/getpart-timediff.obj -MD -MP -MF ../../lib/$(DEPDIR)/getpart-timediff.Tpo -c -o ../../lib/getpart-timediff.obj `if test -f '../../lib/timediff.c'; then $(CYGPATH_W) '../../lib/timediff.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/timediff.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/getpart-timediff.Tpo ../../lib/$(DEPDIR)/getpart-timediff.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/timediff.c' object='../../lib/getpart-timediff.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -c -o ../../lib/getpart-timediff.obj `if test -f '../../lib/timediff.c'; then $(CYGPATH_W) '../../lib/timediff.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/timediff.c'; fi`
-
-../../lib/getpart-dynbuf.o: ../../lib/dynbuf.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -MT ../../lib/getpart-dynbuf.o -MD -MP -MF ../../lib/$(DEPDIR)/getpart-dynbuf.Tpo -c -o ../../lib/getpart-dynbuf.o `test -f '../../lib/dynbuf.c' || echo '$(srcdir)/'`../../lib/dynbuf.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/getpart-dynbuf.Tpo ../../lib/$(DEPDIR)/getpart-dynbuf.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/dynbuf.c' object='../../lib/getpart-dynbuf.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -c -o ../../lib/getpart-dynbuf.o `test -f '../../lib/dynbuf.c' || echo '$(srcdir)/'`../../lib/dynbuf.c
-
-../../lib/getpart-dynbuf.obj: ../../lib/dynbuf.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -MT ../../lib/getpart-dynbuf.obj -MD -MP -MF ../../lib/$(DEPDIR)/getpart-dynbuf.Tpo -c -o ../../lib/getpart-dynbuf.obj `if test -f '../../lib/dynbuf.c'; then $(CYGPATH_W) '../../lib/dynbuf.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/dynbuf.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/getpart-dynbuf.Tpo ../../lib/$(DEPDIR)/getpart-dynbuf.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/dynbuf.c' object='../../lib/getpart-dynbuf.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -c -o ../../lib/getpart-dynbuf.obj `if test -f '../../lib/dynbuf.c'; then $(CYGPATH_W) '../../lib/dynbuf.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/dynbuf.c'; fi`
-
-../../lib/getpart-strdup.o: ../../lib/strdup.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -MT ../../lib/getpart-strdup.o -MD -MP -MF ../../lib/$(DEPDIR)/getpart-strdup.Tpo -c -o ../../lib/getpart-strdup.o `test -f '../../lib/strdup.c' || echo '$(srcdir)/'`../../lib/strdup.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/getpart-strdup.Tpo ../../lib/$(DEPDIR)/getpart-strdup.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strdup.c' object='../../lib/getpart-strdup.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -c -o ../../lib/getpart-strdup.o `test -f '../../lib/strdup.c' || echo '$(srcdir)/'`../../lib/strdup.c
-
-../../lib/getpart-strdup.obj: ../../lib/strdup.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -MT ../../lib/getpart-strdup.obj -MD -MP -MF ../../lib/$(DEPDIR)/getpart-strdup.Tpo -c -o ../../lib/getpart-strdup.obj `if test -f '../../lib/strdup.c'; then $(CYGPATH_W) '../../lib/strdup.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strdup.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/getpart-strdup.Tpo ../../lib/$(DEPDIR)/getpart-strdup.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strdup.c' object='../../lib/getpart-strdup.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -c -o ../../lib/getpart-strdup.obj `if test -f '../../lib/strdup.c'; then $(CYGPATH_W) '../../lib/strdup.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strdup.c'; fi`
-
-../../lib/getpart-strcase.o: ../../lib/strcase.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -MT ../../lib/getpart-strcase.o -MD -MP -MF ../../lib/$(DEPDIR)/getpart-strcase.Tpo -c -o ../../lib/getpart-strcase.o `test -f '../../lib/strcase.c' || echo '$(srcdir)/'`../../lib/strcase.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/getpart-strcase.Tpo ../../lib/$(DEPDIR)/getpart-strcase.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strcase.c' object='../../lib/getpart-strcase.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -c -o ../../lib/getpart-strcase.o `test -f '../../lib/strcase.c' || echo '$(srcdir)/'`../../lib/strcase.c
-
-../../lib/getpart-strcase.obj: ../../lib/strcase.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -MT ../../lib/getpart-strcase.obj -MD -MP -MF ../../lib/$(DEPDIR)/getpart-strcase.Tpo -c -o ../../lib/getpart-strcase.obj `if test -f '../../lib/strcase.c'; then $(CYGPATH_W) '../../lib/strcase.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strcase.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/getpart-strcase.Tpo ../../lib/$(DEPDIR)/getpart-strcase.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strcase.c' object='../../lib/getpart-strcase.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -c -o ../../lib/getpart-strcase.obj `if test -f '../../lib/strcase.c'; then $(CYGPATH_W) '../../lib/strcase.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strcase.c'; fi`
-
-../../lib/getpart-curl_get_line.o: ../../lib/curl_get_line.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -MT ../../lib/getpart-curl_get_line.o -MD -MP -MF ../../lib/$(DEPDIR)/getpart-curl_get_line.Tpo -c -o ../../lib/getpart-curl_get_line.o `test -f '../../lib/curl_get_line.c' || echo '$(srcdir)/'`../../lib/curl_get_line.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/getpart-curl_get_line.Tpo ../../lib/$(DEPDIR)/getpart-curl_get_line.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/curl_get_line.c' object='../../lib/getpart-curl_get_line.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -c -o ../../lib/getpart-curl_get_line.o `test -f '../../lib/curl_get_line.c' || echo '$(srcdir)/'`../../lib/curl_get_line.c
-
-../../lib/getpart-curl_get_line.obj: ../../lib/curl_get_line.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -MT ../../lib/getpart-curl_get_line.obj -MD -MP -MF ../../lib/$(DEPDIR)/getpart-curl_get_line.Tpo -c -o ../../lib/getpart-curl_get_line.obj `if test -f '../../lib/curl_get_line.c'; then $(CYGPATH_W) '../../lib/curl_get_line.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/curl_get_line.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/getpart-curl_get_line.Tpo ../../lib/$(DEPDIR)/getpart-curl_get_line.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/curl_get_line.c' object='../../lib/getpart-curl_get_line.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -c -o ../../lib/getpart-curl_get_line.obj `if test -f '../../lib/curl_get_line.c'; then $(CYGPATH_W) '../../lib/curl_get_line.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/curl_get_line.c'; fi`
-
-../../lib/getpart-curl_multibyte.o: ../../lib/curl_multibyte.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -MT ../../lib/getpart-curl_multibyte.o -MD -MP -MF ../../lib/$(DEPDIR)/getpart-curl_multibyte.Tpo -c -o ../../lib/getpart-curl_multibyte.o `test -f '../../lib/curl_multibyte.c' || echo '$(srcdir)/'`../../lib/curl_multibyte.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/getpart-curl_multibyte.Tpo ../../lib/$(DEPDIR)/getpart-curl_multibyte.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/curl_multibyte.c' object='../../lib/getpart-curl_multibyte.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -c -o ../../lib/getpart-curl_multibyte.o `test -f '../../lib/curl_multibyte.c' || echo '$(srcdir)/'`../../lib/curl_multibyte.c
-
-../../lib/getpart-curl_multibyte.obj: ../../lib/curl_multibyte.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -MT ../../lib/getpart-curl_multibyte.obj -MD -MP -MF ../../lib/$(DEPDIR)/getpart-curl_multibyte.Tpo -c -o ../../lib/getpart-curl_multibyte.obj `if test -f '../../lib/curl_multibyte.c'; then $(CYGPATH_W) '../../lib/curl_multibyte.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/curl_multibyte.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/getpart-curl_multibyte.Tpo ../../lib/$(DEPDIR)/getpart-curl_multibyte.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/curl_multibyte.c' object='../../lib/getpart-curl_multibyte.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -c -o ../../lib/getpart-curl_multibyte.obj `if test -f '../../lib/curl_multibyte.c'; then $(CYGPATH_W) '../../lib/curl_multibyte.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/curl_multibyte.c'; fi`
-
-getpart-getpart.o: getpart.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -MT getpart-getpart.o -MD -MP -MF $(DEPDIR)/getpart-getpart.Tpo -c -o getpart-getpart.o `test -f 'getpart.c' || echo '$(srcdir)/'`getpart.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/getpart-getpart.Tpo $(DEPDIR)/getpart-getpart.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='getpart.c' object='getpart-getpart.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -c -o getpart-getpart.o `test -f 'getpart.c' || echo '$(srcdir)/'`getpart.c
-
-getpart-getpart.obj: getpart.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -MT getpart-getpart.obj -MD -MP -MF $(DEPDIR)/getpart-getpart.Tpo -c -o getpart-getpart.obj `if test -f 'getpart.c'; then $(CYGPATH_W) 'getpart.c'; else $(CYGPATH_W) '$(srcdir)/getpart.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/getpart-getpart.Tpo $(DEPDIR)/getpart-getpart.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='getpart.c' object='getpart-getpart.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -c -o getpart-getpart.obj `if test -f 'getpart.c'; then $(CYGPATH_W) 'getpart.c'; else $(CYGPATH_W) '$(srcdir)/getpart.c'; fi`
-
-../../lib/getpart-base64.o: ../../lib/base64.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -MT ../../lib/getpart-base64.o -MD -MP -MF ../../lib/$(DEPDIR)/getpart-base64.Tpo -c -o ../../lib/getpart-base64.o `test -f '../../lib/base64.c' || echo '$(srcdir)/'`../../lib/base64.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/getpart-base64.Tpo ../../lib/$(DEPDIR)/getpart-base64.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/base64.c' object='../../lib/getpart-base64.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -c -o ../../lib/getpart-base64.o `test -f '../../lib/base64.c' || echo '$(srcdir)/'`../../lib/base64.c
-
-../../lib/getpart-base64.obj: ../../lib/base64.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -MT ../../lib/getpart-base64.obj -MD -MP -MF ../../lib/$(DEPDIR)/getpart-base64.Tpo -c -o ../../lib/getpart-base64.obj `if test -f '../../lib/base64.c'; then $(CYGPATH_W) '../../lib/base64.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/base64.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/getpart-base64.Tpo ../../lib/$(DEPDIR)/getpart-base64.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/base64.c' object='../../lib/getpart-base64.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -c -o ../../lib/getpart-base64.obj `if test -f '../../lib/base64.c'; then $(CYGPATH_W) '../../lib/base64.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/base64.c'; fi`
-
-../../lib/getpart-memdebug.o: ../../lib/memdebug.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -MT ../../lib/getpart-memdebug.o -MD -MP -MF ../../lib/$(DEPDIR)/getpart-memdebug.Tpo -c -o ../../lib/getpart-memdebug.o `test -f '../../lib/memdebug.c' || echo '$(srcdir)/'`../../lib/memdebug.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/getpart-memdebug.Tpo ../../lib/$(DEPDIR)/getpart-memdebug.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/memdebug.c' object='../../lib/getpart-memdebug.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -c -o ../../lib/getpart-memdebug.o `test -f '../../lib/memdebug.c' || echo '$(srcdir)/'`../../lib/memdebug.c
-
-../../lib/getpart-memdebug.obj: ../../lib/memdebug.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -MT ../../lib/getpart-memdebug.obj -MD -MP -MF ../../lib/$(DEPDIR)/getpart-memdebug.Tpo -c -o ../../lib/getpart-memdebug.obj `if test -f '../../lib/memdebug.c'; then $(CYGPATH_W) '../../lib/memdebug.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/memdebug.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/getpart-memdebug.Tpo ../../lib/$(DEPDIR)/getpart-memdebug.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/memdebug.c' object='../../lib/getpart-memdebug.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -c -o ../../lib/getpart-memdebug.obj `if test -f '../../lib/memdebug.c'; then $(CYGPATH_W) '../../lib/memdebug.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/memdebug.c'; fi`
-
-getpart-testpart.o: testpart.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -MT getpart-testpart.o -MD -MP -MF $(DEPDIR)/getpart-testpart.Tpo -c -o getpart-testpart.o `test -f 'testpart.c' || echo '$(srcdir)/'`testpart.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/getpart-testpart.Tpo $(DEPDIR)/getpart-testpart.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='testpart.c' object='getpart-testpart.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -c -o getpart-testpart.o `test -f 'testpart.c' || echo '$(srcdir)/'`testpart.c
-
-getpart-testpart.obj: testpart.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -MT getpart-testpart.obj -MD -MP -MF $(DEPDIR)/getpart-testpart.Tpo -c -o getpart-testpart.obj `if test -f 'testpart.c'; then $(CYGPATH_W) 'testpart.c'; else $(CYGPATH_W) '$(srcdir)/testpart.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/getpart-testpart.Tpo $(DEPDIR)/getpart-testpart.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='testpart.c' object='getpart-testpart.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(getpart_CFLAGS) $(CFLAGS) -c -o getpart-testpart.obj `if test -f 'testpart.c'; then $(CYGPATH_W) 'testpart.c'; else $(CYGPATH_W) '$(srcdir)/testpart.c'; fi`
-
 ../../lib/mqttd-mprintf.o: ../../lib/mprintf.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(mqttd_CFLAGS) $(CFLAGS) -MT ../../lib/mqttd-mprintf.o -MD -MP -MF ../../lib/$(DEPDIR)/mqttd-mprintf.Tpo -c -o ../../lib/mqttd-mprintf.o `test -f '../../lib/mprintf.c' || echo '$(srcdir)/'`../../lib/mprintf.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/mqttd-mprintf.Tpo ../../lib/$(DEPDIR)/mqttd-mprintf.Po
@@ -1488,6 +1316,34 @@ getpart-testpart.obj: testpart.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strtoofft.c' object='../../lib/mqttd-strtoofft.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(mqttd_CFLAGS) $(CFLAGS) -c -o ../../lib/mqttd-strtoofft.obj `if test -f '../../lib/strtoofft.c'; then $(CYGPATH_W) '../../lib/strtoofft.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strtoofft.c'; fi`
+
+../../lib/mqttd-strparse.o: ../../lib/strparse.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(mqttd_CFLAGS) $(CFLAGS) -MT ../../lib/mqttd-strparse.o -MD -MP -MF ../../lib/$(DEPDIR)/mqttd-strparse.Tpo -c -o ../../lib/mqttd-strparse.o `test -f '../../lib/strparse.c' || echo '$(srcdir)/'`../../lib/strparse.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/mqttd-strparse.Tpo ../../lib/$(DEPDIR)/mqttd-strparse.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strparse.c' object='../../lib/mqttd-strparse.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(mqttd_CFLAGS) $(CFLAGS) -c -o ../../lib/mqttd-strparse.o `test -f '../../lib/strparse.c' || echo '$(srcdir)/'`../../lib/strparse.c
+
+../../lib/mqttd-strparse.obj: ../../lib/strparse.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(mqttd_CFLAGS) $(CFLAGS) -MT ../../lib/mqttd-strparse.obj -MD -MP -MF ../../lib/$(DEPDIR)/mqttd-strparse.Tpo -c -o ../../lib/mqttd-strparse.obj `if test -f '../../lib/strparse.c'; then $(CYGPATH_W) '../../lib/strparse.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strparse.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/mqttd-strparse.Tpo ../../lib/$(DEPDIR)/mqttd-strparse.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strparse.c' object='../../lib/mqttd-strparse.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(mqttd_CFLAGS) $(CFLAGS) -c -o ../../lib/mqttd-strparse.obj `if test -f '../../lib/strparse.c'; then $(CYGPATH_W) '../../lib/strparse.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strparse.c'; fi`
+
+../../lib/mqttd-strequal.o: ../../lib/strequal.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(mqttd_CFLAGS) $(CFLAGS) -MT ../../lib/mqttd-strequal.o -MD -MP -MF ../../lib/$(DEPDIR)/mqttd-strequal.Tpo -c -o ../../lib/mqttd-strequal.o `test -f '../../lib/strequal.c' || echo '$(srcdir)/'`../../lib/strequal.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/mqttd-strequal.Tpo ../../lib/$(DEPDIR)/mqttd-strequal.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strequal.c' object='../../lib/mqttd-strequal.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(mqttd_CFLAGS) $(CFLAGS) -c -o ../../lib/mqttd-strequal.o `test -f '../../lib/strequal.c' || echo '$(srcdir)/'`../../lib/strequal.c
+
+../../lib/mqttd-strequal.obj: ../../lib/strequal.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(mqttd_CFLAGS) $(CFLAGS) -MT ../../lib/mqttd-strequal.obj -MD -MP -MF ../../lib/$(DEPDIR)/mqttd-strequal.Tpo -c -o ../../lib/mqttd-strequal.obj `if test -f '../../lib/strequal.c'; then $(CYGPATH_W) '../../lib/strequal.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strequal.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/mqttd-strequal.Tpo ../../lib/$(DEPDIR)/mqttd-strequal.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strequal.c' object='../../lib/mqttd-strequal.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(mqttd_CFLAGS) $(CFLAGS) -c -o ../../lib/mqttd-strequal.obj `if test -f '../../lib/strequal.c'; then $(CYGPATH_W) '../../lib/strequal.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strequal.c'; fi`
 
 ../../lib/mqttd-warnless.o: ../../lib/warnless.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(mqttd_CFLAGS) $(CFLAGS) -MT ../../lib/mqttd-warnless.o -MD -MP -MF ../../lib/$(DEPDIR)/mqttd-warnless.Tpo -c -o ../../lib/mqttd-warnless.o `test -f '../../lib/warnless.c' || echo '$(srcdir)/'`../../lib/warnless.c
@@ -1643,6 +1499,20 @@ mqttd-util.obj: util.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(mqttd_CFLAGS) $(CFLAGS) -c -o mqttd-util.obj `if test -f 'util.c'; then $(CYGPATH_W) 'util.c'; else $(CYGPATH_W) '$(srcdir)/util.c'; fi`
 
+../../lib/mqttd-strerror.o: ../../lib/strerror.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(mqttd_CFLAGS) $(CFLAGS) -MT ../../lib/mqttd-strerror.o -MD -MP -MF ../../lib/$(DEPDIR)/mqttd-strerror.Tpo -c -o ../../lib/mqttd-strerror.o `test -f '../../lib/strerror.c' || echo '$(srcdir)/'`../../lib/strerror.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/mqttd-strerror.Tpo ../../lib/$(DEPDIR)/mqttd-strerror.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strerror.c' object='../../lib/mqttd-strerror.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(mqttd_CFLAGS) $(CFLAGS) -c -o ../../lib/mqttd-strerror.o `test -f '../../lib/strerror.c' || echo '$(srcdir)/'`../../lib/strerror.c
+
+../../lib/mqttd-strerror.obj: ../../lib/strerror.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(mqttd_CFLAGS) $(CFLAGS) -MT ../../lib/mqttd-strerror.obj -MD -MP -MF ../../lib/$(DEPDIR)/mqttd-strerror.Tpo -c -o ../../lib/mqttd-strerror.obj `if test -f '../../lib/strerror.c'; then $(CYGPATH_W) '../../lib/strerror.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strerror.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/mqttd-strerror.Tpo ../../lib/$(DEPDIR)/mqttd-strerror.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strerror.c' object='../../lib/mqttd-strerror.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(mqttd_CFLAGS) $(CFLAGS) -c -o ../../lib/mqttd-strerror.obj `if test -f '../../lib/strerror.c'; then $(CYGPATH_W) '../../lib/strerror.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strerror.c'; fi`
+
 mqttd-mqttd.o: mqttd.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(mqttd_CFLAGS) $(CFLAGS) -MT mqttd-mqttd.o -MD -MP -MF $(DEPDIR)/mqttd-mqttd.Tpo -c -o mqttd-mqttd.o `test -f 'mqttd.c' || echo '$(srcdir)/'`mqttd.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mqttd-mqttd.Tpo $(DEPDIR)/mqttd-mqttd.Po
@@ -1656,20 +1526,6 @@ mqttd-mqttd.obj: mqttd.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='mqttd.c' object='mqttd-mqttd.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(mqttd_CFLAGS) $(CFLAGS) -c -o mqttd-mqttd.obj `if test -f 'mqttd.c'; then $(CYGPATH_W) 'mqttd.c'; else $(CYGPATH_W) '$(srcdir)/mqttd.c'; fi`
-
-../../lib/mqttd-inet_pton.o: ../../lib/inet_pton.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(mqttd_CFLAGS) $(CFLAGS) -MT ../../lib/mqttd-inet_pton.o -MD -MP -MF ../../lib/$(DEPDIR)/mqttd-inet_pton.Tpo -c -o ../../lib/mqttd-inet_pton.o `test -f '../../lib/inet_pton.c' || echo '$(srcdir)/'`../../lib/inet_pton.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/mqttd-inet_pton.Tpo ../../lib/$(DEPDIR)/mqttd-inet_pton.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/inet_pton.c' object='../../lib/mqttd-inet_pton.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(mqttd_CFLAGS) $(CFLAGS) -c -o ../../lib/mqttd-inet_pton.o `test -f '../../lib/inet_pton.c' || echo '$(srcdir)/'`../../lib/inet_pton.c
-
-../../lib/mqttd-inet_pton.obj: ../../lib/inet_pton.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(mqttd_CFLAGS) $(CFLAGS) -MT ../../lib/mqttd-inet_pton.obj -MD -MP -MF ../../lib/$(DEPDIR)/mqttd-inet_pton.Tpo -c -o ../../lib/mqttd-inet_pton.obj `if test -f '../../lib/inet_pton.c'; then $(CYGPATH_W) '../../lib/inet_pton.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/inet_pton.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/mqttd-inet_pton.Tpo ../../lib/$(DEPDIR)/mqttd-inet_pton.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/inet_pton.c' object='../../lib/mqttd-inet_pton.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(mqttd_CFLAGS) $(CFLAGS) -c -o ../../lib/mqttd-inet_pton.obj `if test -f '../../lib/inet_pton.c'; then $(CYGPATH_W) '../../lib/inet_pton.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/inet_pton.c'; fi`
 
 ../../lib/resolve-mprintf.o: ../../lib/mprintf.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(resolve_CFLAGS) $(CFLAGS) -MT ../../lib/resolve-mprintf.o -MD -MP -MF ../../lib/$(DEPDIR)/resolve-mprintf.Tpo -c -o ../../lib/resolve-mprintf.o `test -f '../../lib/mprintf.c' || echo '$(srcdir)/'`../../lib/mprintf.c
@@ -1712,6 +1568,34 @@ mqttd-mqttd.obj: mqttd.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strtoofft.c' object='../../lib/resolve-strtoofft.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(resolve_CFLAGS) $(CFLAGS) -c -o ../../lib/resolve-strtoofft.obj `if test -f '../../lib/strtoofft.c'; then $(CYGPATH_W) '../../lib/strtoofft.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strtoofft.c'; fi`
+
+../../lib/resolve-strparse.o: ../../lib/strparse.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(resolve_CFLAGS) $(CFLAGS) -MT ../../lib/resolve-strparse.o -MD -MP -MF ../../lib/$(DEPDIR)/resolve-strparse.Tpo -c -o ../../lib/resolve-strparse.o `test -f '../../lib/strparse.c' || echo '$(srcdir)/'`../../lib/strparse.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/resolve-strparse.Tpo ../../lib/$(DEPDIR)/resolve-strparse.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strparse.c' object='../../lib/resolve-strparse.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(resolve_CFLAGS) $(CFLAGS) -c -o ../../lib/resolve-strparse.o `test -f '../../lib/strparse.c' || echo '$(srcdir)/'`../../lib/strparse.c
+
+../../lib/resolve-strparse.obj: ../../lib/strparse.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(resolve_CFLAGS) $(CFLAGS) -MT ../../lib/resolve-strparse.obj -MD -MP -MF ../../lib/$(DEPDIR)/resolve-strparse.Tpo -c -o ../../lib/resolve-strparse.obj `if test -f '../../lib/strparse.c'; then $(CYGPATH_W) '../../lib/strparse.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strparse.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/resolve-strparse.Tpo ../../lib/$(DEPDIR)/resolve-strparse.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strparse.c' object='../../lib/resolve-strparse.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(resolve_CFLAGS) $(CFLAGS) -c -o ../../lib/resolve-strparse.obj `if test -f '../../lib/strparse.c'; then $(CYGPATH_W) '../../lib/strparse.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strparse.c'; fi`
+
+../../lib/resolve-strequal.o: ../../lib/strequal.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(resolve_CFLAGS) $(CFLAGS) -MT ../../lib/resolve-strequal.o -MD -MP -MF ../../lib/$(DEPDIR)/resolve-strequal.Tpo -c -o ../../lib/resolve-strequal.o `test -f '../../lib/strequal.c' || echo '$(srcdir)/'`../../lib/strequal.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/resolve-strequal.Tpo ../../lib/$(DEPDIR)/resolve-strequal.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strequal.c' object='../../lib/resolve-strequal.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(resolve_CFLAGS) $(CFLAGS) -c -o ../../lib/resolve-strequal.o `test -f '../../lib/strequal.c' || echo '$(srcdir)/'`../../lib/strequal.c
+
+../../lib/resolve-strequal.obj: ../../lib/strequal.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(resolve_CFLAGS) $(CFLAGS) -MT ../../lib/resolve-strequal.obj -MD -MP -MF ../../lib/$(DEPDIR)/resolve-strequal.Tpo -c -o ../../lib/resolve-strequal.obj `if test -f '../../lib/strequal.c'; then $(CYGPATH_W) '../../lib/strequal.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strequal.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/resolve-strequal.Tpo ../../lib/$(DEPDIR)/resolve-strequal.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strequal.c' object='../../lib/resolve-strequal.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(resolve_CFLAGS) $(CFLAGS) -c -o ../../lib/resolve-strequal.obj `if test -f '../../lib/strequal.c'; then $(CYGPATH_W) '../../lib/strequal.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strequal.c'; fi`
 
 ../../lib/resolve-warnless.o: ../../lib/warnless.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(resolve_CFLAGS) $(CFLAGS) -MT ../../lib/resolve-warnless.o -MD -MP -MF ../../lib/$(DEPDIR)/resolve-warnless.Tpo -c -o ../../lib/resolve-warnless.o `test -f '../../lib/warnless.c' || echo '$(srcdir)/'`../../lib/warnless.c
@@ -1867,6 +1751,20 @@ resolve-util.obj: util.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(resolve_CFLAGS) $(CFLAGS) -c -o resolve-util.obj `if test -f 'util.c'; then $(CYGPATH_W) 'util.c'; else $(CYGPATH_W) '$(srcdir)/util.c'; fi`
 
+../../lib/resolve-strerror.o: ../../lib/strerror.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(resolve_CFLAGS) $(CFLAGS) -MT ../../lib/resolve-strerror.o -MD -MP -MF ../../lib/$(DEPDIR)/resolve-strerror.Tpo -c -o ../../lib/resolve-strerror.o `test -f '../../lib/strerror.c' || echo '$(srcdir)/'`../../lib/strerror.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/resolve-strerror.Tpo ../../lib/$(DEPDIR)/resolve-strerror.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strerror.c' object='../../lib/resolve-strerror.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(resolve_CFLAGS) $(CFLAGS) -c -o ../../lib/resolve-strerror.o `test -f '../../lib/strerror.c' || echo '$(srcdir)/'`../../lib/strerror.c
+
+../../lib/resolve-strerror.obj: ../../lib/strerror.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(resolve_CFLAGS) $(CFLAGS) -MT ../../lib/resolve-strerror.obj -MD -MP -MF ../../lib/$(DEPDIR)/resolve-strerror.Tpo -c -o ../../lib/resolve-strerror.obj `if test -f '../../lib/strerror.c'; then $(CYGPATH_W) '../../lib/strerror.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strerror.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/resolve-strerror.Tpo ../../lib/$(DEPDIR)/resolve-strerror.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strerror.c' object='../../lib/resolve-strerror.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(resolve_CFLAGS) $(CFLAGS) -c -o ../../lib/resolve-strerror.obj `if test -f '../../lib/strerror.c'; then $(CYGPATH_W) '../../lib/strerror.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strerror.c'; fi`
+
 resolve-resolve.o: resolve.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(resolve_CFLAGS) $(CFLAGS) -MT resolve-resolve.o -MD -MP -MF $(DEPDIR)/resolve-resolve.Tpo -c -o resolve-resolve.o `test -f 'resolve.c' || echo '$(srcdir)/'`resolve.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/resolve-resolve.Tpo $(DEPDIR)/resolve-resolve.Po
@@ -1922,6 +1820,34 @@ resolve-resolve.obj: resolve.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strtoofft.c' object='../../lib/rtspd-strtoofft.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rtspd_CFLAGS) $(CFLAGS) -c -o ../../lib/rtspd-strtoofft.obj `if test -f '../../lib/strtoofft.c'; then $(CYGPATH_W) '../../lib/strtoofft.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strtoofft.c'; fi`
+
+../../lib/rtspd-strparse.o: ../../lib/strparse.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rtspd_CFLAGS) $(CFLAGS) -MT ../../lib/rtspd-strparse.o -MD -MP -MF ../../lib/$(DEPDIR)/rtspd-strparse.Tpo -c -o ../../lib/rtspd-strparse.o `test -f '../../lib/strparse.c' || echo '$(srcdir)/'`../../lib/strparse.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/rtspd-strparse.Tpo ../../lib/$(DEPDIR)/rtspd-strparse.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strparse.c' object='../../lib/rtspd-strparse.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rtspd_CFLAGS) $(CFLAGS) -c -o ../../lib/rtspd-strparse.o `test -f '../../lib/strparse.c' || echo '$(srcdir)/'`../../lib/strparse.c
+
+../../lib/rtspd-strparse.obj: ../../lib/strparse.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rtspd_CFLAGS) $(CFLAGS) -MT ../../lib/rtspd-strparse.obj -MD -MP -MF ../../lib/$(DEPDIR)/rtspd-strparse.Tpo -c -o ../../lib/rtspd-strparse.obj `if test -f '../../lib/strparse.c'; then $(CYGPATH_W) '../../lib/strparse.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strparse.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/rtspd-strparse.Tpo ../../lib/$(DEPDIR)/rtspd-strparse.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strparse.c' object='../../lib/rtspd-strparse.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rtspd_CFLAGS) $(CFLAGS) -c -o ../../lib/rtspd-strparse.obj `if test -f '../../lib/strparse.c'; then $(CYGPATH_W) '../../lib/strparse.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strparse.c'; fi`
+
+../../lib/rtspd-strequal.o: ../../lib/strequal.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rtspd_CFLAGS) $(CFLAGS) -MT ../../lib/rtspd-strequal.o -MD -MP -MF ../../lib/$(DEPDIR)/rtspd-strequal.Tpo -c -o ../../lib/rtspd-strequal.o `test -f '../../lib/strequal.c' || echo '$(srcdir)/'`../../lib/strequal.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/rtspd-strequal.Tpo ../../lib/$(DEPDIR)/rtspd-strequal.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strequal.c' object='../../lib/rtspd-strequal.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rtspd_CFLAGS) $(CFLAGS) -c -o ../../lib/rtspd-strequal.o `test -f '../../lib/strequal.c' || echo '$(srcdir)/'`../../lib/strequal.c
+
+../../lib/rtspd-strequal.obj: ../../lib/strequal.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rtspd_CFLAGS) $(CFLAGS) -MT ../../lib/rtspd-strequal.obj -MD -MP -MF ../../lib/$(DEPDIR)/rtspd-strequal.Tpo -c -o ../../lib/rtspd-strequal.obj `if test -f '../../lib/strequal.c'; then $(CYGPATH_W) '../../lib/strequal.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strequal.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/rtspd-strequal.Tpo ../../lib/$(DEPDIR)/rtspd-strequal.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strequal.c' object='../../lib/rtspd-strequal.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rtspd_CFLAGS) $(CFLAGS) -c -o ../../lib/rtspd-strequal.obj `if test -f '../../lib/strequal.c'; then $(CYGPATH_W) '../../lib/strequal.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strequal.c'; fi`
 
 ../../lib/rtspd-warnless.o: ../../lib/warnless.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rtspd_CFLAGS) $(CFLAGS) -MT ../../lib/rtspd-warnless.o -MD -MP -MF ../../lib/$(DEPDIR)/rtspd-warnless.Tpo -c -o ../../lib/rtspd-warnless.o `test -f '../../lib/warnless.c' || echo '$(srcdir)/'`../../lib/warnless.c
@@ -2077,6 +2003,20 @@ rtspd-util.obj: util.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rtspd_CFLAGS) $(CFLAGS) -c -o rtspd-util.obj `if test -f 'util.c'; then $(CYGPATH_W) 'util.c'; else $(CYGPATH_W) '$(srcdir)/util.c'; fi`
 
+../../lib/rtspd-strerror.o: ../../lib/strerror.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rtspd_CFLAGS) $(CFLAGS) -MT ../../lib/rtspd-strerror.o -MD -MP -MF ../../lib/$(DEPDIR)/rtspd-strerror.Tpo -c -o ../../lib/rtspd-strerror.o `test -f '../../lib/strerror.c' || echo '$(srcdir)/'`../../lib/strerror.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/rtspd-strerror.Tpo ../../lib/$(DEPDIR)/rtspd-strerror.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strerror.c' object='../../lib/rtspd-strerror.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rtspd_CFLAGS) $(CFLAGS) -c -o ../../lib/rtspd-strerror.o `test -f '../../lib/strerror.c' || echo '$(srcdir)/'`../../lib/strerror.c
+
+../../lib/rtspd-strerror.obj: ../../lib/strerror.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rtspd_CFLAGS) $(CFLAGS) -MT ../../lib/rtspd-strerror.obj -MD -MP -MF ../../lib/$(DEPDIR)/rtspd-strerror.Tpo -c -o ../../lib/rtspd-strerror.obj `if test -f '../../lib/strerror.c'; then $(CYGPATH_W) '../../lib/strerror.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strerror.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/rtspd-strerror.Tpo ../../lib/$(DEPDIR)/rtspd-strerror.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strerror.c' object='../../lib/rtspd-strerror.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rtspd_CFLAGS) $(CFLAGS) -c -o ../../lib/rtspd-strerror.obj `if test -f '../../lib/strerror.c'; then $(CYGPATH_W) '../../lib/strerror.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strerror.c'; fi`
+
 rtspd-rtspd.o: rtspd.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rtspd_CFLAGS) $(CFLAGS) -MT rtspd-rtspd.o -MD -MP -MF $(DEPDIR)/rtspd-rtspd.Tpo -c -o rtspd-rtspd.o `test -f 'rtspd.c' || echo '$(srcdir)/'`rtspd.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/rtspd-rtspd.Tpo $(DEPDIR)/rtspd-rtspd.Po
@@ -2132,6 +2072,34 @@ rtspd-rtspd.obj: rtspd.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strtoofft.c' object='../../lib/sockfilt-strtoofft.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sockfilt_CFLAGS) $(CFLAGS) -c -o ../../lib/sockfilt-strtoofft.obj `if test -f '../../lib/strtoofft.c'; then $(CYGPATH_W) '../../lib/strtoofft.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strtoofft.c'; fi`
+
+../../lib/sockfilt-strparse.o: ../../lib/strparse.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sockfilt_CFLAGS) $(CFLAGS) -MT ../../lib/sockfilt-strparse.o -MD -MP -MF ../../lib/$(DEPDIR)/sockfilt-strparse.Tpo -c -o ../../lib/sockfilt-strparse.o `test -f '../../lib/strparse.c' || echo '$(srcdir)/'`../../lib/strparse.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/sockfilt-strparse.Tpo ../../lib/$(DEPDIR)/sockfilt-strparse.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strparse.c' object='../../lib/sockfilt-strparse.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sockfilt_CFLAGS) $(CFLAGS) -c -o ../../lib/sockfilt-strparse.o `test -f '../../lib/strparse.c' || echo '$(srcdir)/'`../../lib/strparse.c
+
+../../lib/sockfilt-strparse.obj: ../../lib/strparse.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sockfilt_CFLAGS) $(CFLAGS) -MT ../../lib/sockfilt-strparse.obj -MD -MP -MF ../../lib/$(DEPDIR)/sockfilt-strparse.Tpo -c -o ../../lib/sockfilt-strparse.obj `if test -f '../../lib/strparse.c'; then $(CYGPATH_W) '../../lib/strparse.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strparse.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/sockfilt-strparse.Tpo ../../lib/$(DEPDIR)/sockfilt-strparse.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strparse.c' object='../../lib/sockfilt-strparse.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sockfilt_CFLAGS) $(CFLAGS) -c -o ../../lib/sockfilt-strparse.obj `if test -f '../../lib/strparse.c'; then $(CYGPATH_W) '../../lib/strparse.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strparse.c'; fi`
+
+../../lib/sockfilt-strequal.o: ../../lib/strequal.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sockfilt_CFLAGS) $(CFLAGS) -MT ../../lib/sockfilt-strequal.o -MD -MP -MF ../../lib/$(DEPDIR)/sockfilt-strequal.Tpo -c -o ../../lib/sockfilt-strequal.o `test -f '../../lib/strequal.c' || echo '$(srcdir)/'`../../lib/strequal.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/sockfilt-strequal.Tpo ../../lib/$(DEPDIR)/sockfilt-strequal.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strequal.c' object='../../lib/sockfilt-strequal.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sockfilt_CFLAGS) $(CFLAGS) -c -o ../../lib/sockfilt-strequal.o `test -f '../../lib/strequal.c' || echo '$(srcdir)/'`../../lib/strequal.c
+
+../../lib/sockfilt-strequal.obj: ../../lib/strequal.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sockfilt_CFLAGS) $(CFLAGS) -MT ../../lib/sockfilt-strequal.obj -MD -MP -MF ../../lib/$(DEPDIR)/sockfilt-strequal.Tpo -c -o ../../lib/sockfilt-strequal.obj `if test -f '../../lib/strequal.c'; then $(CYGPATH_W) '../../lib/strequal.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strequal.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/sockfilt-strequal.Tpo ../../lib/$(DEPDIR)/sockfilt-strequal.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strequal.c' object='../../lib/sockfilt-strequal.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sockfilt_CFLAGS) $(CFLAGS) -c -o ../../lib/sockfilt-strequal.obj `if test -f '../../lib/strequal.c'; then $(CYGPATH_W) '../../lib/strequal.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strequal.c'; fi`
 
 ../../lib/sockfilt-warnless.o: ../../lib/warnless.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sockfilt_CFLAGS) $(CFLAGS) -MT ../../lib/sockfilt-warnless.o -MD -MP -MF ../../lib/$(DEPDIR)/sockfilt-warnless.Tpo -c -o ../../lib/sockfilt-warnless.o `test -f '../../lib/warnless.c' || echo '$(srcdir)/'`../../lib/warnless.c
@@ -2287,19 +2255,19 @@ sockfilt-util.obj: util.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sockfilt_CFLAGS) $(CFLAGS) -c -o sockfilt-util.obj `if test -f 'util.c'; then $(CYGPATH_W) 'util.c'; else $(CYGPATH_W) '$(srcdir)/util.c'; fi`
 
-sockfilt-sockfilt.o: sockfilt.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sockfilt_CFLAGS) $(CFLAGS) -MT sockfilt-sockfilt.o -MD -MP -MF $(DEPDIR)/sockfilt-sockfilt.Tpo -c -o sockfilt-sockfilt.o `test -f 'sockfilt.c' || echo '$(srcdir)/'`sockfilt.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sockfilt-sockfilt.Tpo $(DEPDIR)/sockfilt-sockfilt.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='sockfilt.c' object='sockfilt-sockfilt.o' libtool=no @AMDEPBACKSLASH@
+../../lib/sockfilt-strerror.o: ../../lib/strerror.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sockfilt_CFLAGS) $(CFLAGS) -MT ../../lib/sockfilt-strerror.o -MD -MP -MF ../../lib/$(DEPDIR)/sockfilt-strerror.Tpo -c -o ../../lib/sockfilt-strerror.o `test -f '../../lib/strerror.c' || echo '$(srcdir)/'`../../lib/strerror.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/sockfilt-strerror.Tpo ../../lib/$(DEPDIR)/sockfilt-strerror.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strerror.c' object='../../lib/sockfilt-strerror.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sockfilt_CFLAGS) $(CFLAGS) -c -o sockfilt-sockfilt.o `test -f 'sockfilt.c' || echo '$(srcdir)/'`sockfilt.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sockfilt_CFLAGS) $(CFLAGS) -c -o ../../lib/sockfilt-strerror.o `test -f '../../lib/strerror.c' || echo '$(srcdir)/'`../../lib/strerror.c
 
-sockfilt-sockfilt.obj: sockfilt.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sockfilt_CFLAGS) $(CFLAGS) -MT sockfilt-sockfilt.obj -MD -MP -MF $(DEPDIR)/sockfilt-sockfilt.Tpo -c -o sockfilt-sockfilt.obj `if test -f 'sockfilt.c'; then $(CYGPATH_W) 'sockfilt.c'; else $(CYGPATH_W) '$(srcdir)/sockfilt.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sockfilt-sockfilt.Tpo $(DEPDIR)/sockfilt-sockfilt.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='sockfilt.c' object='sockfilt-sockfilt.obj' libtool=no @AMDEPBACKSLASH@
+../../lib/sockfilt-strerror.obj: ../../lib/strerror.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sockfilt_CFLAGS) $(CFLAGS) -MT ../../lib/sockfilt-strerror.obj -MD -MP -MF ../../lib/$(DEPDIR)/sockfilt-strerror.Tpo -c -o ../../lib/sockfilt-strerror.obj `if test -f '../../lib/strerror.c'; then $(CYGPATH_W) '../../lib/strerror.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strerror.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/sockfilt-strerror.Tpo ../../lib/$(DEPDIR)/sockfilt-strerror.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strerror.c' object='../../lib/sockfilt-strerror.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sockfilt_CFLAGS) $(CFLAGS) -c -o sockfilt-sockfilt.obj `if test -f 'sockfilt.c'; then $(CYGPATH_W) 'sockfilt.c'; else $(CYGPATH_W) '$(srcdir)/sockfilt.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sockfilt_CFLAGS) $(CFLAGS) -c -o ../../lib/sockfilt-strerror.obj `if test -f '../../lib/strerror.c'; then $(CYGPATH_W) '../../lib/strerror.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strerror.c'; fi`
 
 ../../lib/sockfilt-inet_pton.o: ../../lib/inet_pton.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sockfilt_CFLAGS) $(CFLAGS) -MT ../../lib/sockfilt-inet_pton.o -MD -MP -MF ../../lib/$(DEPDIR)/sockfilt-inet_pton.Tpo -c -o ../../lib/sockfilt-inet_pton.o `test -f '../../lib/inet_pton.c' || echo '$(srcdir)/'`../../lib/inet_pton.c
@@ -2314,6 +2282,20 @@ sockfilt-sockfilt.obj: sockfilt.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/inet_pton.c' object='../../lib/sockfilt-inet_pton.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sockfilt_CFLAGS) $(CFLAGS) -c -o ../../lib/sockfilt-inet_pton.obj `if test -f '../../lib/inet_pton.c'; then $(CYGPATH_W) '../../lib/inet_pton.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/inet_pton.c'; fi`
+
+sockfilt-sockfilt.o: sockfilt.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sockfilt_CFLAGS) $(CFLAGS) -MT sockfilt-sockfilt.o -MD -MP -MF $(DEPDIR)/sockfilt-sockfilt.Tpo -c -o sockfilt-sockfilt.o `test -f 'sockfilt.c' || echo '$(srcdir)/'`sockfilt.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sockfilt-sockfilt.Tpo $(DEPDIR)/sockfilt-sockfilt.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='sockfilt.c' object='sockfilt-sockfilt.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sockfilt_CFLAGS) $(CFLAGS) -c -o sockfilt-sockfilt.o `test -f 'sockfilt.c' || echo '$(srcdir)/'`sockfilt.c
+
+sockfilt-sockfilt.obj: sockfilt.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sockfilt_CFLAGS) $(CFLAGS) -MT sockfilt-sockfilt.obj -MD -MP -MF $(DEPDIR)/sockfilt-sockfilt.Tpo -c -o sockfilt-sockfilt.obj `if test -f 'sockfilt.c'; then $(CYGPATH_W) 'sockfilt.c'; else $(CYGPATH_W) '$(srcdir)/sockfilt.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sockfilt-sockfilt.Tpo $(DEPDIR)/sockfilt-sockfilt.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='sockfilt.c' object='sockfilt-sockfilt.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sockfilt_CFLAGS) $(CFLAGS) -c -o sockfilt-sockfilt.obj `if test -f 'sockfilt.c'; then $(CYGPATH_W) 'sockfilt.c'; else $(CYGPATH_W) '$(srcdir)/sockfilt.c'; fi`
 
 ../../lib/socksd-mprintf.o: ../../lib/mprintf.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(socksd_CFLAGS) $(CFLAGS) -MT ../../lib/socksd-mprintf.o -MD -MP -MF ../../lib/$(DEPDIR)/socksd-mprintf.Tpo -c -o ../../lib/socksd-mprintf.o `test -f '../../lib/mprintf.c' || echo '$(srcdir)/'`../../lib/mprintf.c
@@ -2356,6 +2338,34 @@ sockfilt-sockfilt.obj: sockfilt.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strtoofft.c' object='../../lib/socksd-strtoofft.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(socksd_CFLAGS) $(CFLAGS) -c -o ../../lib/socksd-strtoofft.obj `if test -f '../../lib/strtoofft.c'; then $(CYGPATH_W) '../../lib/strtoofft.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strtoofft.c'; fi`
+
+../../lib/socksd-strparse.o: ../../lib/strparse.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(socksd_CFLAGS) $(CFLAGS) -MT ../../lib/socksd-strparse.o -MD -MP -MF ../../lib/$(DEPDIR)/socksd-strparse.Tpo -c -o ../../lib/socksd-strparse.o `test -f '../../lib/strparse.c' || echo '$(srcdir)/'`../../lib/strparse.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/socksd-strparse.Tpo ../../lib/$(DEPDIR)/socksd-strparse.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strparse.c' object='../../lib/socksd-strparse.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(socksd_CFLAGS) $(CFLAGS) -c -o ../../lib/socksd-strparse.o `test -f '../../lib/strparse.c' || echo '$(srcdir)/'`../../lib/strparse.c
+
+../../lib/socksd-strparse.obj: ../../lib/strparse.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(socksd_CFLAGS) $(CFLAGS) -MT ../../lib/socksd-strparse.obj -MD -MP -MF ../../lib/$(DEPDIR)/socksd-strparse.Tpo -c -o ../../lib/socksd-strparse.obj `if test -f '../../lib/strparse.c'; then $(CYGPATH_W) '../../lib/strparse.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strparse.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/socksd-strparse.Tpo ../../lib/$(DEPDIR)/socksd-strparse.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strparse.c' object='../../lib/socksd-strparse.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(socksd_CFLAGS) $(CFLAGS) -c -o ../../lib/socksd-strparse.obj `if test -f '../../lib/strparse.c'; then $(CYGPATH_W) '../../lib/strparse.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strparse.c'; fi`
+
+../../lib/socksd-strequal.o: ../../lib/strequal.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(socksd_CFLAGS) $(CFLAGS) -MT ../../lib/socksd-strequal.o -MD -MP -MF ../../lib/$(DEPDIR)/socksd-strequal.Tpo -c -o ../../lib/socksd-strequal.o `test -f '../../lib/strequal.c' || echo '$(srcdir)/'`../../lib/strequal.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/socksd-strequal.Tpo ../../lib/$(DEPDIR)/socksd-strequal.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strequal.c' object='../../lib/socksd-strequal.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(socksd_CFLAGS) $(CFLAGS) -c -o ../../lib/socksd-strequal.o `test -f '../../lib/strequal.c' || echo '$(srcdir)/'`../../lib/strequal.c
+
+../../lib/socksd-strequal.obj: ../../lib/strequal.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(socksd_CFLAGS) $(CFLAGS) -MT ../../lib/socksd-strequal.obj -MD -MP -MF ../../lib/$(DEPDIR)/socksd-strequal.Tpo -c -o ../../lib/socksd-strequal.obj `if test -f '../../lib/strequal.c'; then $(CYGPATH_W) '../../lib/strequal.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strequal.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/socksd-strequal.Tpo ../../lib/$(DEPDIR)/socksd-strequal.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strequal.c' object='../../lib/socksd-strequal.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(socksd_CFLAGS) $(CFLAGS) -c -o ../../lib/socksd-strequal.obj `if test -f '../../lib/strequal.c'; then $(CYGPATH_W) '../../lib/strequal.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strequal.c'; fi`
 
 ../../lib/socksd-warnless.o: ../../lib/warnless.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(socksd_CFLAGS) $(CFLAGS) -MT ../../lib/socksd-warnless.o -MD -MP -MF ../../lib/$(DEPDIR)/socksd-warnless.Tpo -c -o ../../lib/socksd-warnless.o `test -f '../../lib/warnless.c' || echo '$(srcdir)/'`../../lib/warnless.c
@@ -2511,19 +2521,19 @@ socksd-util.obj: util.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(socksd_CFLAGS) $(CFLAGS) -c -o socksd-util.obj `if test -f 'util.c'; then $(CYGPATH_W) 'util.c'; else $(CYGPATH_W) '$(srcdir)/util.c'; fi`
 
-socksd-socksd.o: socksd.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(socksd_CFLAGS) $(CFLAGS) -MT socksd-socksd.o -MD -MP -MF $(DEPDIR)/socksd-socksd.Tpo -c -o socksd-socksd.o `test -f 'socksd.c' || echo '$(srcdir)/'`socksd.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/socksd-socksd.Tpo $(DEPDIR)/socksd-socksd.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='socksd.c' object='socksd-socksd.o' libtool=no @AMDEPBACKSLASH@
+../../lib/socksd-strerror.o: ../../lib/strerror.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(socksd_CFLAGS) $(CFLAGS) -MT ../../lib/socksd-strerror.o -MD -MP -MF ../../lib/$(DEPDIR)/socksd-strerror.Tpo -c -o ../../lib/socksd-strerror.o `test -f '../../lib/strerror.c' || echo '$(srcdir)/'`../../lib/strerror.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/socksd-strerror.Tpo ../../lib/$(DEPDIR)/socksd-strerror.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strerror.c' object='../../lib/socksd-strerror.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(socksd_CFLAGS) $(CFLAGS) -c -o socksd-socksd.o `test -f 'socksd.c' || echo '$(srcdir)/'`socksd.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(socksd_CFLAGS) $(CFLAGS) -c -o ../../lib/socksd-strerror.o `test -f '../../lib/strerror.c' || echo '$(srcdir)/'`../../lib/strerror.c
 
-socksd-socksd.obj: socksd.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(socksd_CFLAGS) $(CFLAGS) -MT socksd-socksd.obj -MD -MP -MF $(DEPDIR)/socksd-socksd.Tpo -c -o socksd-socksd.obj `if test -f 'socksd.c'; then $(CYGPATH_W) 'socksd.c'; else $(CYGPATH_W) '$(srcdir)/socksd.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/socksd-socksd.Tpo $(DEPDIR)/socksd-socksd.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='socksd.c' object='socksd-socksd.obj' libtool=no @AMDEPBACKSLASH@
+../../lib/socksd-strerror.obj: ../../lib/strerror.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(socksd_CFLAGS) $(CFLAGS) -MT ../../lib/socksd-strerror.obj -MD -MP -MF ../../lib/$(DEPDIR)/socksd-strerror.Tpo -c -o ../../lib/socksd-strerror.obj `if test -f '../../lib/strerror.c'; then $(CYGPATH_W) '../../lib/strerror.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strerror.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/socksd-strerror.Tpo ../../lib/$(DEPDIR)/socksd-strerror.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strerror.c' object='../../lib/socksd-strerror.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(socksd_CFLAGS) $(CFLAGS) -c -o socksd-socksd.obj `if test -f 'socksd.c'; then $(CYGPATH_W) 'socksd.c'; else $(CYGPATH_W) '$(srcdir)/socksd.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(socksd_CFLAGS) $(CFLAGS) -c -o ../../lib/socksd-strerror.obj `if test -f '../../lib/strerror.c'; then $(CYGPATH_W) '../../lib/strerror.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strerror.c'; fi`
 
 ../../lib/socksd-inet_pton.o: ../../lib/inet_pton.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(socksd_CFLAGS) $(CFLAGS) -MT ../../lib/socksd-inet_pton.o -MD -MP -MF ../../lib/$(DEPDIR)/socksd-inet_pton.Tpo -c -o ../../lib/socksd-inet_pton.o `test -f '../../lib/inet_pton.c' || echo '$(srcdir)/'`../../lib/inet_pton.c
@@ -2538,6 +2548,20 @@ socksd-socksd.obj: socksd.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/inet_pton.c' object='../../lib/socksd-inet_pton.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(socksd_CFLAGS) $(CFLAGS) -c -o ../../lib/socksd-inet_pton.obj `if test -f '../../lib/inet_pton.c'; then $(CYGPATH_W) '../../lib/inet_pton.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/inet_pton.c'; fi`
+
+socksd-socksd.o: socksd.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(socksd_CFLAGS) $(CFLAGS) -MT socksd-socksd.o -MD -MP -MF $(DEPDIR)/socksd-socksd.Tpo -c -o socksd-socksd.o `test -f 'socksd.c' || echo '$(srcdir)/'`socksd.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/socksd-socksd.Tpo $(DEPDIR)/socksd-socksd.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='socksd.c' object='socksd-socksd.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(socksd_CFLAGS) $(CFLAGS) -c -o socksd-socksd.o `test -f 'socksd.c' || echo '$(srcdir)/'`socksd.c
+
+socksd-socksd.obj: socksd.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(socksd_CFLAGS) $(CFLAGS) -MT socksd-socksd.obj -MD -MP -MF $(DEPDIR)/socksd-socksd.Tpo -c -o socksd-socksd.obj `if test -f 'socksd.c'; then $(CYGPATH_W) 'socksd.c'; else $(CYGPATH_W) '$(srcdir)/socksd.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/socksd-socksd.Tpo $(DEPDIR)/socksd-socksd.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='socksd.c' object='socksd-socksd.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(socksd_CFLAGS) $(CFLAGS) -c -o socksd-socksd.obj `if test -f 'socksd.c'; then $(CYGPATH_W) 'socksd.c'; else $(CYGPATH_W) '$(srcdir)/socksd.c'; fi`
 
 ../../lib/sws-mprintf.o: ../../lib/mprintf.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sws_CFLAGS) $(CFLAGS) -MT ../../lib/sws-mprintf.o -MD -MP -MF ../../lib/$(DEPDIR)/sws-mprintf.Tpo -c -o ../../lib/sws-mprintf.o `test -f '../../lib/mprintf.c' || echo '$(srcdir)/'`../../lib/mprintf.c
@@ -2580,6 +2604,34 @@ socksd-socksd.obj: socksd.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strtoofft.c' object='../../lib/sws-strtoofft.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sws_CFLAGS) $(CFLAGS) -c -o ../../lib/sws-strtoofft.obj `if test -f '../../lib/strtoofft.c'; then $(CYGPATH_W) '../../lib/strtoofft.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strtoofft.c'; fi`
+
+../../lib/sws-strparse.o: ../../lib/strparse.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sws_CFLAGS) $(CFLAGS) -MT ../../lib/sws-strparse.o -MD -MP -MF ../../lib/$(DEPDIR)/sws-strparse.Tpo -c -o ../../lib/sws-strparse.o `test -f '../../lib/strparse.c' || echo '$(srcdir)/'`../../lib/strparse.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/sws-strparse.Tpo ../../lib/$(DEPDIR)/sws-strparse.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strparse.c' object='../../lib/sws-strparse.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sws_CFLAGS) $(CFLAGS) -c -o ../../lib/sws-strparse.o `test -f '../../lib/strparse.c' || echo '$(srcdir)/'`../../lib/strparse.c
+
+../../lib/sws-strparse.obj: ../../lib/strparse.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sws_CFLAGS) $(CFLAGS) -MT ../../lib/sws-strparse.obj -MD -MP -MF ../../lib/$(DEPDIR)/sws-strparse.Tpo -c -o ../../lib/sws-strparse.obj `if test -f '../../lib/strparse.c'; then $(CYGPATH_W) '../../lib/strparse.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strparse.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/sws-strparse.Tpo ../../lib/$(DEPDIR)/sws-strparse.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strparse.c' object='../../lib/sws-strparse.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sws_CFLAGS) $(CFLAGS) -c -o ../../lib/sws-strparse.obj `if test -f '../../lib/strparse.c'; then $(CYGPATH_W) '../../lib/strparse.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strparse.c'; fi`
+
+../../lib/sws-strequal.o: ../../lib/strequal.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sws_CFLAGS) $(CFLAGS) -MT ../../lib/sws-strequal.o -MD -MP -MF ../../lib/$(DEPDIR)/sws-strequal.Tpo -c -o ../../lib/sws-strequal.o `test -f '../../lib/strequal.c' || echo '$(srcdir)/'`../../lib/strequal.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/sws-strequal.Tpo ../../lib/$(DEPDIR)/sws-strequal.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strequal.c' object='../../lib/sws-strequal.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sws_CFLAGS) $(CFLAGS) -c -o ../../lib/sws-strequal.o `test -f '../../lib/strequal.c' || echo '$(srcdir)/'`../../lib/strequal.c
+
+../../lib/sws-strequal.obj: ../../lib/strequal.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sws_CFLAGS) $(CFLAGS) -MT ../../lib/sws-strequal.obj -MD -MP -MF ../../lib/$(DEPDIR)/sws-strequal.Tpo -c -o ../../lib/sws-strequal.obj `if test -f '../../lib/strequal.c'; then $(CYGPATH_W) '../../lib/strequal.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strequal.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/sws-strequal.Tpo ../../lib/$(DEPDIR)/sws-strequal.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strequal.c' object='../../lib/sws-strequal.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sws_CFLAGS) $(CFLAGS) -c -o ../../lib/sws-strequal.obj `if test -f '../../lib/strequal.c'; then $(CYGPATH_W) '../../lib/strequal.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strequal.c'; fi`
 
 ../../lib/sws-warnless.o: ../../lib/warnless.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sws_CFLAGS) $(CFLAGS) -MT ../../lib/sws-warnless.o -MD -MP -MF ../../lib/$(DEPDIR)/sws-warnless.Tpo -c -o ../../lib/sws-warnless.o `test -f '../../lib/warnless.c' || echo '$(srcdir)/'`../../lib/warnless.c
@@ -2735,19 +2787,19 @@ sws-util.obj: util.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sws_CFLAGS) $(CFLAGS) -c -o sws-util.obj `if test -f 'util.c'; then $(CYGPATH_W) 'util.c'; else $(CYGPATH_W) '$(srcdir)/util.c'; fi`
 
-sws-sws.o: sws.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sws_CFLAGS) $(CFLAGS) -MT sws-sws.o -MD -MP -MF $(DEPDIR)/sws-sws.Tpo -c -o sws-sws.o `test -f 'sws.c' || echo '$(srcdir)/'`sws.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sws-sws.Tpo $(DEPDIR)/sws-sws.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='sws.c' object='sws-sws.o' libtool=no @AMDEPBACKSLASH@
+../../lib/sws-strerror.o: ../../lib/strerror.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sws_CFLAGS) $(CFLAGS) -MT ../../lib/sws-strerror.o -MD -MP -MF ../../lib/$(DEPDIR)/sws-strerror.Tpo -c -o ../../lib/sws-strerror.o `test -f '../../lib/strerror.c' || echo '$(srcdir)/'`../../lib/strerror.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/sws-strerror.Tpo ../../lib/$(DEPDIR)/sws-strerror.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strerror.c' object='../../lib/sws-strerror.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sws_CFLAGS) $(CFLAGS) -c -o sws-sws.o `test -f 'sws.c' || echo '$(srcdir)/'`sws.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sws_CFLAGS) $(CFLAGS) -c -o ../../lib/sws-strerror.o `test -f '../../lib/strerror.c' || echo '$(srcdir)/'`../../lib/strerror.c
 
-sws-sws.obj: sws.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sws_CFLAGS) $(CFLAGS) -MT sws-sws.obj -MD -MP -MF $(DEPDIR)/sws-sws.Tpo -c -o sws-sws.obj `if test -f 'sws.c'; then $(CYGPATH_W) 'sws.c'; else $(CYGPATH_W) '$(srcdir)/sws.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sws-sws.Tpo $(DEPDIR)/sws-sws.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='sws.c' object='sws-sws.obj' libtool=no @AMDEPBACKSLASH@
+../../lib/sws-strerror.obj: ../../lib/strerror.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sws_CFLAGS) $(CFLAGS) -MT ../../lib/sws-strerror.obj -MD -MP -MF ../../lib/$(DEPDIR)/sws-strerror.Tpo -c -o ../../lib/sws-strerror.obj `if test -f '../../lib/strerror.c'; then $(CYGPATH_W) '../../lib/strerror.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strerror.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/sws-strerror.Tpo ../../lib/$(DEPDIR)/sws-strerror.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strerror.c' object='../../lib/sws-strerror.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sws_CFLAGS) $(CFLAGS) -c -o sws-sws.obj `if test -f 'sws.c'; then $(CYGPATH_W) 'sws.c'; else $(CYGPATH_W) '$(srcdir)/sws.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sws_CFLAGS) $(CFLAGS) -c -o ../../lib/sws-strerror.obj `if test -f '../../lib/strerror.c'; then $(CYGPATH_W) '../../lib/strerror.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strerror.c'; fi`
 
 ../../lib/sws-inet_pton.o: ../../lib/inet_pton.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sws_CFLAGS) $(CFLAGS) -MT ../../lib/sws-inet_pton.o -MD -MP -MF ../../lib/$(DEPDIR)/sws-inet_pton.Tpo -c -o ../../lib/sws-inet_pton.o `test -f '../../lib/inet_pton.c' || echo '$(srcdir)/'`../../lib/inet_pton.c
@@ -2762,6 +2814,20 @@ sws-sws.obj: sws.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/inet_pton.c' object='../../lib/sws-inet_pton.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sws_CFLAGS) $(CFLAGS) -c -o ../../lib/sws-inet_pton.obj `if test -f '../../lib/inet_pton.c'; then $(CYGPATH_W) '../../lib/inet_pton.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/inet_pton.c'; fi`
+
+sws-sws.o: sws.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sws_CFLAGS) $(CFLAGS) -MT sws-sws.o -MD -MP -MF $(DEPDIR)/sws-sws.Tpo -c -o sws-sws.o `test -f 'sws.c' || echo '$(srcdir)/'`sws.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sws-sws.Tpo $(DEPDIR)/sws-sws.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='sws.c' object='sws-sws.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sws_CFLAGS) $(CFLAGS) -c -o sws-sws.o `test -f 'sws.c' || echo '$(srcdir)/'`sws.c
+
+sws-sws.obj: sws.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sws_CFLAGS) $(CFLAGS) -MT sws-sws.obj -MD -MP -MF $(DEPDIR)/sws-sws.Tpo -c -o sws-sws.obj `if test -f 'sws.c'; then $(CYGPATH_W) 'sws.c'; else $(CYGPATH_W) '$(srcdir)/sws.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sws-sws.Tpo $(DEPDIR)/sws-sws.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='sws.c' object='sws-sws.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sws_CFLAGS) $(CFLAGS) -c -o sws-sws.obj `if test -f 'sws.c'; then $(CYGPATH_W) 'sws.c'; else $(CYGPATH_W) '$(srcdir)/sws.c'; fi`
 
 ../../lib/tftpd-mprintf.o: ../../lib/mprintf.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(tftpd_CFLAGS) $(CFLAGS) -MT ../../lib/tftpd-mprintf.o -MD -MP -MF ../../lib/$(DEPDIR)/tftpd-mprintf.Tpo -c -o ../../lib/tftpd-mprintf.o `test -f '../../lib/mprintf.c' || echo '$(srcdir)/'`../../lib/mprintf.c
@@ -2804,6 +2870,34 @@ sws-sws.obj: sws.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strtoofft.c' object='../../lib/tftpd-strtoofft.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(tftpd_CFLAGS) $(CFLAGS) -c -o ../../lib/tftpd-strtoofft.obj `if test -f '../../lib/strtoofft.c'; then $(CYGPATH_W) '../../lib/strtoofft.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strtoofft.c'; fi`
+
+../../lib/tftpd-strparse.o: ../../lib/strparse.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(tftpd_CFLAGS) $(CFLAGS) -MT ../../lib/tftpd-strparse.o -MD -MP -MF ../../lib/$(DEPDIR)/tftpd-strparse.Tpo -c -o ../../lib/tftpd-strparse.o `test -f '../../lib/strparse.c' || echo '$(srcdir)/'`../../lib/strparse.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/tftpd-strparse.Tpo ../../lib/$(DEPDIR)/tftpd-strparse.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strparse.c' object='../../lib/tftpd-strparse.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(tftpd_CFLAGS) $(CFLAGS) -c -o ../../lib/tftpd-strparse.o `test -f '../../lib/strparse.c' || echo '$(srcdir)/'`../../lib/strparse.c
+
+../../lib/tftpd-strparse.obj: ../../lib/strparse.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(tftpd_CFLAGS) $(CFLAGS) -MT ../../lib/tftpd-strparse.obj -MD -MP -MF ../../lib/$(DEPDIR)/tftpd-strparse.Tpo -c -o ../../lib/tftpd-strparse.obj `if test -f '../../lib/strparse.c'; then $(CYGPATH_W) '../../lib/strparse.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strparse.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/tftpd-strparse.Tpo ../../lib/$(DEPDIR)/tftpd-strparse.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strparse.c' object='../../lib/tftpd-strparse.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(tftpd_CFLAGS) $(CFLAGS) -c -o ../../lib/tftpd-strparse.obj `if test -f '../../lib/strparse.c'; then $(CYGPATH_W) '../../lib/strparse.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strparse.c'; fi`
+
+../../lib/tftpd-strequal.o: ../../lib/strequal.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(tftpd_CFLAGS) $(CFLAGS) -MT ../../lib/tftpd-strequal.o -MD -MP -MF ../../lib/$(DEPDIR)/tftpd-strequal.Tpo -c -o ../../lib/tftpd-strequal.o `test -f '../../lib/strequal.c' || echo '$(srcdir)/'`../../lib/strequal.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/tftpd-strequal.Tpo ../../lib/$(DEPDIR)/tftpd-strequal.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strequal.c' object='../../lib/tftpd-strequal.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(tftpd_CFLAGS) $(CFLAGS) -c -o ../../lib/tftpd-strequal.o `test -f '../../lib/strequal.c' || echo '$(srcdir)/'`../../lib/strequal.c
+
+../../lib/tftpd-strequal.obj: ../../lib/strequal.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(tftpd_CFLAGS) $(CFLAGS) -MT ../../lib/tftpd-strequal.obj -MD -MP -MF ../../lib/$(DEPDIR)/tftpd-strequal.Tpo -c -o ../../lib/tftpd-strequal.obj `if test -f '../../lib/strequal.c'; then $(CYGPATH_W) '../../lib/strequal.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strequal.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/tftpd-strequal.Tpo ../../lib/$(DEPDIR)/tftpd-strequal.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strequal.c' object='../../lib/tftpd-strequal.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(tftpd_CFLAGS) $(CFLAGS) -c -o ../../lib/tftpd-strequal.obj `if test -f '../../lib/strequal.c'; then $(CYGPATH_W) '../../lib/strequal.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strequal.c'; fi`
 
 ../../lib/tftpd-warnless.o: ../../lib/warnless.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(tftpd_CFLAGS) $(CFLAGS) -MT ../../lib/tftpd-warnless.o -MD -MP -MF ../../lib/$(DEPDIR)/tftpd-warnless.Tpo -c -o ../../lib/tftpd-warnless.o `test -f '../../lib/warnless.c' || echo '$(srcdir)/'`../../lib/warnless.c
@@ -2959,6 +3053,20 @@ tftpd-util.obj: util.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(tftpd_CFLAGS) $(CFLAGS) -c -o tftpd-util.obj `if test -f 'util.c'; then $(CYGPATH_W) 'util.c'; else $(CYGPATH_W) '$(srcdir)/util.c'; fi`
 
+../../lib/tftpd-strerror.o: ../../lib/strerror.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(tftpd_CFLAGS) $(CFLAGS) -MT ../../lib/tftpd-strerror.o -MD -MP -MF ../../lib/$(DEPDIR)/tftpd-strerror.Tpo -c -o ../../lib/tftpd-strerror.o `test -f '../../lib/strerror.c' || echo '$(srcdir)/'`../../lib/strerror.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/tftpd-strerror.Tpo ../../lib/$(DEPDIR)/tftpd-strerror.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strerror.c' object='../../lib/tftpd-strerror.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(tftpd_CFLAGS) $(CFLAGS) -c -o ../../lib/tftpd-strerror.o `test -f '../../lib/strerror.c' || echo '$(srcdir)/'`../../lib/strerror.c
+
+../../lib/tftpd-strerror.obj: ../../lib/strerror.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(tftpd_CFLAGS) $(CFLAGS) -MT ../../lib/tftpd-strerror.obj -MD -MP -MF ../../lib/$(DEPDIR)/tftpd-strerror.Tpo -c -o ../../lib/tftpd-strerror.obj `if test -f '../../lib/strerror.c'; then $(CYGPATH_W) '../../lib/strerror.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strerror.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/tftpd-strerror.Tpo ../../lib/$(DEPDIR)/tftpd-strerror.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/strerror.c' object='../../lib/tftpd-strerror.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(tftpd_CFLAGS) $(CFLAGS) -c -o ../../lib/tftpd-strerror.obj `if test -f '../../lib/strerror.c'; then $(CYGPATH_W) '../../lib/strerror.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/strerror.c'; fi`
+
 tftpd-tftpd.o: tftpd.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(tftpd_CFLAGS) $(CFLAGS) -MT tftpd-tftpd.o -MD -MP -MF $(DEPDIR)/tftpd-tftpd.Tpo -c -o tftpd-tftpd.o `test -f 'tftpd.c' || echo '$(srcdir)/'`tftpd.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/tftpd-tftpd.Tpo $(DEPDIR)/tftpd-tftpd.Po
@@ -3106,28 +3214,18 @@ clean-am: clean-generic clean-libtool clean-noinstPROGRAMS \
 	mostlyclean-am
 
 distclean: distclean-am
-		-rm -f ../../lib/$(DEPDIR)/getpart-base64.Po
-	-rm -f ../../lib/$(DEPDIR)/getpart-curl_get_line.Po
-	-rm -f ../../lib/$(DEPDIR)/getpart-curl_multibyte.Po
-	-rm -f ../../lib/$(DEPDIR)/getpart-dynbuf.Po
-	-rm -f ../../lib/$(DEPDIR)/getpart-memdebug.Po
-	-rm -f ../../lib/$(DEPDIR)/getpart-mprintf.Po
-	-rm -f ../../lib/$(DEPDIR)/getpart-nonblock.Po
-	-rm -f ../../lib/$(DEPDIR)/getpart-strcase.Po
-	-rm -f ../../lib/$(DEPDIR)/getpart-strdup.Po
-	-rm -f ../../lib/$(DEPDIR)/getpart-strtoofft.Po
-	-rm -f ../../lib/$(DEPDIR)/getpart-timediff.Po
-	-rm -f ../../lib/$(DEPDIR)/getpart-warnless.Po
-	-rm -f ../../lib/$(DEPDIR)/mqttd-base64.Po
+		-rm -f ../../lib/$(DEPDIR)/mqttd-base64.Po
 	-rm -f ../../lib/$(DEPDIR)/mqttd-curl_get_line.Po
 	-rm -f ../../lib/$(DEPDIR)/mqttd-curl_multibyte.Po
 	-rm -f ../../lib/$(DEPDIR)/mqttd-dynbuf.Po
-	-rm -f ../../lib/$(DEPDIR)/mqttd-inet_pton.Po
 	-rm -f ../../lib/$(DEPDIR)/mqttd-memdebug.Po
 	-rm -f ../../lib/$(DEPDIR)/mqttd-mprintf.Po
 	-rm -f ../../lib/$(DEPDIR)/mqttd-nonblock.Po
 	-rm -f ../../lib/$(DEPDIR)/mqttd-strcase.Po
 	-rm -f ../../lib/$(DEPDIR)/mqttd-strdup.Po
+	-rm -f ../../lib/$(DEPDIR)/mqttd-strequal.Po
+	-rm -f ../../lib/$(DEPDIR)/mqttd-strerror.Po
+	-rm -f ../../lib/$(DEPDIR)/mqttd-strparse.Po
 	-rm -f ../../lib/$(DEPDIR)/mqttd-strtoofft.Po
 	-rm -f ../../lib/$(DEPDIR)/mqttd-timediff.Po
 	-rm -f ../../lib/$(DEPDIR)/mqttd-warnless.Po
@@ -3140,6 +3238,9 @@ distclean: distclean-am
 	-rm -f ../../lib/$(DEPDIR)/resolve-nonblock.Po
 	-rm -f ../../lib/$(DEPDIR)/resolve-strcase.Po
 	-rm -f ../../lib/$(DEPDIR)/resolve-strdup.Po
+	-rm -f ../../lib/$(DEPDIR)/resolve-strequal.Po
+	-rm -f ../../lib/$(DEPDIR)/resolve-strerror.Po
+	-rm -f ../../lib/$(DEPDIR)/resolve-strparse.Po
 	-rm -f ../../lib/$(DEPDIR)/resolve-strtoofft.Po
 	-rm -f ../../lib/$(DEPDIR)/resolve-timediff.Po
 	-rm -f ../../lib/$(DEPDIR)/resolve-warnless.Po
@@ -3152,6 +3253,9 @@ distclean: distclean-am
 	-rm -f ../../lib/$(DEPDIR)/rtspd-nonblock.Po
 	-rm -f ../../lib/$(DEPDIR)/rtspd-strcase.Po
 	-rm -f ../../lib/$(DEPDIR)/rtspd-strdup.Po
+	-rm -f ../../lib/$(DEPDIR)/rtspd-strequal.Po
+	-rm -f ../../lib/$(DEPDIR)/rtspd-strerror.Po
+	-rm -f ../../lib/$(DEPDIR)/rtspd-strparse.Po
 	-rm -f ../../lib/$(DEPDIR)/rtspd-strtoofft.Po
 	-rm -f ../../lib/$(DEPDIR)/rtspd-timediff.Po
 	-rm -f ../../lib/$(DEPDIR)/rtspd-warnless.Po
@@ -3165,6 +3269,9 @@ distclean: distclean-am
 	-rm -f ../../lib/$(DEPDIR)/sockfilt-nonblock.Po
 	-rm -f ../../lib/$(DEPDIR)/sockfilt-strcase.Po
 	-rm -f ../../lib/$(DEPDIR)/sockfilt-strdup.Po
+	-rm -f ../../lib/$(DEPDIR)/sockfilt-strequal.Po
+	-rm -f ../../lib/$(DEPDIR)/sockfilt-strerror.Po
+	-rm -f ../../lib/$(DEPDIR)/sockfilt-strparse.Po
 	-rm -f ../../lib/$(DEPDIR)/sockfilt-strtoofft.Po
 	-rm -f ../../lib/$(DEPDIR)/sockfilt-timediff.Po
 	-rm -f ../../lib/$(DEPDIR)/sockfilt-warnless.Po
@@ -3178,6 +3285,9 @@ distclean: distclean-am
 	-rm -f ../../lib/$(DEPDIR)/socksd-nonblock.Po
 	-rm -f ../../lib/$(DEPDIR)/socksd-strcase.Po
 	-rm -f ../../lib/$(DEPDIR)/socksd-strdup.Po
+	-rm -f ../../lib/$(DEPDIR)/socksd-strequal.Po
+	-rm -f ../../lib/$(DEPDIR)/socksd-strerror.Po
+	-rm -f ../../lib/$(DEPDIR)/socksd-strparse.Po
 	-rm -f ../../lib/$(DEPDIR)/socksd-strtoofft.Po
 	-rm -f ../../lib/$(DEPDIR)/socksd-timediff.Po
 	-rm -f ../../lib/$(DEPDIR)/socksd-warnless.Po
@@ -3191,6 +3301,9 @@ distclean: distclean-am
 	-rm -f ../../lib/$(DEPDIR)/sws-nonblock.Po
 	-rm -f ../../lib/$(DEPDIR)/sws-strcase.Po
 	-rm -f ../../lib/$(DEPDIR)/sws-strdup.Po
+	-rm -f ../../lib/$(DEPDIR)/sws-strequal.Po
+	-rm -f ../../lib/$(DEPDIR)/sws-strerror.Po
+	-rm -f ../../lib/$(DEPDIR)/sws-strparse.Po
 	-rm -f ../../lib/$(DEPDIR)/sws-strtoofft.Po
 	-rm -f ../../lib/$(DEPDIR)/sws-timediff.Po
 	-rm -f ../../lib/$(DEPDIR)/sws-warnless.Po
@@ -3203,12 +3316,13 @@ distclean: distclean-am
 	-rm -f ../../lib/$(DEPDIR)/tftpd-nonblock.Po
 	-rm -f ../../lib/$(DEPDIR)/tftpd-strcase.Po
 	-rm -f ../../lib/$(DEPDIR)/tftpd-strdup.Po
+	-rm -f ../../lib/$(DEPDIR)/tftpd-strequal.Po
+	-rm -f ../../lib/$(DEPDIR)/tftpd-strerror.Po
+	-rm -f ../../lib/$(DEPDIR)/tftpd-strparse.Po
 	-rm -f ../../lib/$(DEPDIR)/tftpd-strtoofft.Po
 	-rm -f ../../lib/$(DEPDIR)/tftpd-timediff.Po
 	-rm -f ../../lib/$(DEPDIR)/tftpd-warnless.Po
 	-rm -f ./$(DEPDIR)/disabled.Po
-	-rm -f ./$(DEPDIR)/getpart-getpart.Po
-	-rm -f ./$(DEPDIR)/getpart-testpart.Po
 	-rm -f ./$(DEPDIR)/mqttd-getpart.Po
 	-rm -f ./$(DEPDIR)/mqttd-mqttd.Po
 	-rm -f ./$(DEPDIR)/mqttd-util.Po
@@ -3275,28 +3389,18 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-		-rm -f ../../lib/$(DEPDIR)/getpart-base64.Po
-	-rm -f ../../lib/$(DEPDIR)/getpart-curl_get_line.Po
-	-rm -f ../../lib/$(DEPDIR)/getpart-curl_multibyte.Po
-	-rm -f ../../lib/$(DEPDIR)/getpart-dynbuf.Po
-	-rm -f ../../lib/$(DEPDIR)/getpart-memdebug.Po
-	-rm -f ../../lib/$(DEPDIR)/getpart-mprintf.Po
-	-rm -f ../../lib/$(DEPDIR)/getpart-nonblock.Po
-	-rm -f ../../lib/$(DEPDIR)/getpart-strcase.Po
-	-rm -f ../../lib/$(DEPDIR)/getpart-strdup.Po
-	-rm -f ../../lib/$(DEPDIR)/getpart-strtoofft.Po
-	-rm -f ../../lib/$(DEPDIR)/getpart-timediff.Po
-	-rm -f ../../lib/$(DEPDIR)/getpart-warnless.Po
-	-rm -f ../../lib/$(DEPDIR)/mqttd-base64.Po
+		-rm -f ../../lib/$(DEPDIR)/mqttd-base64.Po
 	-rm -f ../../lib/$(DEPDIR)/mqttd-curl_get_line.Po
 	-rm -f ../../lib/$(DEPDIR)/mqttd-curl_multibyte.Po
 	-rm -f ../../lib/$(DEPDIR)/mqttd-dynbuf.Po
-	-rm -f ../../lib/$(DEPDIR)/mqttd-inet_pton.Po
 	-rm -f ../../lib/$(DEPDIR)/mqttd-memdebug.Po
 	-rm -f ../../lib/$(DEPDIR)/mqttd-mprintf.Po
 	-rm -f ../../lib/$(DEPDIR)/mqttd-nonblock.Po
 	-rm -f ../../lib/$(DEPDIR)/mqttd-strcase.Po
 	-rm -f ../../lib/$(DEPDIR)/mqttd-strdup.Po
+	-rm -f ../../lib/$(DEPDIR)/mqttd-strequal.Po
+	-rm -f ../../lib/$(DEPDIR)/mqttd-strerror.Po
+	-rm -f ../../lib/$(DEPDIR)/mqttd-strparse.Po
 	-rm -f ../../lib/$(DEPDIR)/mqttd-strtoofft.Po
 	-rm -f ../../lib/$(DEPDIR)/mqttd-timediff.Po
 	-rm -f ../../lib/$(DEPDIR)/mqttd-warnless.Po
@@ -3309,6 +3413,9 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../../lib/$(DEPDIR)/resolve-nonblock.Po
 	-rm -f ../../lib/$(DEPDIR)/resolve-strcase.Po
 	-rm -f ../../lib/$(DEPDIR)/resolve-strdup.Po
+	-rm -f ../../lib/$(DEPDIR)/resolve-strequal.Po
+	-rm -f ../../lib/$(DEPDIR)/resolve-strerror.Po
+	-rm -f ../../lib/$(DEPDIR)/resolve-strparse.Po
 	-rm -f ../../lib/$(DEPDIR)/resolve-strtoofft.Po
 	-rm -f ../../lib/$(DEPDIR)/resolve-timediff.Po
 	-rm -f ../../lib/$(DEPDIR)/resolve-warnless.Po
@@ -3321,6 +3428,9 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../../lib/$(DEPDIR)/rtspd-nonblock.Po
 	-rm -f ../../lib/$(DEPDIR)/rtspd-strcase.Po
 	-rm -f ../../lib/$(DEPDIR)/rtspd-strdup.Po
+	-rm -f ../../lib/$(DEPDIR)/rtspd-strequal.Po
+	-rm -f ../../lib/$(DEPDIR)/rtspd-strerror.Po
+	-rm -f ../../lib/$(DEPDIR)/rtspd-strparse.Po
 	-rm -f ../../lib/$(DEPDIR)/rtspd-strtoofft.Po
 	-rm -f ../../lib/$(DEPDIR)/rtspd-timediff.Po
 	-rm -f ../../lib/$(DEPDIR)/rtspd-warnless.Po
@@ -3334,6 +3444,9 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../../lib/$(DEPDIR)/sockfilt-nonblock.Po
 	-rm -f ../../lib/$(DEPDIR)/sockfilt-strcase.Po
 	-rm -f ../../lib/$(DEPDIR)/sockfilt-strdup.Po
+	-rm -f ../../lib/$(DEPDIR)/sockfilt-strequal.Po
+	-rm -f ../../lib/$(DEPDIR)/sockfilt-strerror.Po
+	-rm -f ../../lib/$(DEPDIR)/sockfilt-strparse.Po
 	-rm -f ../../lib/$(DEPDIR)/sockfilt-strtoofft.Po
 	-rm -f ../../lib/$(DEPDIR)/sockfilt-timediff.Po
 	-rm -f ../../lib/$(DEPDIR)/sockfilt-warnless.Po
@@ -3347,6 +3460,9 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../../lib/$(DEPDIR)/socksd-nonblock.Po
 	-rm -f ../../lib/$(DEPDIR)/socksd-strcase.Po
 	-rm -f ../../lib/$(DEPDIR)/socksd-strdup.Po
+	-rm -f ../../lib/$(DEPDIR)/socksd-strequal.Po
+	-rm -f ../../lib/$(DEPDIR)/socksd-strerror.Po
+	-rm -f ../../lib/$(DEPDIR)/socksd-strparse.Po
 	-rm -f ../../lib/$(DEPDIR)/socksd-strtoofft.Po
 	-rm -f ../../lib/$(DEPDIR)/socksd-timediff.Po
 	-rm -f ../../lib/$(DEPDIR)/socksd-warnless.Po
@@ -3360,6 +3476,9 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../../lib/$(DEPDIR)/sws-nonblock.Po
 	-rm -f ../../lib/$(DEPDIR)/sws-strcase.Po
 	-rm -f ../../lib/$(DEPDIR)/sws-strdup.Po
+	-rm -f ../../lib/$(DEPDIR)/sws-strequal.Po
+	-rm -f ../../lib/$(DEPDIR)/sws-strerror.Po
+	-rm -f ../../lib/$(DEPDIR)/sws-strparse.Po
 	-rm -f ../../lib/$(DEPDIR)/sws-strtoofft.Po
 	-rm -f ../../lib/$(DEPDIR)/sws-timediff.Po
 	-rm -f ../../lib/$(DEPDIR)/sws-warnless.Po
@@ -3372,12 +3491,13 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../../lib/$(DEPDIR)/tftpd-nonblock.Po
 	-rm -f ../../lib/$(DEPDIR)/tftpd-strcase.Po
 	-rm -f ../../lib/$(DEPDIR)/tftpd-strdup.Po
+	-rm -f ../../lib/$(DEPDIR)/tftpd-strequal.Po
+	-rm -f ../../lib/$(DEPDIR)/tftpd-strerror.Po
+	-rm -f ../../lib/$(DEPDIR)/tftpd-strparse.Po
 	-rm -f ../../lib/$(DEPDIR)/tftpd-strtoofft.Po
 	-rm -f ../../lib/$(DEPDIR)/tftpd-timediff.Po
 	-rm -f ../../lib/$(DEPDIR)/tftpd-warnless.Po
 	-rm -f ./$(DEPDIR)/disabled.Po
-	-rm -f ./$(DEPDIR)/getpart-getpart.Po
-	-rm -f ./$(DEPDIR)/getpart-testpart.Po
 	-rm -f ./$(DEPDIR)/mqttd-getpart.Po
 	-rm -f ./$(DEPDIR)/mqttd-mqttd.Po
 	-rm -f ./$(DEPDIR)/mqttd-util.Po

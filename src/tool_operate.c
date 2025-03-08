@@ -50,12 +50,6 @@
 #endif
 
 #ifdef HAVE_UV_H
-/* Hack for Unity mode */
-#ifdef HEADER_CURL_MEMDEBUG_H
-#undef HEADER_CURL_MEMDEBUG_H
-#undef freeaddrinfo
-#undef getaddrinfo
-#endif
 /* this is for libuv-enabled debug builds only */
 #include <uv.h>
 #endif
@@ -281,7 +275,7 @@ static curl_off_t VmsSpecialSize(const char *name,
 }
 #endif /* __VMS */
 
-#define BUFFER_SIZE (100*1024)
+#define BUFFER_SIZE 102400L
 
 struct per_transfer *transfers; /* first node */
 static struct per_transfer *transfersl; /* last node */
@@ -653,8 +647,9 @@ static CURLcode post_per_transfer(struct GlobalConfig *global,
       }
       warnf(config->global, "Problem %s. "
             "Will retry in %ld seconds. "
-            "%ld retries left.",
-            m[retry], sleeptime/1000L, per->retry_remaining);
+            "%ld %s left.",
+            m[retry], sleeptime/1000L, per->retry_remaining,
+            (per->retry_remaining > 1 ? "retries" : "retry"));
 
       per->retry_remaining--;
       if(!config->retry_delay) {
@@ -670,7 +665,8 @@ static CURLcode post_per_transfer(struct GlobalConfig *global,
               outs->bytes);
         fflush(outs->stream);
         /* truncate file at the position where we started appending */
-#if defined(HAVE_FTRUNCATE) && !defined(__DJGPP__) && !defined(__AMIGA__)
+#if defined(HAVE_FTRUNCATE) && !defined(__DJGPP__) && !defined(__AMIGA__) && \
+  !defined(__MINGW32CE__)
         if(ftruncate(fileno(outs->stream), outs->init)) {
           /* when truncate fails, we cannot just append as then we will
              create something strange, bail out */
@@ -945,7 +941,7 @@ static CURLcode config2setopts(struct GlobalConfig *global,
         /* use a smaller sized buffer for better sleeps */
         my_setopt(curl, CURLOPT_BUFFERSIZE, (long)config->recvpersecond);
       else
-        my_setopt(curl, CURLOPT_BUFFERSIZE, (long)BUFFER_SIZE);
+        my_setopt(curl, CURLOPT_BUFFERSIZE, BUFFER_SIZE);
   }
 
   my_setopt_str(curl, CURLOPT_URL, per->url);
@@ -1004,11 +1000,11 @@ static CURLcode config2setopts(struct GlobalConfig *global,
   my_setopt(curl, CURLOPT_APPEND, config->ftp_append ? 1L : 0L);
 
   if(config->netrc_opt)
-    my_setopt_enum(curl, CURLOPT_NETRC, (long)CURL_NETRC_OPTIONAL);
+    my_setopt_enum(curl, CURLOPT_NETRC, CURL_NETRC_OPTIONAL);
   else if(config->netrc || config->netrc_file)
-    my_setopt_enum(curl, CURLOPT_NETRC, (long)CURL_NETRC_REQUIRED);
+    my_setopt_enum(curl, CURLOPT_NETRC, CURL_NETRC_REQUIRED);
   else
-    my_setopt_enum(curl, CURLOPT_NETRC, (long)CURL_NETRC_IGNORED);
+    my_setopt_enum(curl, CURLOPT_NETRC, CURL_NETRC_IGNORED);
 
   if(config->netrc_file)
     my_setopt_str(curl, CURLOPT_NETRC_FILE, config->netrc_file);
@@ -1063,7 +1059,7 @@ static CURLcode config2setopts(struct GlobalConfig *global,
 
   /* new in libcurl 7.10.6 (default is Basic) */
   if(config->authtype)
-    my_setopt_bitmask(curl, CURLOPT_HTTPAUTH, (long)config->authtype);
+    my_setopt_bitmask(curl, CURLOPT_HTTPAUTH, config->authtype);
 
   my_setopt_slist(curl, CURLOPT_HTTPHEADER, config->headers);
 
@@ -1093,8 +1089,6 @@ static CURLcode config2setopts(struct GlobalConfig *global,
 
     if(config->httpversion)
       my_setopt_enum(curl, CURLOPT_HTTP_VERSION, config->httpversion);
-    else if(feature_http2)
-      my_setopt_enum(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2TLS);
 
     /* curl 7.19.1 (the 301 version existed in 7.18.2),
        303 was added in 7.26.0 */
@@ -1163,16 +1157,24 @@ static CURLcode config2setopts(struct GlobalConfig *global,
       my_setopt(curl, CURLOPT_SSH_COMPRESSION, 1L);
 
     if(!config->insecure_ok) {
-      char *known = findfile(".ssh/known_hosts", FALSE);
+      char *known = global->knownhosts;
+
+      if(!known)
+        known = findfile(".ssh/known_hosts", FALSE);
       if(known) {
         /* new in curl 7.19.6 */
         result = res_setopt_str(curl, CURLOPT_SSH_KNOWNHOSTS, known);
-        curl_free(known);
-        if(result == CURLE_UNKNOWN_OPTION)
-          /* libssh2 version older than 1.1.1 */
-          result = CURLE_OK;
-        if(result)
+        if(result) {
+          global->knownhosts = NULL;
+          curl_free(known);
           return result;
+        }
+        /* store it in global to avoid repeated checks */
+        global->knownhosts = known;
+      }
+      else if(!config->hostpubmd5 && !config->hostpubsha256) {
+        errorf(global, "Couldn't find a known_hosts file");
+        return CURLE_FAILED_INIT;
       }
       else
         warnf(global, "Couldn't find a known_hosts file");
@@ -1396,7 +1398,7 @@ static CURLcode config2setopts(struct GlobalConfig *global,
   my_setopt(curl, CURLOPT_COOKIESESSION, config->cookiesession ?
             1L : 0L);
 
-  my_setopt_enum(curl, CURLOPT_TIMECONDITION, (long)config->timecond);
+  my_setopt_enum(curl, CURLOPT_TIMECONDITION, config->timecond);
   my_setopt(curl, CURLOPT_TIMEVALUE_LARGE, config->condtime);
   my_setopt_str(curl, CURLOPT_CUSTOMREQUEST, config->customrequest);
   customrequest_helper(config, config->httpreq, config->customrequest);
@@ -1510,15 +1512,15 @@ static CURLcode config2setopts(struct GlobalConfig *global,
 
   /* new in curl 7.15.5 */
   if(config->ftp_ssl_reqd)
-    my_setopt_enum(curl, CURLOPT_USE_SSL, (long)CURLUSESSL_ALL);
+    my_setopt_enum(curl, CURLOPT_USE_SSL, CURLUSESSL_ALL);
 
   /* new in curl 7.11.0 */
   else if(config->ftp_ssl)
-    my_setopt_enum(curl, CURLOPT_USE_SSL, (long)CURLUSESSL_TRY);
+    my_setopt_enum(curl, CURLOPT_USE_SSL, CURLUSESSL_TRY);
 
   /* new in curl 7.16.0 */
   else if(config->ftp_ssl_control)
-    my_setopt_enum(curl, CURLOPT_USE_SSL, (long)CURLUSESSL_CONTROL);
+    my_setopt_enum(curl, CURLOPT_USE_SSL, CURLUSESSL_CONTROL);
 
   /* new in curl 7.16.1 */
   if(config->ftp_ssl_ccc)
@@ -1748,6 +1750,9 @@ static CURLcode config2setopts(struct GlobalConfig *global,
     }
 #endif
   }
+  /* new in 8.13.0 */
+  if(config->upload_flags)
+    my_setopt(curl, CURLOPT_UPLOAD_FLAGS, (long)config->upload_flags);
   return result;
 }
 
@@ -1888,7 +1893,7 @@ static CURLcode single_transfer(struct GlobalConfig *global,
     }
 
     if(!state->urlnum) {
-      if(!config->globoff) {
+      if(!config->globoff && !(urlnode->flags & GETOUT_NOGLOB)) {
         /* Unless explicitly shut off, we expand '{...}' and '[...]'
            expressions and return total number of URLs in pattern set */
         result = glob_url(&state->urls, urlnode->url, &state->urlnum,
@@ -2588,6 +2593,10 @@ static int cb_socket(CURL *easy, curl_socket_t s, int action,
   int events = 0;
   (void)easy;
 
+#if DEBUG_UV
+  fprintf(tool_stderr, "parallel_event: cb_socket, fd=%d, action=%x, p=%p\n",
+          (int)s, action, socketp);
+#endif
   switch(action) {
   case CURL_POLL_IN:
   case CURL_POLL_OUT:
@@ -2677,12 +2686,26 @@ static CURLcode parallel_event(struct parastate *s)
     }
   }
 
+  result = s->result;
+
+  /* Make sure to return some kind of error if there was a multi problem */
+  if(s->mcode) {
+    result = (s->mcode == CURLM_OUT_OF_MEMORY) ? CURLE_OUT_OF_MEMORY :
+      /* The other multi errors should never happen, so return
+         something suitably generic */
+      CURLE_BAD_FUNCTION_ARGUMENT;
+  }
+
+  /* We need to cleanup the multi here, since the uv context lives on the
+   * stack and will be gone. multi_cleanup can triggere events! */
+  curl_multi_cleanup(s->multi);
+
 #if DEBUG_UV
   fprintf(tool_stderr, "DONE parallel_event -> %d, mcode=%d, %d running, "
           "%d more\n",
-          s->result, s->mcode, uv.s->still_running, s->more_transfers);
+          result, s->mcode, uv.s->still_running, s->more_transfers);
 #endif
-  return s->result;
+  return result;
 }
 
 #endif
@@ -2786,7 +2809,7 @@ static CURLcode parallel_transfers(struct GlobalConfig *global,
 #ifdef DEBUGBUILD
   if(global->test_event_based)
 #ifdef USE_LIBUV
-    result = parallel_event(s);
+    return parallel_event(s);
 #else
     errorf(global, "Testing --parallel event-based requires libuv");
 #endif
@@ -3011,7 +3034,8 @@ static CURLcode cacertpaths(struct OperationConfig *config)
       fclose(cafile);
       config->cacert = strdup(cacert);
     }
-#elif !defined(CURL_WINDOWS_UWP) && !defined(CURL_DISABLE_CA_SEARCH)
+#elif !defined(CURL_WINDOWS_UWP) && !defined(UNDER_CE) && \
+  !defined(CURL_DISABLE_CA_SEARCH)
     result = FindWin32CACert(config, TEXT("curl-ca-bundle.crt"));
     if(result)
       goto fail;
@@ -3138,7 +3162,12 @@ static CURLcode run_all_transfers(struct GlobalConfig *global,
 CURLcode operate(struct GlobalConfig *global, int argc, argv_item_t argv[])
 {
   CURLcode result = CURLE_OK;
-  char *first_arg = argc > 1 ? curlx_convert_tchar_to_UTF8(argv[1]) : NULL;
+  const char *first_arg;
+#ifdef UNDER_CE
+  first_arg = argc > 1 ? strdup(argv[1]) : NULL;
+#else
+  first_arg = argc > 1 ? convert_tchar_to_UTF8(argv[1]) : NULL;
+#endif
 
 #ifdef HAVE_SETLOCALE
   /* Override locale for number parsing (only) */
@@ -3159,7 +3188,7 @@ CURLcode operate(struct GlobalConfig *global, int argc, argv_item_t argv[])
     }
   }
 
-  curlx_unicodefree(first_arg);
+  unicodefree(first_arg);
 
   if(!result) {
     /* Parse the command line arguments */
@@ -3221,7 +3250,9 @@ CURLcode operate(struct GlobalConfig *global, int argc, argv_item_t argv[])
           curl_share_setopt(share, CURLSHOPT_SHARE, CURL_LOCK_DATA_DNS);
           curl_share_setopt(share, CURLSHOPT_SHARE,
                             CURL_LOCK_DATA_SSL_SESSION);
-          curl_share_setopt(share, CURLSHOPT_SHARE, CURL_LOCK_DATA_CONNECT);
+          /* Running parallel, use the multi connection cache */
+          if(!global->parallel)
+            curl_share_setopt(share, CURLSHOPT_SHARE, CURL_LOCK_DATA_CONNECT);
           curl_share_setopt(share, CURLSHOPT_SHARE, CURL_LOCK_DATA_PSL);
           curl_share_setopt(share, CURLSHOPT_SHARE, CURL_LOCK_DATA_HSTS);
 
@@ -3267,6 +3298,7 @@ CURLcode operate(struct GlobalConfig *global, int argc, argv_item_t argv[])
   }
 
   varcleanup(global);
+  curl_free(global->knownhosts);
 
   return result;
 }

@@ -77,6 +77,7 @@ use serverhelp qw(
     server_pidfilename
     server_portfilename
     server_logfilename
+    server_exe
     );
 
 use sshhelp qw(
@@ -1400,7 +1401,7 @@ sub runhttpsserver {
     unlink($pidfile) if(-f $pidfile);
 
     my $srvrname = servername_str($proto, $ipvnum, $idnum);
-    $certfile = 'stunnel.pem' unless($certfile);
+    $certfile = 'certs/test-localhost.pem' unless($certfile);
     my $logfile = server_logfilename($LOGDIR, $proto, $ipvnum, $idnum);
 
     my $flags = "";
@@ -1409,7 +1410,7 @@ sub runhttpsserver {
     $flags .= "--logdir \"$LOGDIR\" ";
     $flags .= "--id $idnum " if($idnum > 1);
     $flags .= "--ipv$ipvnum --proto $proto ";
-    $flags .= "--certfile \"$certfile\" " if($certfile ne 'stunnel.pem');
+    $flags .= "--certfile \"$certfile\" " if($certfile ne 'certs/test-localhost.pem');
     $flags .= "--stunnel \"$stunnel\" --srcdir \"$srcdir\" ";
     if($proto eq "gophers") {
         $flags .= "--connect " . protoport("gopher");
@@ -1616,7 +1617,7 @@ sub runsecureserver {
     unlink($pidfile) if(-f $pidfile);
 
     my $srvrname = servername_str($proto, $ipvnum, $idnum);
-    $certfile = 'stunnel.pem' unless($certfile);
+    $certfile = 'certs/test-localhost.pem' unless($certfile);
     my $logfile = server_logfilename($LOGDIR, $proto, $ipvnum, $idnum);
 
     my $flags = "";
@@ -1625,7 +1626,7 @@ sub runsecureserver {
     $flags .= "--logdir \"$LOGDIR\" ";
     $flags .= "--id $idnum " if($idnum > 1);
     $flags .= "--ipv$ipvnum --proto $proto ";
-    $flags .= "--certfile \"$certfile\" " if($certfile ne 'stunnel.pem');
+    $flags .= "--certfile \"$certfile\" " if($certfile ne 'certs/test-localhost.pem');
     $flags .= "--stunnel \"$stunnel\" --srcdir \"$srcdir\" ";
     $flags .= "--connect $clearport";
 
@@ -1959,8 +1960,8 @@ sub runmqttserver {
     my $logfile = server_logfilename($LOGDIR, $proto, $ipvnum, $idnum);
 
     # start our MQTT server - on a random port!
-    my $cmd="server/mqttd".exe_ext('SRV').
-        " --port 0 ".
+    my $cmd=server_exe('mqttd').
+        " --port 0".
         " --pidfile $pidfile".
         " --portfile $portfile".
         " --config $LOGDIR/$SERVERCMD".
@@ -2017,7 +2018,7 @@ sub runsocksserver {
     # start our socks server, get commands from the FTP cmd file
     my $cmd="";
     if($is_unix) {
-        $cmd="server/socksd".exe_ext('SRV').
+        $cmd=server_exe('socksd').
             " --pidfile $pidfile".
             " --reqfile $LOGDIR/$SOCKSIN".
             " --logfile $logfile".
@@ -2025,8 +2026,8 @@ sub runsocksserver {
             " --backend $HOSTIP".
             " --config $LOGDIR/$SERVERCMD";
     } else {
-        $cmd="server/socksd".exe_ext('SRV').
-            " --port 0 ".
+        $cmd=server_exe('socksd').
+            " --port 0".
             " --pidfile $pidfile".
             " --portfile $portfile".
             " --reqfile $LOGDIR/$SOCKSIN".
@@ -2386,7 +2387,7 @@ sub startservers {
 
         my $certfile;
         if($what =~ /^(ftp|gopher|http|imap|pop3|smtp)s((\d*)(-ipv6|-unix|))$/) {
-            $certfile = ($whatlist[1]) ? $whatlist[1] : 'stunnel.pem';
+            $certfile = ($whatlist[1]) ? $whatlist[1] : 'certs/test-localhost.pem';
         }
 
         if(($what eq "pop3") ||
@@ -3114,6 +3115,8 @@ sub subvariables {
     $$thing =~ s/${prefix}VERNUM/$CURLVERNUM/g;
     $$thing =~ s/${prefix}DATE/$DATE/g;
     $$thing =~ s/${prefix}TESTNUMBER/$testnum/g;
+    my $resolve = server_exe('resolve', 'TOOL');
+    $$thing =~ s/${prefix}RESOLVE/$resolve/g;
 
     # POSIX/MSYS/Cygwin curl needs: file://localhost/d/path/to
     # Windows native    curl needs: file://localhost/D:/path/to

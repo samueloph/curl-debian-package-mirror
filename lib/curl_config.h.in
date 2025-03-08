@@ -632,12 +632,6 @@
 /* Define to 1 if you have the <stropts.h> header file. */
 #undef HAVE_STROPTS_H
 
-/* Define to 1 if you have the strtok_r function. */
-#undef HAVE_STRTOK_R
-
-/* Define to 1 if you have the strtoll function. */
-#undef HAVE_STRTOLL
-
 /* if struct sockaddr_storage is defined */
 #undef HAVE_STRUCT_SOCKADDR_STORAGE
 
@@ -949,9 +943,6 @@
 
 /* Define to empty if `const' does not conform to ANSI C. */
 #undef const
-
-/* Type to use in place of in_addr_t when system does not provide it. */
-#undef in_addr_t
 
 /* Define to `unsigned int' if <sys/types.h> does not define. */
 #undef size_t
