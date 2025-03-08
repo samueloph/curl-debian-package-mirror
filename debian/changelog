@@ -1,6 +1,6 @@
-curl (8.13.0~rc-1) UNRELEASED; urgency=medium
+curl (8.13.0~rc-1~exp1) experimental; urgency=medium
 
-  * New upstream version 8.13.0-rc
+  * New upstream version 8.13.0~rc
 
  -- Samuel Henrique <samueloph@debian.org>  Sat, 08 Mar 2025 09:58:28 +0000
 
