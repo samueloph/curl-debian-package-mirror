@@ -1,3 +1,4 @@
 ZZZgnutls-build.patch
 build-Divide-mit-krb5-gssapi-link-flags-between-LDFLAGS-a.patch
 11_omit-directories-from-config.patch
+test1022_add_support_for_rc_releases.patch
