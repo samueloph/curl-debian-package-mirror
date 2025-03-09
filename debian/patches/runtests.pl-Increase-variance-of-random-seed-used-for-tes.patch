@@ -1,0 +1,30 @@
+From: Samuel Henrique <samueloph@debian.org>
+Date: Sun, 9 Mar 2025 10:41:25 +0000
+Subject: runtests.pl: Increase variance of random seed used for tests's port
+ designation
+
+ Patched on Debian to add day, hour and min to the seed, e.g.: 201912091530
+ The version of curl we ship on bookworm is too prone to port conflicts on tests,
+ this is the least intrusive workaround as it makes each retry use a different seed.
+
+ Gbp-Pq: Name runtests_port_random_seed_variance.patch
+---
+ tests/runtests.pl | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/tests/runtests.pl b/tests/runtests.pl
+index 7ac9de2..398ac52 100755
+--- a/tests/runtests.pl
++++ b/tests/runtests.pl
+@@ -6031,7 +6031,10 @@ if(!$randseed) {
+     my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) =
+         localtime(time);
+     # seed of the month. December 2019 becomes 201912
+-    $randseed = ($year+1900)*100 + $mon+1;
++    # Patched on Debian to add day, hour and min to the seed: 201912091530
++    # The version of curl we ship on bookworm is too prone to port conflicts on tests,
++    # this is the least intrusive workaround as it makes each retry use a different seed.
++    $randseed = ($year+1900)*100 + $mon+1 + $mday + $hour + $min;
+     open(C, "$CURL --version 2>/dev/null|");
+     my @c = <C>;
+     close(C);
