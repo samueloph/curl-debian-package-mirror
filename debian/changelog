@@ -1,3 +1,10 @@
+curl (7.88.1-10+deb12u12) bookworm; urgency=medium
+
+  * d/p/runtests.pl-Increase-variance-of-random-seed-used-for-tes: Fix test
+    failures due to port clashes
+
+ -- Samuel Henrique <samueloph@debian.org>  Sun, 09 Mar 2025 10:45:45 +0000
+
 curl (7.88.1-10+deb12u11) bookworm; urgency=medium
 
   * Team upload.
