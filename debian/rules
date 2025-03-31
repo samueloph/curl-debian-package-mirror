@@ -17,15 +17,8 @@ CONFIGURE_ARGS = -- --disable-dependency-tracking		\
 	--with-zsh-functions-dir=/usr/share/zsh/vendor-completions \
 	--with-fish-functions-dir=/usr/share/fish/vendor_completions.d \
 	--with-ca-path=/etc/ssl/certs \
-	--with-ca-bundle=/etc/ssl/certs/ca-certificates.crt
-
-# disable libssh2 on Ubuntu (see #888449)
-ifeq ($(shell dpkg-vendor --derives-from Ubuntu && echo yes),yes)
-	CONFIGURE_ARGS += --with-libssh --without-libssh2
-else
-	CONFIGURE_ARGS += --without-libssh --with-libssh2
-endif
-
+	--with-ca-bundle=/etc/ssl/certs/ca-certificates.crt \
+	--without-libssh --with-libssh2
 
 ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
   NUMJOBS = $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
@@ -41,6 +34,12 @@ ifneq ($(filter pkg.curl.openssl-only,$(DEB_BUILD_PROFILES)),)
 endif
 ifneq ($(filter pkg.curl.gnutls-only,$(DEB_BUILD_PROFILES)),)
 	DEB_BUILD_PROFILES += pkg.curl.no-openssl
+endif
+
+# Enable debug support when the debug profile is active.
+ifneq ($(filter pkg.curl.debug,$(DEB_BUILD_PROFILES)),)
+    CONFIGURE_ARGS += --enable-debug
+    TESTS_GENERAL_PARAMETERS += feat:debug
 endif
 
 %:
@@ -101,13 +100,13 @@ ifeq ($(filter pkg.curl.no-openssl,$(DEB_BUILD_PROFILES)),)
 # OpenSSL tests.
 	cd debian/build && VERBOSE=1 \
 		TFLAGS="$(TESTS_GENERAL_PARAMETERS)" \
-		$(MAKE) test-nonflaky
+		$(MAKE) $(MAKE_EXTRA_FLAGS) test-nonflaky
 endif
 ifeq ($(filter pkg.curl.no-gnutls,$(DEB_BUILD_PROFILES)),)
 # GnuTLS tests.
 	cd debian/build-gnutls && VERBOSE=1 \
 		TFLAGS="$(TESTS_GENERAL_PARAMETERS)" \
-		$(MAKE) test-nonflaky
+		$(MAKE) $(MAKE_EXTRA_FLAGS) test-nonflaky
 endif
 endif
 

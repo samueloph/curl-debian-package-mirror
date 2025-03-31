@@ -91,7 +91,7 @@ if(WINDOWS_STORE AND MINGW)  # mingw UWP build
   # CMake (as of v3.31.2) gets confused and applies the MSVC rc.exe command-line
   # template to windres. Reset it to the windres template via 'Modules/Platform/Windows-windres.cmake':
   set(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> -O coff <DEFINES> <INCLUDES> <FLAGS> <SOURCE> <OBJECT>")
-elseif(WIN32 AND WINCE AND CMAKE_COMPILER_IS_GNUCC)  # mingw32ce build
+elseif(WIN32 AND WINCE AND CMAKE_C_COMPILER_ID STREQUAL "GNU")  # mingw32ce build
   if(NOT MINGW32CE_LIBRARY_DIR)
     message(FATAL_ERROR "Set MINGW32CE_LIBRARY_DIR variable to the mingw32ce platform library directory.")
   endif()
@@ -118,7 +118,7 @@ elseif(WIN32 AND WINCE AND CMAKE_COMPILER_IS_GNUCC)  # mingw32ce build
   set(CMAKE_IMPORT_LIBRARY_SUFFIX ".dll.a")
   set(CMAKE_FIND_LIBRARY_PREFIXES "lib" "")
   set(CMAKE_FIND_LIBRARY_SUFFIXES ".dll.a" ".a" ".lib")
-elseif(DOS AND CMAKE_COMPILER_IS_GNUCC)  # DJGPP
+elseif(DOS AND CMAKE_C_COMPILER_ID STREQUAL "GNU")  # DJGPP
   set(CMAKE_STATIC_LIBRARY_PREFIX "lib")
   set(CMAKE_STATIC_LIBRARY_SUFFIX ".a")
   set(CMAKE_FIND_LIBRARY_PREFIXES "lib")
@@ -161,7 +161,7 @@ endif()
 if(AMIGA)
   string(APPEND _target_flags " AMIGA")
 endif()
-if(CMAKE_COMPILER_IS_GNUCC)
+if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
   string(APPEND _target_flags " GCC")
 endif()
 if(MINGW)
@@ -290,18 +290,24 @@ if(ENABLE_DEBUG)
   message(WARNING "This curl build is Debug-enabled and insecure, do not use in production.")
 endif()
 option(ENABLE_CURLDEBUG "Enable TrackMemory debug feature" ${ENABLE_DEBUG})
+option(ENABLE_SERVER_DEBUG "Apply curl debug options to test servers" OFF)
 
+set(CURL_DEBUG_MACROS "")
 if(ENABLE_DEBUG)
-  set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS "DEBUGBUILD")
+  list(APPEND CURL_DEBUG_MACROS "DEBUGBUILD")
+endif()
+if(ENABLE_CURLDEBUG)
+  list(APPEND CURL_DEBUG_MACROS "CURLDEBUG")
 endif()
 
-if(ENABLE_CURLDEBUG)
-  set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS "CURLDEBUG")
-endif()
+option(CURL_TEST_BUNDLES "Build tests into single-binary bundles" OFF)
 
 option(CURL_CLANG_TIDY "Run the build through clang-tidy" OFF)
 if(CURL_CLANG_TIDY)
+  # clang-tidy is not looking into #included sources, thus not compatible with
+  # unity builds and test bundles.
   set(CMAKE_UNITY_BUILD OFF)
+  set(CURL_TEST_BUNDLES OFF)
   set(_tidy_checks "")
   list(APPEND _tidy_checks "-clang-analyzer-security.insecureAPI.strcpy")
   list(APPEND _tidy_checks "-clang-analyzer-optin.performance.Padding")
@@ -1080,7 +1086,7 @@ if(USE_ECH)
       message(STATUS "HTTPSRR enabled")
     endif()
   else()
-    message(FATAL_ERROR "ECH requires ECH-enablded OpenSSL, BoringSSL, AWS-LC or wolfSSL")
+    message(FATAL_ERROR "ECH requires ECH-enabled OpenSSL, BoringSSL, AWS-LC or wolfSSL")
   endif()
 endif()
 

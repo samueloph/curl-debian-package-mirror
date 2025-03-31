@@ -1,3 +1,5 @@
+#ifndef HEADER_SERVER_FIRST_H
+#define HEADER_SERVER_FIRST_H
 /***************************************************************************
  *                                  _   _ ____  _
  *  Project                     ___| | | |  _ \| |
@@ -21,38 +23,11 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
+typedef int (*main_func_t)(int, char **);
 
-#include "curl_setup.h"
+struct onemain {
+  const char *name;
+  main_func_t ptr;
+};
 
-#include "strtoofft.h"
-#include "strparse.h"
-
-/*
- * Parse a positive number up to 63-bit number written in ASCII. Skip leading
- * blanks. No support for prefixes.
- */
-CURLofft curlx_strtoofft(const char *str, char **endp, int base,
-                         curl_off_t *num)
-{
-  curl_off_t number;
-  int rc;
-  *num = 0; /* clear by default */
-  DEBUGASSERT((base == 10) || (base == 16));
-
-  Curl_str_passblanks(&str);
-  rc = base == 10 ?
-    Curl_str_number(&str, &number, CURL_OFF_T_MAX) :
-    Curl_str_hex(&str, &number, CURL_OFF_T_MAX);
-
-  if(endp)
-    *endp = (char *)str;
-  if(rc == STRE_OVERFLOW)
-    /* overflow */
-    return CURL_OFFT_FLOW;
-  else if(rc)
-    /* nothing parsed */
-    return CURL_OFFT_INVAL;
-
-  *num = number;
-  return CURL_OFFT_OK;
-}
+#endif /* HEADER_SERVER_FIRST_H */

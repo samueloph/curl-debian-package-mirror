@@ -46,9 +46,7 @@
 #endif
 
 #include "curlx.h" /* from the private lib dir */
-#include "getpart.h"
 #include "util.h"
-#include "timediff.h"
 
 /* need init from main() */
 const char *pidname = NULL;
@@ -65,8 +63,6 @@ const char *ipv_inuse = "IPv4";
 unsigned short server_port = 0;
 const char *socket_type = "IPv4";
 int socket_domain = AF_INET;
-
-static struct timeval tvnow(void);
 
 /* This function returns a pointer to STATIC memory. It converts the given
  * binary lump to a hex formatted string usable for output in logs or
@@ -100,7 +96,7 @@ void logmsg(const char *msg, ...)
   va_list ap;
   char buffer[2048 + 1];
   FILE *logfp;
-  struct timeval tv;
+  struct curltime tv;
   time_t sec;
   struct tm *now;
   char timebuf[20];
@@ -112,7 +108,7 @@ void logmsg(const char *msg, ...)
     return;
   }
 
-  tv = tvnow();
+  tv = curlx_now();
   if(!known_offset) {
     epoch_offset = time(NULL) - tv.tv_sec;
     known_offset = 1;
@@ -131,6 +127,7 @@ void logmsg(const char *msg, ...)
 
   do {
     logfp = fopen(serverlogfile, "ab");
+    /* !checksrc! disable ERRNOVAR 1 */
   } while(!logfp && (errno == EINTR));
   if(logfp) {
     fprintf(logfp, "%s %s\n", timebuf, buffer);
@@ -176,7 +173,7 @@ static void win32_perror(const char *msg)
 {
   char buf[512];
   int err = SOCKERRNO;
-  Curl_winapi_strerror(err, buf, sizeof(buf));
+  curlx_winapi_strerror(err, buf, sizeof(buf));
   if(msg)
     fprintf(stderr, "%s: ", msg);
   fprintf(stderr, "%s\n", buf);
@@ -194,26 +191,29 @@ static void win32_cleanup(void)
 
 int win32_init(void)
 {
+  curlx_now_init();
 #ifdef USE_WINSOCK
-  WORD wVersionRequested;
-  WSADATA wsaData;
-  int err;
+  {
+    WORD wVersionRequested;
+    WSADATA wsaData;
+    int err;
 
-  wVersionRequested = MAKEWORD(2, 2);
-  err = WSAStartup(wVersionRequested, &wsaData);
+    wVersionRequested = MAKEWORD(2, 2);
+    err = WSAStartup(wVersionRequested, &wsaData);
 
-  if(err) {
-    win32_perror("Winsock init failed");
-    logmsg("Error initialising Winsock -- aborting");
-    return 1;
-  }
+    if(err) {
+      win32_perror("Winsock init failed");
+      logmsg("Error initialising Winsock -- aborting");
+      return 1;
+    }
 
-  if(LOBYTE(wsaData.wVersion) != LOBYTE(wVersionRequested) ||
-     HIBYTE(wsaData.wVersion) != HIBYTE(wVersionRequested) ) {
-    WSACleanup();
-    win32_perror("Winsock init failed");
-    logmsg("No suitable winsock.dll found -- aborting");
-    return 1;
+    if(LOBYTE(wsaData.wVersion) != LOBYTE(wVersionRequested) ||
+       HIBYTE(wsaData.wVersion) != HIBYTE(wVersionRequested) ) {
+      WSACleanup();
+      win32_perror("Winsock init failed");
+      logmsg("No suitable winsock.dll found -- aborting");
+      return 1;
+    }
   }
 #endif  /* USE_WINSOCK */
   atexit(win32_cleanup);
@@ -224,12 +224,12 @@ int win32_init(void)
 const char *sstrerror(int err)
 {
   static char buf[512];
-  return Curl_winapi_strerror(err, buf, sizeof(buf));
+  return curlx_winapi_strerror(err, buf, sizeof(buf));
 }
 #endif  /* _WIN32 */
 
 /* set by the main code to point to where the test dir is */
-const char *path = ".";
+const char *srcpath = ".";
 
 FILE *test2fopen(long testno, const char *logdir2)
 {
@@ -242,24 +242,11 @@ FILE *test2fopen(long testno, const char *logdir2)
     return stream;
 
   /* then try the source version */
-  msnprintf(filename, sizeof(filename), "%s/data/test%ld", path, testno);
+  msnprintf(filename, sizeof(filename), "%s/data/test%ld", srcpath, testno);
   stream = fopen(filename, "rb");
 
   return stream;
 }
-
-#if !defined(MSDOS) && !defined(USE_WINSOCK)
-static long timediff(struct timeval newer, struct timeval older)
-{
-  timediff_t diff = newer.tv_sec-older.tv_sec;
-  if(diff >= (LONG_MAX/1000))
-    return LONG_MAX;
-  else if(diff <= (LONG_MIN/1000))
-    return LONG_MIN;
-  return (long)(newer.tv_sec-older.tv_sec)*1000+
-    (long)(newer.tv_usec-older.tv_usec)/1000;
-}
-#endif
 
 /*
  * Portable function used for waiting a specific amount of ms.
@@ -270,45 +257,41 @@ static long timediff(struct timeval newer, struct timeval older)
  *   -1 = system call error, or invalid timeout value
  *    0 = specified timeout has elapsed
  */
-int wait_ms(int timeout_ms)
+int wait_ms(timediff_t timeout_ms)
 {
   int r = 0;
 
   if(!timeout_ms)
     return 0;
   if(timeout_ms < 0) {
-    CURL_SETERRNO(EINVAL);
+    SET_SOCKERRNO(SOCKEINVAL);
     return -1;
   }
-#ifdef MSDOS
-  delay(timeout_ms);
-#elif defined(USE_WINSOCK)
+#if defined(MSDOS)
+  delay((unsigned int)timeout_ms);
+#elif defined(_WIN32)
+  /* prevent overflow, timeout_ms is typecast to ULONG/DWORD. */
+#if TIMEDIFF_T_MAX >= ULONG_MAX
+  if(timeout_ms >= ULONG_MAX)
+    timeout_ms = ULONG_MAX-1;
+    /* do not use ULONG_MAX, because that is equal to INFINITE */
+#endif
   Sleep((DWORD)timeout_ms);
 #else
   /* avoid using poll() for this since it behaves incorrectly with no sockets
      on Apple operating systems */
   {
     struct timeval pending_tv;
-    struct timeval initial_tv = tvnow();
-    int pending_ms = timeout_ms;
-    do {
-      int error;
-      pending_tv.tv_sec = pending_ms / 1000;
-      pending_tv.tv_usec = (pending_ms % 1000) * 1000;
-      r = select(0, NULL, NULL, NULL, &pending_tv);
-      if(r != -1)
-        break;
-      error = errno;
-      if(error && (error != SOCKEINTR))
-        break;
-      pending_ms = timeout_ms - (int)timediff(tvnow(), initial_tv);
-      if(pending_ms <= 0)
-        break;
-    } while(r == -1);
+    r = select(0, NULL, NULL, NULL, curlx_mstotv(&pending_tv, timeout_ms));
   }
-#endif /* USE_WINSOCK */
-  if(r)
-    r = -1;
+#endif /* _WIN32 */
+  if(r) {
+    if((r == -1) && (SOCKERRNO == SOCKEINTR))
+      /* make EINTR from select or poll not a "lethal" error */
+      r = 0;
+    else
+      r = -1;
+  }
   return r;
 }
 
@@ -316,7 +299,7 @@ curl_off_t our_getpid(void)
 {
   curl_off_t pid;
 
-  pid = (curl_off_t)Curl_getpid();
+  pid = (curl_off_t)curlx_getpid();
 #ifdef _WIN32
   /* store pid + MAX_PID to avoid conflict with Cygwin/msys PIDs, see also:
    * - 2019-01-31: https://cygwin.com/git/?p=newlib-cygwin.git;a=commit; ↵
@@ -370,6 +353,7 @@ void set_advisor_read_lock(const char *filename)
 
   do {
     lockfile = fopen(filename, "wb");
+    /* !checksrc! disable ERRNOVAR 1 */
   } while(!lockfile && ((error = errno) == EINTR));
   if(!lockfile) {
     logmsg("Error creating lock file %s error (%d) %s",
@@ -396,100 +380,12 @@ void clear_advisor_read_lock(const char *filename)
 
   do {
     res = unlink(filename);
+    /* !checksrc! disable ERRNOVAR 1 */
   } while(res && ((error = errno) == EINTR));
   if(res)
     logmsg("Error removing lock file %s error (%d) %s",
            filename, error, strerror(error));
 }
-
-
-#ifdef _WIN32
-
-static struct timeval tvnow(void)
-{
-  /*
-  ** GetTickCount() is available on _all_ Windows versions from W95 up
-  ** to nowadays. Returns milliseconds elapsed since last system boot,
-  ** increases monotonically and wraps once 49.7 days have elapsed.
-  **
-  ** GetTickCount64() is available on Windows version from Windows Vista
-  ** and Windows Server 2008 up to nowadays. The resolution of the
-  ** function is limited to the resolution of the system timer, which
-  ** is typically in the range of 10 milliseconds to 16 milliseconds.
-  */
-  struct timeval now;
-#if defined(_WIN32_WINNT) && (_WIN32_WINNT >= 0x0600)
-  ULONGLONG milliseconds = GetTickCount64();
-#else
-  DWORD milliseconds = GetTickCount();
-#endif
-  now.tv_sec = (long)(milliseconds / 1000);
-  now.tv_usec = (long)((milliseconds % 1000) * 1000);
-  return now;
-}
-
-#elif defined(HAVE_CLOCK_GETTIME_MONOTONIC)
-
-static struct timeval tvnow(void)
-{
-  /*
-  ** clock_gettime() is granted to be increased monotonically when the
-  ** monotonic clock is queried. Time starting point is unspecified, it
-  ** could be the system start-up time, the Epoch, or something else,
-  ** in any case the time starting point does not change once that the
-  ** system has started up.
-  */
-  struct timeval now;
-  struct timespec tsnow;
-  if(0 == clock_gettime(CLOCK_MONOTONIC, &tsnow)) {
-    now.tv_sec = tsnow.tv_sec;
-    now.tv_usec = (int)(tsnow.tv_nsec / 1000);
-  }
-  /*
-  ** Even when the configure process has truly detected monotonic clock
-  ** availability, it might happen that it is not actually available at
-  ** run-time. When this occurs simply fallback to other time source.
-  */
-#ifdef HAVE_GETTIMEOFDAY
-  else
-    (void)gettimeofday(&now, NULL);
-#else
-  else {
-    now.tv_sec = time(NULL);
-    now.tv_usec = 0;
-  }
-#endif
-  return now;
-}
-
-#elif defined(HAVE_GETTIMEOFDAY)
-
-static struct timeval tvnow(void)
-{
-  /*
-  ** gettimeofday() is not granted to be increased monotonically, due to
-  ** clock drifting and external source time synchronization it can jump
-  ** forward or backward in time.
-  */
-  struct timeval now;
-  (void)gettimeofday(&now, NULL);
-  return now;
-}
-
-#else
-
-static struct timeval tvnow(void)
-{
-  /*
-  ** time() returns the value of time in seconds since the Epoch.
-  */
-  struct timeval now;
-  now.tv_sec = time(NULL);
-  now.tv_usec = 0;
-  return now;
-}
-
-#endif
 
 /* vars used to keep around previous signal handlers */
 

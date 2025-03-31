@@ -72,7 +72,6 @@
 #include "headers.h"
 #include "select.h"
 #include "parsedate.h" /* for the week day and month names */
-#include "strtoofft.h"
 #include "multiif.h"
 #include "strcase.h"
 #include "content_encoding.h"
@@ -583,7 +582,7 @@ CURLcode Curl_http_auth_act(struct Curl_easy *data)
     /* In case this is GSS auth, the newurl field is already allocated so
        we must make sure to free it before allocating a new one. As figured
        out in bug #2284386 */
-    Curl_safefree(data->req.newurl);
+    free(data->req.newurl);
     data->req.newurl = strdup(data->state.url); /* clone URL */
     if(!data->req.newurl)
       return CURLE_OUT_OF_MEMORY;
@@ -1911,7 +1910,7 @@ static CURLcode http_host(struct Curl_easy *data, struct connectdata *conn)
         if(colon)
           *colon = 0; /* The host must not include an embedded port number */
       }
-      Curl_safefree(aptr->cookiehost);
+      free(aptr->cookiehost);
       aptr->cookiehost = cookiehost;
     }
 #endif
@@ -2736,7 +2735,7 @@ CURLcode Curl_http(struct Curl_easy *data, bool *done)
 
   if(!Curl_checkheaders(data, STRCONST("Accept-Encoding")) &&
      data->set.str[STRING_ENCODING]) {
-    Curl_safefree(data->state.aptr.accept_encoding);
+    free(data->state.aptr.accept_encoding);
     data->state.aptr.accept_encoding =
       aprintf("Accept-Encoding: %s\r\n", data->set.str[STRING_ENCODING]);
     if(!data->state.aptr.accept_encoding)
@@ -3027,13 +3026,13 @@ static CURLcode http_header(struct Curl_easy *data,
       HD_VAL(hd, hdlen, "Content-Length:") : NULL;
     if(v) {
       curl_off_t contentlength;
-      CURLofft offt = curlx_strtoofft(v, NULL, 10, &contentlength);
+      int offt = Curl_str_numblanks(&v, &contentlength);
 
-      if(offt == CURL_OFFT_OK) {
+      if(offt == STRE_OK) {
         k->size = contentlength;
         k->maxdownload = k->size;
       }
-      else if(offt == CURL_OFFT_FLOW) {
+      else if(offt == STRE_OVERFLOW) {
         /* out of range */
         if(data->set.max_filesize) {
           failf(data, "Maximum file size exceeded");
@@ -3071,7 +3070,7 @@ static CURLcode http_header(struct Curl_easy *data,
         /* ignore empty data */
         free(contenttype);
       else {
-        Curl_safefree(data->info.contenttype);
+        free(data->info.contenttype);
         data->info.contenttype = contenttype;
       }
       return CURLE_OK;
@@ -3542,7 +3541,7 @@ static CURLcode http_write_header(struct Curl_easy *data,
 
   /* now, only output this if the header AND body are requested:
    */
-  Curl_debug(data, CURLINFO_HEADER_IN, (char *)hd, hdlen);
+  Curl_debug(data, CURLINFO_HEADER_IN, hd, hdlen);
 
   writetype = CLIENTWRITE_HEADER |
     ((data->req.httpcode/100 == 1) ? CLIENTWRITE_1XX : 0);
@@ -3911,9 +3910,9 @@ static CURLcode http_rw_hd(struct Curl_easy *data,
               if(ISDIGIT(p[0]) && ISDIGIT(p[1]) && ISDIGIT(p[2])) {
                 k->httpcode = (p[0] - '0') * 100 + (p[1] - '0') * 10 +
                   (p[2] - '0');
-                p += 3;
-                if(ISBLANK(*p))
-                  fine_statusline = TRUE;
+                /* RFC 9112 requires a single space following the status code,
+                   but the browsers don't so let's not insist */
+                fine_statusline = TRUE;
               }
             }
           }
@@ -3998,7 +3997,7 @@ static CURLcode http_rw_hd(struct Curl_easy *data,
   /*
    * Taken in one (more) header. Write it to the client.
    */
-  Curl_debug(data, CURLINFO_HEADER_IN, (char *)hd, hdlen);
+  Curl_debug(data, CURLINFO_HEADER_IN, hd, hdlen);
 
   if(k->httpcode/100 == 1)
     writetype |= CLIENTWRITE_1XX;
@@ -4199,7 +4198,7 @@ CURLcode Curl_http_write_resp(struct Curl_easy *data,
     flags = CLIENTWRITE_BODY;
     if(is_eos)
       flags |= CLIENTWRITE_EOS;
-    result = Curl_client_write(data, flags, (char *)buf, blen);
+    result = Curl_client_write(data, flags, buf, blen);
   }
 out:
   return result;
@@ -4239,11 +4238,9 @@ CURLcode Curl_http_req_make(struct httpreq **preq,
   struct httpreq *req;
   CURLcode result = CURLE_OUT_OF_MEMORY;
 
-  DEBUGASSERT(method);
-  if(m_len + 1 > sizeof(req->method))
-    return CURLE_BAD_FUNCTION_ARGUMENT;
+  DEBUGASSERT(method && m_len);
 
-  req = calloc(1, sizeof(*req));
+  req = calloc(1, sizeof(*req) + m_len);
   if(!req)
     goto out;
   memcpy(req->method, method, m_len);
@@ -4395,11 +4392,9 @@ CURLcode Curl_http_req_make2(struct httpreq **preq,
   CURLcode result = CURLE_OUT_OF_MEMORY;
   CURLUcode uc;
 
-  DEBUGASSERT(method);
-  if(m_len + 1 > sizeof(req->method))
-    return CURLE_BAD_FUNCTION_ARGUMENT;
+  DEBUGASSERT(method && m_len);
 
-  req = calloc(1, sizeof(*req));
+  req = calloc(1, sizeof(*req) + m_len);
   if(!req)
     goto out;
   memcpy(req->method, method, m_len);

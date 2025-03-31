@@ -958,6 +958,10 @@ USE_UNITY_FALSE
 USE_UNITY_TRUE
 HAVE_WINDRES_FALSE
 HAVE_WINDRES_TRUE
+DOING_CYGWIN_FALSE
+DOING_CYGWIN_TRUE
+ENABLE_SERVER_DEBUG_FALSE
+ENABLE_SERVER_DEBUG_TRUE
 BUILD_UNITTESTS_FALSE
 BUILD_UNITTESTS_TRUE
 CURL_WERROR_FALSE
@@ -1064,6 +1068,8 @@ EGREP
 GREP
 SED
 CONFIGURE_OPTIONS
+CURLDEBUG_FALSE
+CURLDEBUG_TRUE
 DEBUGBUILD_FALSE
 DEBUGBUILD_TRUE
 AM_BACKSLASH
@@ -1155,6 +1161,7 @@ with_aix_soname
 with_gnu_ld
 with_sysroot
 enable_libtool_lock
+enable_server_debug
 enable_unity
 enable_test_bundles
 enable_http
@@ -1920,6 +1927,8 @@ Optional Features:
   --enable-fast-install[=PKGS]
                           optimize for fast installation [default=yes]
   --disable-libtool-lock  avoid locking (might break parallel builds)
+  --enable-server-debug   Enable debug options for test servers
+  --disable-server-debug  Disable debug options for test servers
   --enable-unity          Enable unity mode
   --disable-unity         Disable unity (default)
   --enable-test-bundles   Enable test bundles
@@ -3563,9 +3572,6 @@ fi
       ;;
     *)
             want_debug="yes"
-
-printf "%s\n" "#define DEBUGBUILD 1" >>confdefs.h
-
       ;;
   esac
   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $want_debug" >&5
@@ -3681,9 +3687,6 @@ printf "%s\n" "no" >&6; }
                                           if test "$want_debug" = "yes"; then
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: (assumed) yes" >&5
 printf "%s\n" "(assumed) yes" >&6; }
-
-printf "%s\n" "#define CURLDEBUG 1" >>confdefs.h
-
       else
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
@@ -3693,13 +3696,18 @@ printf "%s\n" "no" >&6; }
       ;;
     *)
                                                       want_curldebug="yes"
-
-printf "%s\n" "#define CURLDEBUG 1" >>confdefs.h
-
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
       ;;
   esac
+
+ if test x$want_curldebug = xyes; then
+  CURLDEBUG_TRUE=
+  CURLDEBUG_FALSE='#'
+else
+  CURLDEBUG_TRUE='#'
+  CURLDEBUG_FALSE=
+fi
 
 
     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether to enable hiding of library internal symbols" >&5
@@ -6700,7 +6708,7 @@ VERSIONNUM=`$SED -ne 's/^#define LIBCURL_VERSION_NUM 0x\([0-9A-Fa-f]*\).*/\1/p' 
     curl_gss_msg="no      (--with-gssapi)"
   curl_gsasl_msg="no      (--with-gsasl)"
 curl_tls_srp_msg="no      (--enable-tls-srp)"
-    curl_res_msg="default (--enable-ares / --enable-threaded-resolver)"
+    curl_res_msg="blocking (--enable-ares / --enable-threaded-resolver)"
    curl_ipv6_msg="no      (--enable-ipv6)"
 curl_unix_sockets_msg="no      (--enable-unix-sockets)"
     curl_idn_msg="no      (--with-{libidn2,winidn})"
@@ -19526,6 +19534,26 @@ printf "%s\n" "$as_me: WARNING: compiler options rejected: $tmp_options" >&2;}
                     if test "$compiler_num" -ge "300"; then
 
     ac_var_added_warnings=""
+  for warning in cast-qual; do
+
+  ac_var_match_word="no"
+  for word1 in $CFLAGS; do
+    for word2 in -Wno-$warning -W$warning; do
+      if test "$word1" = "$word2"; then
+        ac_var_match_word="yes"
+      fi
+    done
+  done
+
+    if test "$ac_var_match_word" = "no"; then
+      ac_var_added_warnings="$ac_var_added_warnings -W$warning"
+    fi
+  done
+    tmp_CFLAGS="$tmp_CFLAGS $ac_var_added_warnings"
+  squeeze tmp_CFLAGS
+
+
+    ac_var_added_warnings=""
   for warning in language-extension-token; do
 
   ac_var_match_word="no"
@@ -20094,6 +20122,26 @@ printf "%s\n" "$as_me: WARNING: compiler options rejected: $tmp_options" >&2;}
           fi
           #
                     if test "$compiler_num" -ge "400"; then
+
+    ac_var_added_warnings=""
+  for warning in cast-qual; do
+
+  ac_var_match_word="no"
+  for word1 in $CFLAGS; do
+    for word2 in -Wno-$warning -W$warning; do
+      if test "$word1" = "$word2"; then
+        ac_var_match_word="yes"
+      fi
+    done
+  done
+
+    if test "$ac_var_match_word" = "no"; then
+      ac_var_added_warnings="$ac_var_added_warnings -W$warning"
+    fi
+  done
+    tmp_CFLAGS="$tmp_CFLAGS $ac_var_added_warnings"
+  squeeze tmp_CFLAGS
+
             tmp_CFLAGS="$tmp_CFLAGS -Wstrict-aliasing=3"
           fi
           #
@@ -21324,6 +21372,15 @@ case $host_os in
     ;;
 esac
 
+ if test x$supports_unittests = xyes; then
+  BUILD_UNITTESTS_TRUE=
+  BUILD_UNITTESTS_FALSE='#'
+else
+  BUILD_UNITTESTS_TRUE='#'
+  BUILD_UNITTESTS_FALSE=
+fi
+
+
 # In order to detect support of sendmmsg(), we need to escape the POSIX
 # jail by defining _GNU_SOURCE or <sys/socket.h> will not expose it.
 case $host_os in
@@ -21332,18 +21389,29 @@ case $host_os in
     ;;
 esac
 
-if test "x$want_debug" = "xyes" &&
-   test "x$supports_unittests" = "xyes"; then
-  want_unittests=yes
-else
-  want_unittests=no
+OPT_SERVER_DEBUG="default"
+# Check whether --enable-server-debug was given.
+if test ${enable_server_debug+y}
+then :
+  enableval=$enable_server_debug; OPT_SERVER_DEBUG=$enableval
 fi
- if test x$want_unittests = xyes; then
-  BUILD_UNITTESTS_TRUE=
-  BUILD_UNITTESTS_FALSE='#'
+
+case "$OPT_SERVER_DEBUG" in
+  no)
+        want_server_debug="no"
+    ;;
+  *)
+        want_server_debug="no"
+    ;;
+esac
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $want_server_debug" >&5
+printf "%s\n" "$want_server_debug" >&6; }
+ if test x$want_server_debug = xyes; then
+  ENABLE_SERVER_DEBUG_TRUE=
+  ENABLE_SERVER_DEBUG_FALSE='#'
 else
-  BUILD_UNITTESTS_TRUE='#'
-  BUILD_UNITTESTS_FALSE=
+  ENABLE_SERVER_DEBUG_TRUE='#'
+  ENABLE_SERVER_DEBUG_FALSE=
 fi
 
 
@@ -21501,6 +21569,14 @@ curl_cv_cygwin='no'
 case $host_os in
   cygwin*|msys*) curl_cv_cygwin='yes';;
 esac
+ if test "x$curl_cv_cygwin" = xyes; then
+  DOING_CYGWIN_TRUE=
+  DOING_CYGWIN_FALSE='#'
+else
+  DOING_CYGWIN_TRUE='#'
+  DOING_CYGWIN_FALSE=
+fi
+
 
  if test "$curl_cv_native_windows" = "yes" && test -n "${RC}"; then
   HAVE_WINDRES_TRUE=
@@ -44063,6 +44139,8 @@ if test "x$want_ech" != "xno"; then
 printf %s "checking whether ECH support is available... " >&6; }
 
     ECH_ENABLED=0
+  ECH_ENABLED_OPENSSL=0
+  ECH_ENABLED_WOLFSSL=0
   ECH_SUPPORT=''
 
     if test "x$OPENSSL_ENABLED" = "x1"; then
@@ -44073,8 +44151,8 @@ do :
 if test "x$ac_cv_func_SSL_set1_ech_config_list" = xyes
 then :
   printf "%s\n" "#define HAVE_SSL_SET1_ECH_CONFIG_LIST 1" >>confdefs.h
- ECH_SUPPORT="ECH support available via BoringSSL with SSL_set1_ech_config_list"
-      ECH_ENABLED=1
+ ECH_SUPPORT="$ECH_SUPPORT OpenSSL"
+      ECH_ENABLED_OPENSSL=1
 fi
 
 done
@@ -44087,20 +44165,22 @@ do :
 if test "x$ac_cv_func_wolfSSL_CTX_GenerateEchConfig" = xyes
 then :
   printf "%s\n" "#define HAVE_WOLFSSL_CTX_GENERATEECHCONFIG 1" >>confdefs.h
- ECH_SUPPORT="ECH support available via wolfSSL with wolfSSL_CTX_GenerateEchConfig"
-      ECH_ENABLED=1
+ ECH_SUPPORT="$ECH_SUPPORT wolfSSL"
+      ECH_ENABLED_WOLFSSL=1
 fi
 
 done
   fi
 
-    if test "x$ECH_ENABLED" = "x1"; then
+    if test "x$ECH_ENABLED_OPENSSL" = "x1" -o \
+          "x$ECH_ENABLED_WOLFSSL" = "x1"; then
 
 printf "%s\n" "#define USE_ECH 1" >>confdefs.h
 
-    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ECH_SUPPORT" >&5
-printf "%s\n" "$ECH_SUPPORT" >&6; }
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: ECH support available via:$ECH_SUPPORT" >&5
+printf "%s\n" "ECH support available via:$ECH_SUPPORT" >&6; }
     experimental="$experimental ECH"
+    ECH_ENABLED=1
         want_httpsrr="yes"
   else
     as_fn_error $? "--enable-ech ignored: No ECH support found" "$LINENO" 5
@@ -44906,6 +44986,10 @@ if test -z "${DEBUGBUILD_TRUE}" && test -z "${DEBUGBUILD_FALSE}"; then
   as_fn_error $? "conditional \"DEBUGBUILD\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
+if test -z "${CURLDEBUG_TRUE}" && test -z "${CURLDEBUG_FALSE}"; then
+  as_fn_error $? "conditional \"CURLDEBUG\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking that generated files are newer than configure" >&5
 printf %s "checking that generated files are newer than configure... " >&6; }
    if test -n "$am_sleep_pid"; then
@@ -44956,6 +45040,14 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${BUILD_UNITTESTS_TRUE}" && test -z "${BUILD_UNITTESTS_FALSE}"; then
   as_fn_error $? "conditional \"BUILD_UNITTESTS\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${ENABLE_SERVER_DEBUG_TRUE}" && test -z "${ENABLE_SERVER_DEBUG_FALSE}"; then
+  as_fn_error $? "conditional \"ENABLE_SERVER_DEBUG\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${DOING_CYGWIN_TRUE}" && test -z "${DOING_CYGWIN_FALSE}"; then
+  as_fn_error $? "conditional \"DOING_CYGWIN\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${HAVE_WINDRES_TRUE}" && test -z "${HAVE_WINDRES_FALSE}"; then

@@ -22,16 +22,16 @@ export VERBOSE=1
 export TESTS_FAILS_ON_IPV6_ONLY_MACHINES=""
 
 echo "dh_update_autotools_config"
-dh_update_autotools_config
+dh_update_autotools_config > "${AUTOPKGTEST_ARTIFACTS}/gnutls_autotools_config.log"
 
 echo "dh_autoreconf"
-dh_autoreconf
+dh_autoreconf > "${AUTOPKGTEST_ARTIFACTS}/gnutls_autorefconf.log"
 
-echo "debian/rules override_dh_auto_configure "
-debian/rules override_dh_auto_configure
+echo "debian/rules override_dh_auto_configure"
+debian/rules override_dh_auto_configure > "${AUTOPKGTEST_ARTIFACTS}/gnutls_auto_configure.log"
 
 echo "debian/rules override_dh_auto_build"
-debian/rules override_dh_auto_build
+debian/rules override_dh_auto_build > "${AUTOPKGTEST_ARTIFACTS}/gnutls_auto_build.log"
 
 echo "debian/rules override_dh_auto_test"
 debian/rules override_dh_auto_test

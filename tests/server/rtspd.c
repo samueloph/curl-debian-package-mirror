@@ -436,23 +436,17 @@ static int rtspd_ProcessRequest(struct rtspd_httprequest *req)
          request including the body before we return. If we've been told to
          ignore the content-length, we will return as soon as all headers
          have been received */
-      char *endptr;
-      char *ptr = line + 15;
-      unsigned long clen = 0;
-      while(*ptr && ISSPACE(*ptr))
-        ptr++;
-      endptr = ptr;
-      CURL_SETERRNO(0);
-      clen = strtoul(ptr, &endptr, 10);
-      if((ptr == endptr) || !ISSPACE(*endptr) || (ERANGE == errno)) {
+      curl_off_t clen;
+      const char *p = line + strlen("Content-Length:");
+      if(curlx_str_numblanks(&p, &clen)) {
         /* this assumes that a zero Content-Length is valid */
-        logmsg("Found invalid Content-Length: (%s) in the request", ptr);
+        logmsg("Found invalid '%s' in the request", line);
         req->open = FALSE; /* closes connection */
         return 1; /* done */
       }
-      req->cl = clen - req->skip;
+      req->cl = (size_t)clen - req->skip;
 
-      logmsg("Found Content-Length: %lu in the request", clen);
+      logmsg("Found Content-Length: %zu in the request", (size_t)clen);
       if(req->skip)
         logmsg("... but will abort after %zu bytes", req->cl);
       break;
@@ -579,6 +573,7 @@ static void rtspd_storerequest(char *reqbuf, size_t totalsize)
 
   do {
     dump = fopen(dumpfile, "ab");
+    /* !checksrc! disable ERRNOVAR 1 */
   } while(!dump && ((error = errno) == EINTR));
   if(!dump) {
     logmsg("Error opening file %s error (%d) %s",
@@ -589,13 +584,14 @@ static void rtspd_storerequest(char *reqbuf, size_t totalsize)
 
   writeleft = totalsize;
   do {
-    written = fwrite(&reqbuf[totalsize-writeleft],
-                     1, writeleft, dump);
+    written = fwrite(&reqbuf[totalsize-writeleft], 1, writeleft, dump);
     if(got_exit_signal)
       goto storerequest_cleanup;
     if(written > 0)
       writeleft -= written;
-  } while((writeleft > 0) && ((error = errno) == EINTR));
+    error = errno;
+    /* !checksrc! disable ERRNOVAR 1 */
+  } while((writeleft > 0) && (error == EINTR));
 
   if(writeleft == 0)
     logmsg("Wrote request (%zu bytes) input to %s", totalsize, dumpfile);
@@ -982,9 +978,9 @@ static int rtspd_send_doc(curl_socket_t sock, struct rtspd_httprequest *req)
               break;
             if(res) {
               /* should not happen */
-              error = errno;
+              error = SOCKERRNO;
               logmsg("wait_ms() failed with error (%d) %s",
-                     error, strerror(error));
+                     error, sstrerror(error));
               break;
             }
           }
@@ -1090,7 +1086,7 @@ int main(int argc, char *argv[])
     else if(!strcmp("--srcdir", argv[arg])) {
       arg++;
       if(argc > arg) {
-        path = argv[arg];
+        srcpath = argv[arg];
         arg++;
       }
     }
@@ -1358,7 +1354,7 @@ server_cleanup:
 
   if(got_exit_signal) {
     logmsg("========> %s rtspd (port: %d pid: %ld) exits with signal (%d)",
-           ipv_inuse, (int)port, (long)Curl_getpid(), exit_signal);
+           ipv_inuse, (int)port, (long)curlx_getpid(), exit_signal);
     /*
      * To properly set the return status of the process we
      * must raise the same signal SIGINT or SIGTERM that we

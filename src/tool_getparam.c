@@ -512,10 +512,10 @@ GetFileAndPassword(const char *nextarg, char **file, char **password)
   char *certname, *passphrase;
   if(nextarg) {
     parse_cert_parameter(nextarg, &certname, &passphrase);
-    Curl_safefree(*file);
+    free(*file);
     *file = certname;
     if(passphrase) {
-      Curl_safefree(*password);
+      free(*password);
       *password = passphrase;
     }
   }
@@ -529,18 +529,18 @@ static ParameterError GetSizeParameter(struct GlobalConfig *global,
                                        const char *which,
                                        curl_off_t *value_out)
 {
-  char *unit;
+  const char *unit = arg;
   curl_off_t value;
 
-  if(curlx_strtoofft(arg, &unit, 10, &value)) {
+  if(curlx_str_number(&unit, &value, CURL_OFF_T_MAX)) {
     warnf(global, "invalid number specified for %s", which);
     return PARAM_BAD_USE;
   }
 
   if(!*unit)
-    unit = (char *)"b";
+    unit = "b";
   else if(strlen(unit) > 1)
-    unit = (char *)"w"; /* unsupported */
+    unit = "w"; /* unsupported */
 
   switch(*unit) {
   case 'G':
@@ -661,7 +661,7 @@ static ParameterError data_urlencode(struct GlobalConfig *global,
   }
   else {
     char *enc = curl_easy_escape(NULL, postdata, (int)size);
-    Curl_safefree(postdata); /* no matter if it worked or not */
+    curlx_safefree(postdata); /* no matter if it worked or not */
     if(enc) {
       char *n;
       replace_url_encoded_space_by_plus(enc);
@@ -955,7 +955,7 @@ static ParameterError set_data(cmdline_t cmd,
   if(!err && curlx_dyn_addn(&config->postdata, postdata, size))
     err = PARAM_NO_MEM;
 
-  Curl_safefree(postdata);
+  curlx_safefree(postdata);
 
   config->postfields = curlx_dyn_ptr(&config->postdata);
   return err;
@@ -973,7 +973,7 @@ static ParameterError set_rate(struct GlobalConfig *global,
      /d == per day (24 hours)
   */
   ParameterError err = PARAM_OK;
-  char *div = strchr(nextarg, '/');
+  const char *div = strchr(nextarg, '/');
   char number[26];
   long denominator;
   long numerator = 60*60*1000; /* default per hour */
@@ -991,22 +991,20 @@ static ParameterError set_rate(struct GlobalConfig *global,
     return PARAM_BAD_USE;
 
   if(div) {
-    char unit = div[1];
     curl_off_t numunits;
-    char *endp;
+    const char *s;
+    div++;
+    s = div;
 
-    if(curlx_strtoofft(&div[1], &endp, 10, &numunits)) {
-      /* if it fails, there is no legit number specified */
-      if(endp == &div[1])
-        /* if endp did not move, accept it as a 1 */
+    if(curlx_str_number(&div, &numunits, CURL_OFF_T_MAX)) {
+      if(s == div)
+        /* if div did not move, accept it as a 1 */
         numunits = 1;
       else
         return PARAM_BAD_USE;
     }
-    else
-      unit = *endp;
 
-    switch(unit) {
+    switch(*div) {
     case 's': /* per second */
       numerator = 1000;
       break;
@@ -1402,48 +1400,42 @@ static ParameterError parse_range(struct GlobalConfig *global,
                                   const char *nextarg)
 {
   ParameterError err = PARAM_OK;
+  curl_off_t value;
+  const char *orig = nextarg;
 
   if(config->use_resume) {
     errorf(global, "--continue-at is mutually exclusive with --range");
     return PARAM_BAD_USE;
   }
-  /* Specifying a range WITHOUT A DASH will create an illegal HTTP range
-     (and will not actually be range by definition). The manpage
-     previously claimed that to be a good way, why this code is added to
-     work-around it. */
-  if(ISDIGIT(*nextarg) && !strchr(nextarg, '-')) {
+  if(!curlx_str_number(&nextarg, &value, CURL_OFF_T_MAX) &&
+     curlx_str_single(&nextarg, '-')) {
+    /* Specifying a range WITHOUT A DASH will create an illegal HTTP range
+       (and will not actually be range by definition). The manpage previously
+       claimed that to be a good way, why this code is added to work-around
+       it. */
     char buffer[32];
-    curl_off_t value;
-    if(curlx_strtoofft(nextarg, NULL, 10, &value)) {
-      warnf(global, "unsupported range point");
-      err = PARAM_BAD_USE;
-    }
-    else {
-      warnf(global,
-            "A specified range MUST include at least one dash (-). "
-            "Appending one for you");
-      msnprintf(buffer, sizeof(buffer), "%" CURL_FORMAT_CURL_OFF_T "-",
-                value);
-      Curl_safefree(config->range);
-      config->range = strdup(buffer);
-      if(!config->range)
-        err = PARAM_NO_MEM;
-    }
+    warnf(global, "A specified range MUST include at least one dash (-). "
+          "Appending one for you");
+    msnprintf(buffer, sizeof(buffer), "%" CURL_FORMAT_CURL_OFF_T "-",
+              value);
+    free(config->range);
+    config->range = strdup(buffer);
+    if(!config->range)
+      err = PARAM_NO_MEM;
   }
   else {
     /* byte range requested */
-    const char *tmp_range = nextarg;
-    while(*tmp_range) {
-      if(!ISDIGIT(*tmp_range) && *tmp_range != '-' && *tmp_range != ',') {
+    while(*nextarg) {
+      if(!ISDIGIT(*nextarg) && *nextarg != '-' && *nextarg != ',') {
         warnf(global, "Invalid character is found in given range. "
               "A specified range MUST have only digits in "
               "\'start\'-\'stop\'. The server's response to this "
               "request is uncertain.");
         break;
       }
-      tmp_range++;
+      nextarg++;
     }
-    err = getstr(&config->range, nextarg, DENY_BLANK);
+    err = getstr(&config->range, orig, DENY_BLANK);
   }
   return err;
 }
@@ -1511,7 +1503,7 @@ static ParameterError parse_verbose(struct GlobalConfig *global,
   switch(global->verbosity) {
   case 0:
     global->verbosity = 1;
-    Curl_safefree(global->trace_dump);
+    free(global->trace_dump);
     global->trace_dump = strdup("%");
     if(!global->trace_dump)
       err = PARAM_NO_MEM;
@@ -1570,7 +1562,7 @@ static ParameterError parse_writeout(struct GlobalConfig *global,
         return PARAM_READ_ERROR;
       }
     }
-    Curl_safefree(config->writeout);
+    curlx_safefree(config->writeout);
     err = file2string(&config->writeout, file);
     if(file && (file != stdin))
       fclose(file);
@@ -1797,7 +1789,7 @@ ParameterError getparameter(const char *flag, /* f or -long-flag */
     if(ARGTYPE(a->desc) >= ARG_STRG) {
       /* this option requires an extra parameter */
       if(!longopt && parse[1]) {
-        nextarg = (char *)&parse[1]; /* this is the actual extra parameter */
+        nextarg = &parse[1]; /* this is the actual extra parameter */
         singleopt = TRUE;   /* do not loop anymore after this */
 #ifdef HAVE_WRITABLE_ARGV
         clearthis = &cleararg1[parse + 2 - flag];
@@ -1840,7 +1832,7 @@ ParameterError getparameter(const char *flag, /* f or -long-flag */
          that use nextarg should be marked as such and they will check that
          nextarg is set before continuing, but code analyzers are not always
          that aware of that state */
-      nextarg = (char *)"";
+      nextarg = "";
 
     switch(cmd) {
     case C_RANDOM_FILE: /* --random-file */
@@ -1877,7 +1869,7 @@ ParameterError getparameter(const char *flag, /* f or -long-flag */
       err = getstr(&config->doh_url, nextarg, ALLOW_BLANK);
       if(!err && config->doh_url && !config->doh_url[0])
         /* if given a blank string, make it NULL again */
-        Curl_safefree(config->doh_url);
+        curlx_safefree(config->doh_url);
       break;
     case C_CIPHERS: /* -- ciphers */
       err = getstr(&config->cipher_list, nextarg, DENY_BLANK);
@@ -2066,7 +2058,7 @@ ParameterError getparameter(const char *flag, /* f or -long-flag */
               a->lname);
       break;
     case C_FTP_PASV: /* --ftp-pasv */
-      Curl_safefree(config->ftpport);
+      curlx_safefree(config->ftpport);
       break;
     case C_SOCKS5: /* --socks5 */
       /*  socks5 proxy to use, and resolves the name locally and passes on the
@@ -2489,8 +2481,8 @@ ParameterError getparameter(const char *flag, /* f or -long-flag */
     }
       break;
     case C_CERT: /* --cert */
-      cleanarg(clearthis);
       GetFileAndPassword(nextarg, &config->cert, &config->key_passwd);
+      cleanarg(clearthis);
       break;
     case C_CACERT: /* --cacert */
       err = getstr(&config->cacert, nextarg, DENY_BLANK);
@@ -2609,18 +2601,18 @@ ParameterError getparameter(const char *flag, /* f or -long-flag */
       config->tcp_fastopen = TRUE;
       break;
     case C_PROXY_TLSUSER: /* --proxy-tlsuser */
-      cleanarg(clearthis);
       if(!feature_tls_srp)
         err = PARAM_LIBCURL_DOESNT_SUPPORT;
       else
         err = getstr(&config->proxy_tls_username, nextarg, ALLOW_BLANK);
+      cleanarg(clearthis);
       break;
     case C_PROXY_TLSPASSWORD: /* --proxy-tlspassword */
-      cleanarg(clearthis);
       if(!feature_tls_srp)
         err = PARAM_LIBCURL_DOESNT_SUPPORT;
       else
         err = getstr(&config->proxy_tls_password, nextarg, DENY_BLANK);
+      cleanarg(clearthis);
       break;
     case C_PROXY_TLSAUTHTYPE: /* --proxy-tlsauthtype */
       if(!feature_tls_srp)
@@ -2632,9 +2624,9 @@ ParameterError getparameter(const char *flag, /* f or -long-flag */
       }
       break;
     case C_PROXY_CERT: /* --proxy-cert */
-      cleanarg(clearthis);
       GetFileAndPassword(nextarg, &config->proxy_cert,
                          &config->proxy_key_passwd);
+      cleanarg(clearthis);
       break;
     case C_PROXY_CERT_TYPE: /* --proxy-cert-type */
       err = getstr(&config->proxy_cert_type, nextarg, DENY_BLANK);
@@ -2993,7 +2985,7 @@ ParameterError getparameter(const char *flag, /* f or -long-flag */
 
 error:
   if(nextalloc)
-    free((char *)nextarg);
+    free(CURL_UNCONST(nextarg));
   return err;
 }
 

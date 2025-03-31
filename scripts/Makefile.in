@@ -536,12 +536,12 @@ all-local: $(ZSH_COMPLETION_FUNCTION_FILENAME) $(FISH_COMPLETION_FUNCTION_FILENA
 @USE_ZSH_COMPLETION_TRUE@$(ZSH_COMPLETION_FUNCTION_FILENAME): completion.pl
 @CROSSCOMPILING_TRUE@@USE_ZSH_COMPLETION_TRUE@	@echo "NOTICE: we can't generate zsh completion when cross-compiling!"
 @CROSSCOMPILING_FALSE@@USE_ZSH_COMPLETION_TRUE@	if test -z "$(PERL)"; then echo "No perl: can't install completion script"; else \
-@CROSSCOMPILING_FALSE@@USE_ZSH_COMPLETION_TRUE@	$(PERL) $(srcdir)/completion.pl --curl $(top_builddir)/src/curl$(EXEEXT) --shell zsh > $@ ; fi
+@CROSSCOMPILING_FALSE@@USE_ZSH_COMPLETION_TRUE@	$(PERL) $(srcdir)/completion.pl --opts-dir $(top_srcdir)/docs/cmdline-opts --shell zsh > $@ ; fi
 
 @USE_FISH_COMPLETION_TRUE@$(FISH_COMPLETION_FUNCTION_FILENAME): completion.pl
 @CROSSCOMPILING_TRUE@@USE_FISH_COMPLETION_TRUE@	@echo "NOTICE: we can't generate fish completion when cross-compiling!"
 @CROSSCOMPILING_FALSE@@USE_FISH_COMPLETION_TRUE@	if test -z "$(PERL)"; then echo "No perl: can't install completion script"; else \
-@CROSSCOMPILING_FALSE@@USE_FISH_COMPLETION_TRUE@	$(PERL) $(srcdir)/completion.pl --curl $(top_builddir)/src/curl$(EXEEXT) --shell fish > $@ ; fi
+@CROSSCOMPILING_FALSE@@USE_FISH_COMPLETION_TRUE@	$(PERL) $(srcdir)/completion.pl --opts-dir $(top_srcdir)/docs/cmdline-opts --shell fish > $@ ; fi
 
 install-data-local:
 @CROSSCOMPILING_TRUE@	@echo "NOTICE: we can't install completion scripts when cross-compiling!"

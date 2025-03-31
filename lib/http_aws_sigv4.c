@@ -46,16 +46,16 @@
 
 #include "slist.h"
 
-#define HMAC_SHA256(k, kl, d, dl, o)           \
-  do {                                         \
-    result = Curl_hmacit(&Curl_HMAC_SHA256,    \
-                         (unsigned char *)k,   \
-                         kl,                   \
-                         (unsigned char *)d,   \
-                         dl, o);               \
-    if(result) {                               \
-      goto fail;                               \
-    }                                          \
+#define HMAC_SHA256(k, kl, d, dl, o)                \
+  do {                                              \
+    result = Curl_hmacit(&Curl_HMAC_SHA256,         \
+                         (const unsigned char *)k,  \
+                         kl,                        \
+                         (const unsigned char *)d,  \
+                         dl, o);                    \
+    if(result) {                                    \
+      goto fail;                                    \
+    }                                               \
   } while(0)
 
 #define TIMESTAMP_SIZE 17
@@ -92,7 +92,7 @@ static void trim_headers(struct curl_slist *head)
     if(!*value)
       continue;
     ++value;
-    store = (char *)value;
+    store = (char *)CURL_UNCONST(value);
 
     /* skip leading whitespace */
     Curl_str_passblanks(&value);
@@ -624,7 +624,7 @@ CURLcode Curl_output_aws_sigv4(struct Curl_easy *data)
    * are still using aws:amz as a prefix.
    */
   line = data->set.str[STRING_AWS_SIGV4] ?
-    data->set.str[STRING_AWS_SIGV4] : (char *)"aws:amz";
+    data->set.str[STRING_AWS_SIGV4] : "aws:amz";
 
   /* provider0[:provider1[:region[:service]]]
 
@@ -845,7 +845,7 @@ CURLcode Curl_output_aws_sigv4(struct Curl_easy *data)
   Curl_strntoupper(&auth_headers[sizeof("Authorization: ") - 1],
                    Curl_str(&provider0), Curl_strlen(&provider0));
 
-  Curl_safefree(data->state.aptr.userpwd);
+  free(data->state.aptr.userpwd);
   data->state.aptr.userpwd = auth_headers;
   data->state.authhost.done = TRUE;
   result = CURLE_OK;

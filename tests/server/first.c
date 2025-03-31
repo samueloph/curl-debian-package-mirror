@@ -1,5 +1,3 @@
-#ifndef HEADER_CURL_STRTOOFFT_H
-#define HEADER_CURL_STRTOOFFT_H
 /***************************************************************************
  *                                  _   _ ____  _
  *  Project                     ___| | | |  _ \| |
@@ -23,16 +21,39 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
+#include <stdio.h>
+#include <string.h>
+#include "first.h"
 
-#include "curl_setup.h"
+int main(int argc, char **argv)
+{
+  main_func_t main_func;
+  char *main_name;
 
-typedef enum {
-  CURL_OFFT_OK,    /* parsed fine */
-  CURL_OFFT_FLOW,  /* over or underflow */
-  CURL_OFFT_INVAL  /* nothing was parsed */
-} CURLofft;
+  if(argc < 2) {
+    fprintf(stderr, "Pass servername as first argument\n");
+    return 1;
+  }
 
-CURLofft curlx_strtoofft(const char *str, char **endp, int base,
-                         curl_off_t *num);
+  main_name = argv[1];
+  main_func = NULL;
+  {
+    size_t tmp;
+    for(tmp = 0; s_mains[tmp].ptr; ++tmp) {
+      if(strcmp(main_name, s_mains[tmp].name) == 0) {
+        main_func = s_mains[tmp].ptr;
+        break;
+      }
+    }
+  }
 
-#endif /* HEADER_CURL_STRTOOFFT_H */
+  if(!main_func) {
+    fprintf(stderr, "Test '%s' not found.\n", main_name);
+    return 99;
+  }
+
+  --argc;
+  ++argv;
+
+  return main_func(argc, argv);
+}

@@ -90,17 +90,19 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 @USE_CPPFLAG_CURL_STATICLIB_TRUE@am__append_1 = -DCURL_STATICLIB
-@CURL_LT_SHLIB_USE_NO_UNDEFINED_TRUE@am__append_2 = -no-undefined
+@DEBUGBUILD_TRUE@am__append_2 = -DDEBUGBUILD
+@CURLDEBUG_TRUE@am__append_3 = -DCURLDEBUG
+@CURL_LT_SHLIB_USE_NO_UNDEFINED_TRUE@am__append_4 = -no-undefined
 
 # Build a stub gssapi implementation for testing
-@BUILD_STUB_GSS_TRUE@am__append_3 = libstubgss.la
+@BUILD_STUB_GSS_TRUE@am__append_5 = libstubgss.la
 @BUILD_STUB_GSS_FALSE@libstubgss_la_DEPENDENCIES =
 @USE_TEST_BUNDLES_FALSE@noinst_PROGRAMS = $(am__EXEEXT_1)
 @USE_TEST_BUNDLES_TRUE@noinst_PROGRAMS = libtests$(EXEEXT)
-@USE_TEST_BUNDLES_TRUE@am__append_4 = libtest_bundle.c
+@USE_TEST_BUNDLES_TRUE@am__append_6 = libtest_bundle.c
 
 # These are part of the libcurl static lib. Add them here when linking shared.
-@USE_CPPFLAG_CURL_STATICLIB_FALSE@@USE_TEST_BUNDLES_TRUE@am__append_5 = $(WARNLESS) $(MULTIBYTE) $(INET_PTON) $(TIMEDIFF) $(THREADS)
+@USE_CPPFLAG_CURL_STATICLIB_FALSE@@USE_TEST_BUNDLES_TRUE@am__append_7 = $(WARNLESS) $(MULTIBYTE) $(INET_PTON) $(TIMEDIFF) $(THREADS)
 subdir = tests/libtest
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/curl-amissl.m4 \
@@ -1329,7 +1331,9 @@ lib695_DEPENDENCIES = $(am__DEPENDENCIES_1)
 am__objects_119 = ../../lib/lib696-timediff.$(OBJEXT)
 am__objects_120 = lib696-first.$(OBJEXT)
 am__objects_121 = $(am__objects_119) $(am__objects_120)
-am_lib696_OBJECTS = lib696-lib556.$(OBJEXT) $(am__objects_121)
+am__objects_122 = ../../lib/lib696-warnless.$(OBJEXT)
+am_lib696_OBJECTS = lib696-lib556.$(OBJEXT) $(am__objects_121) \
+	$(am__objects_122)
 lib696_OBJECTS = $(am_lib696_OBJECTS)
 lib696_LDADD = $(LDADD)
 lib696_DEPENDENCIES = $(am__DEPENDENCIES_1)
@@ -1350,13 +1354,13 @@ am__libtests_SOURCES_DIST = testutil.c testutil.h testtrace.c \
 	../../lib/inet_pton.c ../../lib/inet_pton.h \
 	../../lib/timediff.c ../../lib/timediff.h \
 	../../lib/curl_threads.c ../../lib/curl_threads.h
-@USE_CPPFLAG_CURL_STATICLIB_FALSE@@USE_TEST_BUNDLES_TRUE@am__objects_122 = $(am__objects_5) \
+@USE_CPPFLAG_CURL_STATICLIB_FALSE@@USE_TEST_BUNDLES_TRUE@am__objects_123 = $(am__objects_5) \
 @USE_CPPFLAG_CURL_STATICLIB_FALSE@@USE_TEST_BUNDLES_TRUE@	$(am__objects_57) \
 @USE_CPPFLAG_CURL_STATICLIB_FALSE@@USE_TEST_BUNDLES_TRUE@	$(am__objects_56) \
 @USE_CPPFLAG_CURL_STATICLIB_FALSE@@USE_TEST_BUNDLES_TRUE@	$(am__objects_1) \
 @USE_CPPFLAG_CURL_STATICLIB_FALSE@@USE_TEST_BUNDLES_TRUE@	$(am__objects_58)
 @USE_TEST_BUNDLES_TRUE@am_libtests_OBJECTS = $(am__objects_4) \
-@USE_TEST_BUNDLES_TRUE@	$(am__objects_26) $(am__objects_122)
+@USE_TEST_BUNDLES_TRUE@	$(am__objects_26) $(am__objects_123)
 @USE_TEST_BUNDLES_TRUE@nodist_libtests_OBJECTS =  \
 @USE_TEST_BUNDLES_TRUE@	libtest_bundle.$(OBJEXT)
 libtests_OBJECTS = $(am_libtests_OBJECTS) $(nodist_libtests_OBJECTS)
@@ -1422,6 +1426,7 @@ am__depfiles_remade = ../../lib/$(DEPDIR)/curl_multibyte.Po \
 	../../lib/$(DEPDIR)/lib672-timediff.Po \
 	../../lib/$(DEPDIR)/lib672-warnless.Po \
 	../../lib/$(DEPDIR)/lib696-timediff.Po \
+	../../lib/$(DEPDIR)/lib696-warnless.Po \
 	../../lib/$(DEPDIR)/timediff.Po \
 	../../lib/$(DEPDIR)/warnless.Po ./$(DEPDIR)/first.Po \
 	./$(DEPDIR)/lib1156.Po ./$(DEPDIR)/lib1301.Po \
@@ -1986,11 +1991,12 @@ AUTOMAKE_OPTIONS = foreign nostdinc
 # $(top_srcdir)/lib for libcurl's lib/curl_setup.h and other "borrowed" files
 AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_builddir)/lib \
 	-I$(top_srcdir)/lib -I$(top_srcdir)/src \
-	-I$(top_srcdir)/tests/libtest $(am__append_1)
+	-I$(top_srcdir)/tests/libtest $(am__append_1) $(am__append_2) \
+	$(am__append_3)
 EXTRA_DIST = test307.pl test610.pl test613.pl test1013.pl test1022.pl   \
   CMakeLists.txt mk-lib1521.pl .checksrc
 
-CLEANFILES = lib1521.c $(am__append_4)
+CLEANFILES = lib1521.c $(am__append_6)
 SUPPORTFILES_LIBS = $(top_builddir)/lib/libcurl.la @LIBCURL_PC_LIBS_PRIVATE@
 TESTUTIL_LIBS = $(top_builddir)/lib/libcurl.la @LIBCURL_PC_LIBS_PRIVATE@
 
@@ -2237,7 +2243,7 @@ lib678_SOURCES = lib678.c $(SUPPORTFILES) $(TESTUTIL) $(WARNLESS) $(MULTIBYTE)
 lib678_LDADD = $(TESTUTIL_LIBS)
 lib694_SOURCES = lib694.c $(SUPPORTFILES)
 lib695_SOURCES = lib695.c $(SUPPORTFILES)
-lib696_SOURCES = lib556.c $(SUPPORTFILES)
+lib696_SOURCES = lib556.c $(SUPPORTFILES) $(WARNLESS)
 lib696_CPPFLAGS = $(AM_CPPFLAGS) -DLIB696
 lib1301_SOURCES = lib1301.c $(SUPPORTFILES) $(TESTUTIL)
 lib1301_LDADD = $(TESTUTIL_LIBS)
@@ -2508,10 +2514,10 @@ lib3208_LDADD = $(TESTUTIL_LIBS)
 
 # Makefile.inc provides the source defines (TESTUTIL, SUPPORTFILES,
 # LIBTESTPROGS, lib*_SOURCES, and lib*_CFLAGS)
-noinst_LTLIBRARIES = $(am__append_3)
+noinst_LTLIBRARIES = $(am__append_5)
 AM_LDFLAGS = 
 AM_CFLAGS = 
-libstubgss_la_LDFLAGS_EXTRA = $(am__append_2)
+libstubgss_la_LDFLAGS_EXTRA = $(am__append_4)
 @BUILD_STUB_GSS_TRUE@libstubgss_la_CPPFLAGS = $(AM_CPPFLAGS)
 @BUILD_STUB_GSS_TRUE@libstubgss_la_LDFLAGS = $(AM_LDFLAGS) $(libstubgss_la_LDFLAGS_EXTRA) -avoid-version -rpath /nowhere
 @BUILD_STUB_GSS_TRUE@libstubgss_la_CFLAGS = $(AM_CFLAGS) -g
@@ -2520,7 +2526,7 @@ libstubgss_la_LDFLAGS_EXTRA = $(am__append_2)
 @BUILD_STUB_GSS_TRUE@libstubgss_la_DEPENDENCIES = 
 @USE_TEST_BUNDLES_TRUE@nodist_libtests_SOURCES = libtest_bundle.c
 @USE_TEST_BUNDLES_TRUE@libtests_SOURCES = $(TESTUTIL) $(TSTTRACE) \
-@USE_TEST_BUNDLES_TRUE@	$(am__append_5)
+@USE_TEST_BUNDLES_TRUE@	$(am__append_7)
 @USE_TEST_BUNDLES_TRUE@libtests_LDADD = $(TESTUTIL_LIBS)
 CHECKSRC = $(CS_$(V))
 CS_0 = @echo "  RUN     " $@;
@@ -3657,6 +3663,8 @@ lib695$(EXEEXT): $(lib695_OBJECTS) $(lib695_DEPENDENCIES) $(EXTRA_lib695_DEPENDE
 	$(AM_V_CCLD)$(LINK) $(lib695_OBJECTS) $(lib695_LDADD) $(LIBS)
 ../../lib/lib696-timediff.$(OBJEXT): ../../lib/$(am__dirstamp) \
 	../../lib/$(DEPDIR)/$(am__dirstamp)
+../../lib/lib696-warnless.$(OBJEXT): ../../lib/$(am__dirstamp) \
+	../../lib/$(DEPDIR)/$(am__dirstamp)
 
 lib696$(EXEEXT): $(lib696_OBJECTS) $(lib696_DEPENDENCIES) $(EXTRA_lib696_DEPENDENCIES) 
 	@rm -f lib696$(EXEEXT)
@@ -3731,6 +3739,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/lib672-timediff.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/lib672-warnless.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/lib696-timediff.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/lib696-warnless.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/timediff.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../../lib/$(DEPDIR)/warnless.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/first.Po@am__quote@ # am--include-marker
@@ -5633,6 +5642,20 @@ lib696-first.obj: first.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib696_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o lib696-first.obj `if test -f 'first.c'; then $(CYGPATH_W) 'first.c'; else $(CYGPATH_W) '$(srcdir)/first.c'; fi`
 
+../../lib/lib696-warnless.o: ../../lib/warnless.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib696_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT ../../lib/lib696-warnless.o -MD -MP -MF ../../lib/$(DEPDIR)/lib696-warnless.Tpo -c -o ../../lib/lib696-warnless.o `test -f '../../lib/warnless.c' || echo '$(srcdir)/'`../../lib/warnless.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/lib696-warnless.Tpo ../../lib/$(DEPDIR)/lib696-warnless.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/warnless.c' object='../../lib/lib696-warnless.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib696_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o ../../lib/lib696-warnless.o `test -f '../../lib/warnless.c' || echo '$(srcdir)/'`../../lib/warnless.c
+
+../../lib/lib696-warnless.obj: ../../lib/warnless.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib696_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT ../../lib/lib696-warnless.obj -MD -MP -MF ../../lib/$(DEPDIR)/lib696-warnless.Tpo -c -o ../../lib/lib696-warnless.obj `if test -f '../../lib/warnless.c'; then $(CYGPATH_W) '../../lib/warnless.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/warnless.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../../lib/$(DEPDIR)/lib696-warnless.Tpo ../../lib/$(DEPDIR)/lib696-warnless.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../../lib/warnless.c' object='../../lib/lib696-warnless.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib696_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o ../../lib/lib696-warnless.obj `if test -f '../../lib/warnless.c'; then $(CYGPATH_W) '../../lib/warnless.c'; else $(CYGPATH_W) '$(srcdir)/../../lib/warnless.c'; fi`
+
 mostlyclean-libtool:
 	-rm -f *.lo
 
@@ -5813,6 +5836,7 @@ distclean: distclean-am
 	-rm -f ../../lib/$(DEPDIR)/lib672-timediff.Po
 	-rm -f ../../lib/$(DEPDIR)/lib672-warnless.Po
 	-rm -f ../../lib/$(DEPDIR)/lib696-timediff.Po
+	-rm -f ../../lib/$(DEPDIR)/lib696-warnless.Po
 	-rm -f ../../lib/$(DEPDIR)/timediff.Po
 	-rm -f ../../lib/$(DEPDIR)/warnless.Po
 	-rm -f ./$(DEPDIR)/first.Po
@@ -6200,6 +6224,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../../lib/$(DEPDIR)/lib672-timediff.Po
 	-rm -f ../../lib/$(DEPDIR)/lib672-warnless.Po
 	-rm -f ../../lib/$(DEPDIR)/lib696-timediff.Po
+	-rm -f ../../lib/$(DEPDIR)/lib696-warnless.Po
 	-rm -f ../../lib/$(DEPDIR)/timediff.Po
 	-rm -f ../../lib/$(DEPDIR)/warnless.Po
 	-rm -f ./$(DEPDIR)/first.Po
@@ -6534,7 +6559,7 @@ uninstall-am:
 .PRECIOUS: Makefile
 
 
-@USE_TEST_BUNDLES_TRUE@libtest_bundle.c: $(top_srcdir)/tests/mk-bundle.pl lib1521.c
+@USE_TEST_BUNDLES_TRUE@libtest_bundle.c: $(top_srcdir)/tests/mk-bundle.pl Makefile.inc $(FIRSTFILES) lib1521.c
 @USE_TEST_BUNDLES_TRUE@	@PERL@ $(top_srcdir)/tests/mk-bundle.pl $(srcdir) > libtest_bundle.c
 
 lib1521.c: $(top_srcdir)/tests/libtest/mk-lib1521.pl $(top_srcdir)/include/curl/curl.h

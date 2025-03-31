@@ -1,3 +1,3 @@
 version=4
 opts=pgpmode=auto,repacksuffix=+ds,uversionmangle=s/(\d)[_\.\-\+]?((RC|rc|pre|dev|beta|alpha)\d*)$/$1~$2/ \
-  https://curl.se/rc/ @PACKAGE@-@ANY_VERSION@.@ARCHIVE_EXT@
+  https://curl.se/rc/ @PACKAGE@-(\d\S+)@ARCHIVE_EXT@

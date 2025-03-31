@@ -51,7 +51,12 @@ bin_PROGRAMS = curl
 if USE_CPPFLAG_CURL_STATICLIB
 AM_CPPFLAGS += -DCURL_STATICLIB
 endif
-AM_CPPFLAGS += -DBUILDING_CURL
+if DEBUGBUILD
+AM_CPPFLAGS += -DDEBUGBUILD
+endif
+if CURLDEBUG
+AM_CPPFLAGS += -DCURLDEBUG
+endif
 
 AM_LDFLAGS =
 if USE_UNICODE
@@ -66,7 +71,7 @@ CLEANFILES =
 
 if USE_UNITY
 curl_EXCLUDE =
-if DEBUGBUILD
+if CURLDEBUG
 # We must compile this source separately to avoid memdebug.h redefinitions
 # applying to them.
 curl_EXCLUDE += ../lib/curl_multibyte.c

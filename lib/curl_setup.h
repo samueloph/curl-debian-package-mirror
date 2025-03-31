@@ -175,6 +175,12 @@
 /* system header files in our config files, avoid this at any cost. */
 /* ================================================================ */
 
+#ifdef HAVE_LIBZ
+#  ifndef ZLIB_CONST
+#  define ZLIB_CONST  /* Use z_const. Supported by v1.2.5.2 and upper. */
+#  endif
+#endif
+
 /*
  * AIX 4.3 and newer needs _THREAD_SAFE defined to build
  * proper reentrant code. Others may also need it.
@@ -463,9 +469,9 @@
 #endif
 
 #ifdef _WIN32
-#define Curl_getpid() GetCurrentProcessId()
+#define curlx_getpid() GetCurrentProcessId()
 #else
-#define Curl_getpid() getpid()
+#define curlx_getpid() getpid()
 #endif
 
 /*
@@ -847,13 +853,14 @@
 /* Terrible workarounds to make Windows CE compile */
 #define errno 0
 #define CURL_SETERRNO(x) ((void)(x))
+#define EINTR  4
 #define EAGAIN 11
 #define ENOMEM 12
 #define EACCES 13
 #define EEXIST 17
 #define EISDIR 21
+#define EINVAL 22
 #define ENOSPC 28
-#define ERANGE 34
 #define strerror(x) "?"
 #else
 #define CURL_SETERRNO(x) (errno = (x))

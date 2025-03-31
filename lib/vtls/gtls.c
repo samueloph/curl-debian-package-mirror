@@ -100,6 +100,7 @@ static ssize_t gtls_push(void *s, const void *buf, size_t blen)
               blen, nwritten, result);
   backend->gtls.io_result = result;
   if(nwritten < 0) {
+    /* !checksrc! disable ERRNOVAR 1 */
     gnutls_transport_set_errno(backend->gtls.session,
                                (CURLE_AGAIN == result) ? EAGAIN : EINVAL);
     nwritten = -1;
@@ -121,6 +122,7 @@ static ssize_t gtls_pull(void *s, void *buf, size_t blen)
   if(!backend->gtls.shared_creds->trust_setup) {
     result = Curl_gtls_client_trust_setup(cf, data, &backend->gtls);
     if(result) {
+      /* !checksrc! disable ERRNOVAR 1 */
       gnutls_transport_set_errno(backend->gtls.session, EINVAL);
       backend->gtls.io_result = result;
       return -1;
@@ -132,6 +134,7 @@ static ssize_t gtls_pull(void *s, void *buf, size_t blen)
               blen, nread, result);
   backend->gtls.io_result = result;
   if(nread < 0) {
+    /* !checksrc! disable ERRNOVAR 1 */
     gnutls_transport_set_errno(backend->gtls.session,
                                (CURLE_AGAIN == result) ? EAGAIN : EINVAL);
     nread = -1;
@@ -564,7 +567,7 @@ gtls_get_cached_creds(struct Curl_cfilter *cf, struct Curl_easy *data)
 
   if(data->multi) {
     shared_creds = Curl_hash_pick(&data->multi->proto_hash,
-                                  (void *)MPROTO_GTLS_X509_KEY,
+                                  CURL_UNCONST(MPROTO_GTLS_X509_KEY),
                                   sizeof(MPROTO_GTLS_X509_KEY)-1);
      if(shared_creds && shared_creds->creds &&
         !gtls_shared_creds_expired(data, shared_creds) &&
@@ -608,7 +611,7 @@ static void gtls_set_cached_creds(struct Curl_cfilter *cf,
     return;
 
   if(!Curl_hash_add2(&data->multi->proto_hash,
-                    (void *)MPROTO_GTLS_X509_KEY,
+                    CURL_UNCONST(MPROTO_GTLS_X509_KEY),
                     sizeof(MPROTO_GTLS_X509_KEY)-1,
                     sc, gtls_shared_creds_hash_free)) {
     Curl_gtls_shared_creds_free(&sc); /* down reference again */
@@ -1113,7 +1116,7 @@ CURLcode Curl_gtls_ctx_init(struct gtls_ctx *gctx,
   size_t gtls_alpns_count = 0;
   bool gtls_session_setup = FALSE;
   struct alpn_spec alpns;
-  CURLcode result;
+  CURLcode result = CURLE_OK;
   int rc;
 
   DEBUGASSERT(gctx);
@@ -1589,10 +1592,10 @@ Curl_gtls_verifyserver(struct Curl_easy *data,
     unsigned char addrbuf[sizeof(struct use_addr)];
     size_t addrlen = 0;
 
-    if(Curl_inet_pton(AF_INET, peer->hostname, addrbuf) > 0)
+    if(curlx_inet_pton(AF_INET, peer->hostname, addrbuf) > 0)
       addrlen = 4;
 #ifdef USE_IPV6
-    else if(Curl_inet_pton(AF_INET6, peer->hostname, addrbuf) > 0)
+    else if(curlx_inet_pton(AF_INET6, peer->hostname, addrbuf) > 0)
       addrlen = 16;
 #endif
 
@@ -1980,7 +1983,7 @@ static ssize_t gtls_send(struct Curl_cfilter *cf,
     nwritten = (size_t)rc;
     total_written += nwritten;
     DEBUGASSERT(nwritten <= blen);
-    buf = (char *)buf + nwritten;
+    buf = (char *)CURL_UNCONST(buf) + nwritten;
     blen -= nwritten;
   }
   rc = total_written;

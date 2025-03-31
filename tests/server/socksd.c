@@ -74,7 +74,6 @@
 #endif
 
 #include "curlx.h" /* from the private lib dir */
-#include "getpart.h"
 #include "inet_pton.h"
 #include "util.h"
 #include "server_sockaddr.h"
@@ -231,7 +230,7 @@ static curl_socket_t socksconnect(unsigned short connectport,
   me.sa4.sin_family = AF_INET;
   me.sa4.sin_port = htons(connectport);
   me.sa4.sin_addr.s_addr = INADDR_ANY;
-  Curl_inet_pton(AF_INET, connectaddr, &me.sa4.sin_addr);
+  curlx_inet_pton(AF_INET, connectaddr, &me.sa4.sin_addr);
 
   rc = connect(sock, &me.sa, sizeof(me.sa4));
 
@@ -790,9 +789,9 @@ static curl_socket_t socksd_sockdaemon(curl_socket_t sock,
         rc = wait_ms(delay);
         if(rc) {
           /* should not happen */
-          error = errno;
+          error = SOCKERRNO;
           logmsg("wait_ms() failed with error (%d) %s",
-                 error, strerror(error));
+                 error, sstrerror(error));
           sclose(sock);
           return CURL_SOCKET_BAD;
         }

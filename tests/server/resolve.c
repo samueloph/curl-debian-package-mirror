@@ -44,7 +44,6 @@
 #include <netdb.h>
 #endif
 
-#include "curlx.h" /* from the private lib dir */
 #include "util.h"
 
 /* include memdebug.h last */
@@ -135,7 +134,7 @@ int main(int argc, char *argv[])
     struct hostent *he;  /* gethostbyname() resolve */
 
 #ifdef __AMIGA__
-    he = gethostbyname((unsigned char *)host);
+    he = gethostbyname((unsigned char *)CURL_UNCONST(host));
 #else
     he = gethostbyname(host);
 #endif

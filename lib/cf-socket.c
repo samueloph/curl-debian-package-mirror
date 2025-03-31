@@ -721,7 +721,7 @@ static CURLcode bindlocal(struct Curl_easy *data, struct connectdata *conn,
         if(scope_ptr)
           *(scope_ptr++) = '\0';
 #endif
-        if(Curl_inet_pton(AF_INET6, myhost, &si6->sin6_addr) > 0) {
+        if(curlx_inet_pton(AF_INET6, myhost, &si6->sin6_addr) > 0) {
           si6->sin6_family = AF_INET6;
           si6->sin6_port = htons(port);
 #ifdef HAVE_SOCKADDR_IN6_SIN6_SCOPE_ID
@@ -731,7 +731,8 @@ static CURLcode bindlocal(struct Curl_easy *data, struct connectdata *conn,
                IDs and the former returns none at all. So the scope ID, if
                present, is known to be numeric */
             curl_off_t scope_id;
-            if(Curl_str_number((const char **)&scope_ptr, &scope_id, UINT_MAX))
+            if(Curl_str_number((const char **)CURL_UNCONST(&scope_ptr),
+                               &scope_id, UINT_MAX))
               return CURLE_UNSUPPORTED_PROTOCOL;
             si6->sin6_scope_id = (unsigned int)scope_id;
           }
@@ -743,7 +744,7 @@ static CURLcode bindlocal(struct Curl_easy *data, struct connectdata *conn,
 #endif
       /* IPv4 address */
       if((af == AF_INET) &&
-         (Curl_inet_pton(AF_INET, myhost, &si4->sin_addr) > 0)) {
+         (curlx_inet_pton(AF_INET, myhost, &si4->sin_addr) > 0)) {
         si4->sin_family = AF_INET;
         si4->sin_port = htons(port);
         sizeof_sa = sizeof(struct sockaddr_in);
@@ -867,7 +868,7 @@ static bool verifyconnect(curl_socket_t sockfd, int *error)
     err = 0;
   }
 #endif
-  if((0 == err) || (EISCONN == err))
+  if((0 == err) || (SOCKEISCONN == err))
     /* we are connected, awesome! */
     rc = TRUE;
   else
@@ -890,10 +891,10 @@ static CURLcode socket_connect_result(struct Curl_easy *data,
                                       const char *ipaddress, int error)
 {
   switch(error) {
-  case EINPROGRESS:
-  case EWOULDBLOCK:
+  case SOCKEINPROGRESS:
+  case SOCKEWOULDBLOCK:
 #if defined(EAGAIN)
-#if (EAGAIN) != (EWOULDBLOCK)
+#if (EAGAIN) != (SOCKEWOULDBLOCK)
     /* On some platforms EAGAIN and EWOULDBLOCK are the
      * same value, and on others they are different, hence
      * the odd #if
@@ -1514,15 +1515,16 @@ static ssize_t cf_socket_send(struct Curl_cfilter *cf, struct Curl_easy *data,
     int sockerr = SOCKERRNO;
 
     if(
-#ifdef WSAEWOULDBLOCK
+#ifdef USE_WINSOCK
       /* This is how Windows does it */
-      (WSAEWOULDBLOCK == sockerr)
+      (SOCKEWOULDBLOCK == sockerr)
 #else
       /* errno may be EWOULDBLOCK or on some systems EAGAIN when it returned
          due to its inability to send off data without blocking. We therefore
          treat both error codes the same here */
-      (EWOULDBLOCK == sockerr) || (EAGAIN == sockerr) || (EINTR == sockerr) ||
-      (EINPROGRESS == sockerr)
+      (SOCKEWOULDBLOCK == sockerr) ||
+      (EAGAIN == sockerr) || (SOCKEINTR == sockerr) ||
+      (SOCKEINPROGRESS == sockerr)
 #endif
       ) {
       /* this is just a case of EWOULDBLOCK */
@@ -1582,14 +1584,15 @@ static ssize_t cf_socket_recv(struct Curl_cfilter *cf, struct Curl_easy *data,
     int sockerr = SOCKERRNO;
 
     if(
-#ifdef WSAEWOULDBLOCK
+#ifdef USE_WINSOCK
       /* This is how Windows does it */
-      (WSAEWOULDBLOCK == sockerr)
+      (SOCKEWOULDBLOCK == sockerr)
 #else
       /* errno may be EWOULDBLOCK or on some systems EAGAIN when it returned
          due to its inability to send off data without blocking. We therefore
          treat both error codes the same here */
-      (EWOULDBLOCK == sockerr) || (EAGAIN == sockerr) || (EINTR == sockerr)
+      (SOCKEWOULDBLOCK == sockerr) ||
+      (EAGAIN == sockerr) || (SOCKEINTR == sockerr)
 #endif
       ) {
       /* this is just a case of EWOULDBLOCK */
@@ -1825,7 +1828,9 @@ static CURLcode cf_udp_setup_quic(struct Curl_cfilter *cf,
   /* QUIC needs a connected socket, nonblocking */
   DEBUGASSERT(ctx->sock != CURL_SOCKET_BAD);
 
-  rc = connect(ctx->sock, &ctx->addr.curl_sa_addr,  /* NOLINT */
+  /* error: The 1st argument to 'connect' is -1 but should be >= 0
+     NOLINTNEXTLINE(clang-analyzer-unix.StdCLibraryFunctions) */
+  rc = connect(ctx->sock, &ctx->addr.curl_sa_addr,
                (curl_socklen_t)ctx->addr.addrlen);
   if(-1 == rc) {
     return socket_connect_result(data, ctx->ip.remote_ip, SOCKERRNO);
