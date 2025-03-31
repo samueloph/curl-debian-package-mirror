@@ -18,7 +18,9 @@ CONFIGURE_ARGS = -- --disable-dependency-tracking		\
 	--with-fish-functions-dir=/usr/share/fish/vendor_completions.d \
 	--with-ca-path=/etc/ssl/certs \
 	--with-ca-bundle=/etc/ssl/certs/ca-certificates.crt \
-	--without-libssh --with-libssh2
+	--without-libssh --with-libssh2 \
+	--enable-httpsrr \
+	--enable-ssls-export
 
 ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
   NUMJOBS = $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
