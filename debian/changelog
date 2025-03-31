@@ -1,3 +1,9 @@
+curl (8.13.0~rc3-1+exp1) experimental; urgency=medium
+
+  * Enable experimental features: HTTPS RR and SSL session import/export
+
+ -- Samuel Henrique <samueloph@debian.org>  Mon, 31 Mar 2025 20:05:18 +0100
+
 curl (8.13.0~rc3-1) unstable; urgency=medium
 
   * New upstream version 8.13.0~rc3
