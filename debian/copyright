@@ -119,11 +119,6 @@ Files: lib/inet_ntop.c
 Copyright: 1996-2022, Internet Software Consortium.
 License: ISC
 
-Files: tests/certs/scripts/genroot.sh
- tests/certs/scripts/genserv.sh
-Copyright: 2000-2020, EdelWeb for EdelKey and OpenEvidence
-License: curl
-
 Files: lib/smb.c
  lib/smb.h
 Copyright: 2014, 2018, Bill Nagel <wnagel@tycoint.com>, Exacq Technologies

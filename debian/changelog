@@ -1,8 +1,13 @@
-curl (8.13.0~rc3-1+exp1) experimental; urgency=medium
+curl (8.13.0-1) unstable; urgency=medium
 
-  * Enable experimental features: HTTPS RR and SSL session import/export
+  * New upstream version 8.13.0
+  * Update Standards-Version to 4.7.2
+  * Ship shell completions on crossbuilds. Upstream changed the way they are
+    generated and it doesn't need to call the compiled binary anymore.
+  * d/copyright: Drop removed files genroot.sh and genserv.sh  
+  * d/watch: Point to GitHub for GA releases
 
- -- Samuel Henrique <samueloph@debian.org>  Mon, 31 Mar 2025 20:05:18 +0100
+ -- Samuel Henrique <samueloph@debian.org>  Wed, 02 Apr 2025 09:12:40 +0100
 
 curl (8.13.0~rc3-1) unstable; urgency=medium
 
