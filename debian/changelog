@@ -1,8 +1,8 @@
-curl (8.13.0-2+exp1) UNRELEASED; urgency=medium
+curl (8.13.0-2+exp1) experimental; urgency=medium
 
   * Enable experimental features: HTTPS RR and SSL session import/export
 
- -- Samuel Henrique <samueloph@debian.org>  Wed, 02 Apr 2025 10:01:05 +0100
+ -- Samuel Henrique <samueloph@debian.org>  Tue, 15 Apr 2025 23:29:36 +0100
 
 curl (8.13.0-2) unstable; urgency=medium
 
