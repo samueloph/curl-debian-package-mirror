@@ -1,8 +1,17 @@
-curl (8.13.0-1+exp1) experimental; urgency=medium
+curl (8.13.0-2+exp1) UNRELEASED; urgency=medium
 
   * Enable experimental features: HTTPS RR and SSL session import/export
 
  -- Samuel Henrique <samueloph@debian.org>  Wed, 02 Apr 2025 10:01:05 +0100
+
+curl (8.13.0-2) unstable; urgency=medium
+
+  * Link with OpenSSL for the curl CLI (closes: #1095986)
+  * d/control: Recommends bash-completion for curl binary package
+  * d/p/scripts_completion_pl..: New patch to fix build reprocibility
+  * d/curl.NEWS: Add an entry to mention switch back to OpenSSL
+
+ -- Samuel Henrique <samueloph@debian.org>  Sun, 06 Apr 2025 22:13:18 +0100
 
 curl (8.13.0-1) unstable; urgency=medium
 
@@ -10,7 +19,7 @@ curl (8.13.0-1) unstable; urgency=medium
   * Update Standards-Version to 4.7.2
   * Ship shell completions on crossbuilds. Upstream changed the way they are
     generated and it doesn't need to call the compiled binary anymore.
-  * d/copyright: Drop removed files genroot.sh and genserv.sh  
+  * d/copyright: Drop removed files genroot.sh and genserv.sh
   * d/watch: Point to GitHub for GA releases
 
  -- Samuel Henrique <samueloph@debian.org>  Wed, 02 Apr 2025 09:12:40 +0100
