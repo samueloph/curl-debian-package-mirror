@@ -1,3 +1,16 @@
+curl (7.64.0-4+deb10u11) buster-security; urgency=high
+
+  * Non-maintainer upload by the ELTS Security Team.
+  * debian/gbp.conf: add file with minimal settings and debian/buster default.
+  * debian/patches/:
+      - CVE-2024-2398.patch: backport patch to fix vulnerability.
+          + CVE-2024-2398: HTTP/2 push headers memory-leak.
+      - CVE-2024-8096.patch: backport patch to fix vulnerability.
+          + CVE-2024-8096: OCSP stapling bypass with GnuTLS.
+  * debian/salsa-ci.yml: add ELTS pipeline for buster.
+
+ -- Carlos Henrique Lima Melara <charlesmelara@riseup.net>  Thu, 17 Apr 2025 01:22:39 -0300
+
 curl (7.64.0-4+deb10u10) buster-security; urgency=high
 
   * Non-maintainer upload by the LTS team.
