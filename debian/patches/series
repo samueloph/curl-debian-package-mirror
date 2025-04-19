@@ -56,6 +56,9 @@ CVE-2024-7264.patch
 # Post 8.6.0
 CVE-2024-2398.patch
 
+# Post 8.10.0
+CVE-2024-8096.patch
+
 # Always add patches before this line!
 90_gnutls.patch
 99_nss.patch
