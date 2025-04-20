@@ -1,3 +1,17 @@
+curl (7.52.1-5+deb9u23) stretch-security; urgency=medium
+
+  * Non-maintainer upload by the ELTS team.
+  * debian/gbp.conf: add file with minimal settings and debian/stretch
+    default.
+  * debian/patches/:
+      - CVE-2024-2398.patch: backport patch to stretch's version.
+          + CVE-2024-2398: HTTP/2 push headers memory-leak.
+      - CVE-2024-8096.patch: backport patch to stretch's version.
+          + CVE-2024-8096: OCSP stapling bypass with GnuTLS.
+  * debian/salsa-ci.yml: add ELTS pipeline for stretch.
+
+ -- Carlos Henrique Lima Melara <charlesmelara@riseup.net>  Sun, 20 Apr 2025 14:45:06 -0300
+
 curl (7.52.1-5+deb9u22) stretch-security; urgency=high
 
   * Non-maintainer upload by the LTS team.
