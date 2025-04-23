@@ -1,8 +1,26 @@
-curl (8.13.0-2+exp1) experimental; urgency=medium
+curl (8.13.0-4) unstable; urgency=medium
 
-  * Enable experimental features: HTTPS RR and SSL session import/export
+  * d/tests/control: Install curl for the openssl tests
+  * d/p/autotools_install_shell_completion_files_on_cross_build: Fix FTCBFS,
+    thanks to Helmut Grohne (closes: #1103938)
 
- -- Samuel Henrique <samueloph@debian.org>  Tue, 15 Apr 2025 23:29:36 +0100
+ -- Samuel Henrique <samueloph@debian.org>  Thu, 24 Apr 2025 00:02:26 +0100
+
+curl (8.13.0-3) unstable; urgency=medium
+
+  [ Carlos Henrique Lima Melara ]
+  * d/t/upstream-tests-*: use correct version of curl in tests
+
+  [ наб ]
+  * d/README.source: delete (false)
+
+  [ Matheus Polkorny ]
+  * d/copyright: Update to reflect upstream copyright changes
+
+  [ Samuel Henrique ]
+  * Update wcurl to v2025.04.20
+
+ -- Samuel Henrique <samueloph@debian.org>  Mon, 21 Apr 2025 00:23:44 +0100
 
 curl (8.13.0-2) unstable; urgency=medium
 

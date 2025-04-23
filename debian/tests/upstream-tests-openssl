@@ -7,10 +7,10 @@ set -e
 # It might be possible to patch the makefile to have libauthretry link against
 # the system's installed libcurl, patches welcome.
 #
-# openssl tests run against the built curl and libcurl rather than the installed
-# one as we don't ship a curl linked against openssl (only openssl libraries).
+# openssl tests run against the system's installed curl.
 
 export DEB_BUILD_PROFILES="pkg.curl.openssl-only"
+export TESTS_GENERAL_PARAMETERS="-c /usr/bin/curl -vc /usr/bin/curl"
 export VERBOSE=1
 
 # Don't skip tests which fail on ipv6-only environments for autopkgtests.
