@@ -21,6 +21,9 @@ export VERBOSE=1
 # https://github.com/curl/curl/issues/10682
 export TESTS_FAILS_ON_IPV6_ONLY_MACHINES=""
 
+echo "debian/rules override_dh_auto_clean"
+debian/rules override_dh_auto_clean > "${AUTOPKGTEST_ARTIFACTS}/openssl_auto_clean.log"
+
 echo "dh_update_autotools_config"
 dh_update_autotools_config > "${AUTOPKGTEST_ARTIFACTS}/openssl_autotools_config.log"
 
