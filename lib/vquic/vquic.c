@@ -22,7 +22,7 @@
  *
  ***************************************************************************/
 
-#include "curl_setup.h"
+#include "../curl_setup.h"
 
 #ifdef HAVE_NETINET_UDP_H
 #include <netinet/udp.h>
@@ -30,26 +30,26 @@
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
-#include "urldata.h"
-#include "bufq.h"
-#include "dynbuf.h"
-#include "cfilters.h"
-#include "curl_trc.h"
+#include "../urldata.h"
+#include "../bufq.h"
+#include "../dynbuf.h"
+#include "../cfilters.h"
+#include "../curl_trc.h"
 #include "curl_msh3.h"
 #include "curl_ngtcp2.h"
 #include "curl_osslq.h"
 #include "curl_quiche.h"
-#include "multiif.h"
-#include "rand.h"
+#include "../multiif.h"
+#include "../rand.h"
 #include "vquic.h"
 #include "vquic_int.h"
-#include "strerror.h"
-#include "strparse.h"
+#include "../strerror.h"
+#include "../strparse.h"
 
 /* The last 3 #include files should be in this order */
-#include "curl_printf.h"
-#include "curl_memory.h"
-#include "memdebug.h"
+#include "../curl_printf.h"
+#include "../curl_memory.h"
+#include "../memdebug.h"
 
 
 #ifdef USE_HTTP3
@@ -57,6 +57,16 @@
 #define NW_CHUNK_SIZE     (64 * 1024)
 #define NW_SEND_CHUNKS    2
 
+
+int Curl_vquic_init(void)
+{
+#if defined(USE_NGTCP2) && defined(OPENSSL_QUIC_API2)
+  if(ngtcp2_crypto_ossl_init())
+    return 0;
+#endif
+
+  return 1;
+}
 
 void Curl_quic_ver(char *p, size_t len)
 {
@@ -471,19 +481,20 @@ static CURLcode recvmsg_packets(struct Curl_cfilter *cf,
   size_t pktlen;
   size_t offset, to;
 
-  msg_iov.iov_base = buf;
-  msg_iov.iov_len = (int)sizeof(buf);
-
-  memset(&msg, 0, sizeof(msg));
-  msg.msg_iov = &msg_iov;
-  msg.msg_iovlen = 1;
-  msg.msg_control = msg_ctrl;
-
   DEBUGASSERT(max_pkts > 0);
   for(pkts = 0, total_nread = 0; pkts < max_pkts;) {
+    /* fully initialise this on each call to `recvmsg()`. There seem to
+     * operating systems out there that mess with `msg_iov.iov_len`. */
+    memset(&msg, 0, sizeof(msg));
+    msg_iov.iov_base = buf;
+    msg_iov.iov_len = (int)sizeof(buf);
+    msg.msg_iov = &msg_iov;
+    msg.msg_iovlen = 1;
+    msg.msg_control = msg_ctrl;
     msg.msg_name = &remote_addr;
     msg.msg_namelen = sizeof(remote_addr);
     msg.msg_controllen = sizeof(msg_ctrl);
+
     while((nread = recvmsg(qctx->sockfd, &msg, 0)) == -1 &&
           SOCKERRNO == SOCKEINTR)
       ;

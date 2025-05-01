@@ -160,7 +160,6 @@ Available substitute variables include:
 - `%NOLISTENPORT` - Port number where no service is listening
 - `%POP36PORT` - IPv6 port number of the POP3 server
 - `%POP3PORT` - Port number of the POP3 server
-- `%POSIX_PWD` - Current directory somewhat MinGW friendly
 - `%PROXYPORT` - Port number of the HTTP proxy
 - `%PWD` - Current directory
 - `%RESOLVE` - server/resolve command
@@ -173,7 +172,8 @@ Available substitute variables include:
 - `%SOCKSPORT` - Port number of the SOCKS4/5 server
 - `%SOCKSUNIXPATH` - Path to the Unix socket of the SOCKS server
 - `%SRCDIR` - Full path to the source dir
-- `%SSH_PWD` - Current directory friendly for the SSH server
+- `%SCP_PWD` - Current directory friendly for the SSH server for the scp:// protocol
+- `%SFTP_PWD` - Current directory friendly for the SSH server for the sftp:// protocol
 - `%SSHPORT` - Port number of the SCP/SFTP server
 - `%SSHSRVMD5` - MD5 of SSH server's public key
 - `%SSHSRVSHA256` - SHA256 of SSH server's public key
@@ -397,6 +397,7 @@ What server(s) this test case requires/uses. Available servers:
 - `http-proxy`
 - `https`
 - `https-proxy`
+- `https-mtls`
 - `httptls+srp`
 - `httptls+srp-ipv6`
 - `http-unix`
@@ -475,6 +476,7 @@ Features testable here are:
 - `NTLM`
 - `NTLM_WB`
 - `OpenSSL`
+- `override-dns` - this build can use a "fake" DNS server
 - `parsedate`
 - `proxy`
 - `PSL`

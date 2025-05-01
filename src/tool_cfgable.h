@@ -135,6 +135,7 @@ struct OperationConfig {
   char *etag_compare_file;
   char *customrequest;
   char *ssl_ec_curves;
+  char *ssl_signature_algorithms;
   char *krblevel;
   char *request_target;
   char *writeout;           /* %-styled format string to output */
@@ -202,7 +203,7 @@ struct OperationConfig {
                                      0 is valid. default: CURL_HET_DEFAULT. */
   unsigned long timecond;
   HttpReq httpreq;
-  int proxyver;             /* set to CURLPROXY_HTTP* define */
+  long proxyver;             /* set to CURLPROXY_HTTP* define */
   int ftp_ssl_ccc_mode;
   int ftp_filemethod;
   int default_node_flags;   /* default flags to search for each 'node', which

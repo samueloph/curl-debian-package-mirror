@@ -103,7 +103,7 @@ test_thread(void *ptr)
 
       curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_memory_callback);
       curl_easy_setopt(curl, CURLOPT_WRITEDATA, ptr);
-      curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
+      curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 
       /* Perform the request, res will get the return code */
       res = curl_easy_perform(curl);
@@ -161,7 +161,7 @@ static void execute(CURLSH *share, struct Ctx *ctx)
   for(i = 0; i < THREAD_SIZE; i++) {
     if(thread[i]) {
       Curl_thread_join(&thread[i]);
-      Curl_thread_destroy(thread[i]);
+      Curl_thread_destroy(&thread[i]);
     }
   }
   curl_share_setopt(share, CURLSHOPT_LOCKFUNC, NULL);

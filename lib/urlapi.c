@@ -129,7 +129,6 @@ static const char *find_host_sep(const char *url)
 #define cc2cu(x) ((x) == CURLE_TOO_LARGE ? CURLUE_TOO_LARGE :   \
                   CURLUE_OUT_OF_MEMORY)
 
-static const char hexdigits[] = "0123456789abcdef";
 /* urlencode_str() writes data into an output dynbuf and URL-encodes the
  * spaces in the source URL accordingly.
  *
@@ -164,9 +163,8 @@ static CURLUcode urlencode_str(struct dynbuf *o, const char *url,
         result = Curl_dyn_addn(o, "+", 1);
     }
     else if((*iptr < ' ') || (*iptr >= 0x7f)) {
-      char out[3]={'%'};
-      out[1] = hexdigits[*iptr >> 4];
-      out[2] = hexdigits[*iptr & 0xf];
+      unsigned char out[3]={'%'};
+      Curl_hexbyte(&out[1], *iptr, TRUE);
       result = Curl_dyn_addn(o, out, 3);
     }
     else {
@@ -305,7 +303,7 @@ static CURLUcode redirect_url(const char *base, const char *relurl,
 }
 
 /* scan for byte values <= 31, 127 and sometimes space */
-static CURLUcode junkscan(const char *url, size_t *urllen, bool allowspace)
+CURLUcode Curl_junkscan(const char *url, size_t *urllen, bool allowspace)
 {
   size_t n = strlen(url);
   size_t i;
@@ -920,7 +918,7 @@ static CURLUcode parseurl(const char *url, CURLU *u, unsigned int flags)
 
   Curl_dyn_init(&host, CURL_MAX_INPUT_LENGTH);
 
-  result = junkscan(url, &urllen, !!(flags & CURLU_ALLOW_SPACE));
+  result = Curl_junkscan(url, &urllen, !!(flags & CURLU_ALLOW_SPACE));
   if(result)
     goto fail;
 
@@ -1772,9 +1770,17 @@ CURLUcode curl_url_set(CURLU *u, CURLUPart what,
     CURLUcode uc;
     char *oldurl;
 
-    if(!nalloc)
-      /* a blank URL is not a valid URL */
+    if(!nalloc) {
+      /* a blank URL is not a valid URL unless we already have a complete one
+         and this is a redirect */
+      if(!curl_url_get(u, CURLUPART_URL, &oldurl, flags)) {
+        /* success, meaning the "" is a fine relative URL, but nothing
+           changes */
+        free(oldurl);
+        return CURLUE_OK;
+      }
       return CURLUE_MALFORMED_INPUT;
+    }
 
     /* if the new thing is absolute or the old one is not (we could not get an
      * absolute URL in 'oldurl'), then replace the existing with the new. */
@@ -1824,9 +1830,8 @@ CURLUcode curl_url_set(CURLU *u, CURLUPart what,
             return cc2cu(result);
         }
         else {
-          char out[3]={'%'};
-          out[1] = hexdigits[*i >> 4];
-          out[2] = hexdigits[*i & 0xf];
+          unsigned char out[3]={'%'};
+          Curl_hexbyte(&out[1], *i, TRUE);
           result = Curl_dyn_addn(&enc, out, 3);
           if(result)
             return cc2cu(result);

@@ -305,6 +305,8 @@ static const struct LongShort aliases[]= {
   {"sessionid",                  ARG_BOOL|ARG_NO, ' ', C_SESSIONID},
   {"show-error",                 ARG_BOOL, 'S', C_SHOW_ERROR},
   {"show-headers",               ARG_BOOL, 'i', C_SHOW_HEADERS},
+  {"sigalgs",                    ARG_STRG|ARG_TLS, ' ',
+   C_SIGNATURE_ALGORITHMS},
   {"silent",                     ARG_BOOL, 's', C_SILENT},
   {"skip-existing",              ARG_BOOL, ' ', C_SKIP_EXISTING},
   {"socks4",                     ARG_STRG, ' ', C_SOCKS4},
@@ -1785,7 +1787,8 @@ ParameterError getparameter(const char *flag, /* f or -long-flag */
         nextarg = &parse[1]; /* this is the actual extra parameter */
         singleopt = TRUE;   /* do not loop anymore after this */
 #ifdef HAVE_WRITABLE_ARGV
-        clearthis = &cleararg1[parse + 2 - flag];
+        if(cleararg1)
+          clearthis = &cleararg1[parse + 2 - flag];
 #endif
       }
       else if(!nextarg) {
@@ -1794,7 +1797,8 @@ ParameterError getparameter(const char *flag, /* f or -long-flag */
       }
       else {
 #ifdef HAVE_WRITABLE_ARGV
-        clearthis = cleararg2;
+        if(cleararg2)
+          clearthis = cleararg2;
 #endif
         *usedarg = TRUE; /* mark it as used */
       }
@@ -2003,7 +2007,7 @@ ParameterError getparameter(const char *flag, /* f or -long-flag */
       break;
     case C_AWS_SIGV4: /* --aws-sigv4 */
       config->authtype |= CURLAUTH_AWS_SIGV4;
-      err = getstr(&config->aws_sigv4, nextarg, DENY_BLANK);
+      err = getstr(&config->aws_sigv4, nextarg, ALLOW_BLANK);
       break;
     case C_STDERR: /* --stderr */
       tool_set_stderr_file(global, nextarg);
@@ -2689,6 +2693,9 @@ ParameterError getparameter(const char *flag, /* f or -long-flag */
       break;
     case C_CURVES: /* --curves */
       err = getstr(&config->ssl_ec_curves, nextarg, DENY_BLANK);
+      break;
+    case C_SIGNATURE_ALGORITHMS: /* --sigalgs */
+      err = getstr(&config->ssl_signature_algorithms, nextarg, DENY_BLANK);
       break;
     case C_FAIL_EARLY: /* --fail-early */
       global->fail_early = toggle;

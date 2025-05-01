@@ -24,7 +24,7 @@
 
 /*
  * The purpose of this tool is to figure out which, if any, features that are
- * disabled which should otherwise exist and work. These aren't visible in
+ * disabled which should otherwise exist and work. These are not visible in
  * regular curl -V output.
  *
  * Disabled protocols are visible in curl_version_info() and are not included
@@ -35,90 +35,208 @@
 #include "multihandle.h" /* for ENABLE_WAKEUP */
 #include "tool_xattr.h" /* for USE_XATTR */
 #include "curl_sha512_256.h" /* for CURL_HAVE_SHA512_256 */
+#include "asyn.h" /* for CURLRES_ARES */
+#include "fake_addrinfo.h" /* for USE_FAKE_GETADDRINFO */
 #include <stdio.h>
 
 static const char *disabled[]={
+  "bindlocal: "
 #ifdef CURL_DISABLE_BINDLOCAL
-  "bindlocal",
+  "OFF"
+#else
+  "ON"
 #endif
+  ,
+
+  "cookies: "
 #ifdef CURL_DISABLE_COOKIES
-  "cookies",
+  "OFF"
+#else
+  "ON"
 #endif
+  ,
+
+  "basic-auth: "
 #ifdef CURL_DISABLE_BASIC_AUTH
-  "basic-auth",
+  "OFF"
+#else
+  "ON"
 #endif
+  ,
+  "bearer-auth: "
 #ifdef CURL_DISABLE_BEARER_AUTH
-  "bearer-auth",
+  "OFF"
+#else
+  "ON"
 #endif
+  ,
+  "digest-auth: "
 #ifdef CURL_DISABLE_DIGEST_AUTH
-  "digest-auth",
+  "OFF"
+#else
+  "ON"
 #endif
+  ,
+  "negotiate-auth: "
 #ifdef CURL_DISABLE_NEGOTIATE_AUTH
-  "negotiate-auth",
+  "OFF"
+#else
+  "ON"
 #endif
+  ,
+  "aws: "
 #ifdef CURL_DISABLE_AWS
-  "aws",
+  "OFF"
+#else
+  "ON"
 #endif
+  ,
+  "DoH: "
 #ifdef CURL_DISABLE_DOH
-  "DoH",
+  "OFF"
+#else
+  "ON"
 #endif
+  ,
+  "HTTP-auth: "
 #ifdef CURL_DISABLE_HTTP_AUTH
-  "HTTP-auth",
+  "OFF"
+#else
+  "ON"
 #endif
+  ,
+  "Mime: "
 #ifdef CURL_DISABLE_MIME
-  "Mime",
+  "OFF"
+#else
+  "ON"
 #endif
+  ,
+
+  "netrc: "
 #ifdef CURL_DISABLE_NETRC
-  "netrc",
+  "OFF"
+#else
+  "ON"
 #endif
+  ,
+  "parsedate: "
 #ifdef CURL_DISABLE_PARSEDATE
-  "parsedate",
+  "OFF"
+#else
+  "ON"
 #endif
+  ,
+  "proxy: "
 #ifdef CURL_DISABLE_PROXY
-  "proxy",
+  "OFF"
+#else
+  "ON"
 #endif
+  ,
+  "shuffle-dns: "
 #ifdef CURL_DISABLE_SHUFFLE_DNS
-  "shuffle-dns",
+  "OFF"
+#else
+  "ON"
 #endif
+  ,
+  "typecheck: "
 #ifdef CURL_DISABLE_TYPECHECK
-  "typecheck",
+  "OFF"
+#else
+  "ON"
 #endif
+  ,
+  "verbose-strings: "
 #ifdef CURL_DISABLE_VERBOSE_STRINGS
-  "verbose-strings",
+  "OFF"
+#else
+  "ON"
 #endif
+  ,
+  "wakeup: "
 #ifndef ENABLE_WAKEUP
-  "wakeup",
+  "OFF"
+#else
+  "ON"
 #endif
+  ,
+  "headers-api: "
 #ifdef CURL_DISABLE_HEADERS_API
-  "headers-api",
+  "OFF"
+#else
+  "ON"
 #endif
+  ,
+  "xattr: "
 #ifndef USE_XATTR
-  "xattr",
+  "OFF"
+#else
+  "ON"
 #endif
+  ,
+  "form-api: "
 #ifdef CURL_DISABLE_FORM_API
-  "form-api",
+  "OFF"
+#else
+  "ON"
 #endif
+  ,
+  "large-time: "
 #if (SIZEOF_TIME_T < 5)
-  "large-time",
+  "OFF"
+#else
+  "ON"
 #endif
+  ,
+  "large-size: "
 #if (SIZEOF_SIZE_T < 5)
-  "large-size",
+  "OFF"
+#else
+  "ON"
 #endif
+  ,
+  "sha512-256: "
 #ifndef CURL_HAVE_SHA512_256
-  "sha512-256",
+  "OFF"
+#else
+  "ON"
 #endif
-#ifdef _WIN32
-#if defined(CURL_WINDOWS_UWP) || \
-  defined(CURL_DISABLE_CA_SEARCH) || defined(CURL_CA_SEARCH_SAFE)
-  "win32-ca-searchpath",
+  ,
+
+  "win32-ca-searchpath: "
+#if !defined(_WIN32) ||                                                 \
+  (defined(CURL_WINDOWS_UWP) ||                                         \
+   defined(CURL_DISABLE_CA_SEARCH) || defined(CURL_CA_SEARCH_SAFE))
+  "OFF"
+#else
+  "ON"
 #endif
-#ifndef CURL_CA_SEARCH_SAFE
-  "win32-ca-search-safe",
+  ,
+  "win32-ca-search-safe: "
+#if !defined(_WIN32) || !defined(CURL_CA_SEARCH_SAFE)
+  "OFF"
+#else
+  "ON"
 #endif
-#endif
+  ,
+
+  "--libcurl: "
 #ifdef CURL_DISABLE_LIBCURL_OPTION
-  "--libcurl",
+  "OFF"
+#else
+  "ON"
 #endif
+  ,
+  "override-dns: "
+#if defined(CURLDEBUG) &&                                       \
+  (defined(CURLRES_ARES) || defined(USE_FAKE_GETADDRINFO))
+  "ON"
+#else
+  "OFF"
+#endif
+  ,
   NULL
 };
 

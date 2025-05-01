@@ -24,22 +24,22 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-#include "curl_setup.h"
+#include "../curl_setup.h"
 
 #ifdef USE_RUSTLS
 
-#include "curl_printf.h"
+#include "../curl_printf.h"
 
 #include <rustls.h>
 
-#include "inet_pton.h"
-#include "urldata.h"
-#include "sendf.h"
+#include "../inet_pton.h"
+#include "../urldata.h"
+#include "../sendf.h"
 #include "vtls.h"
 #include "vtls_int.h"
 #include "rustls.h"
 #include "keylog.h"
-#include "strerror.h"
+#include "../strerror.h"
 #include "cipher_suite.h"
 #include "x509asn1.h"
 
@@ -868,8 +868,8 @@ init_config_builder_client_auth(struct Curl_easy *data,
     return CURLE_SSL_CERTPROBLEM;
   }
 
-  Curl_dyn_init(&cert_contents, SIZE_MAX);
-  Curl_dyn_init(&key_contents, SIZE_MAX);
+  Curl_dyn_init(&cert_contents, DYN_CERTFILE_SIZE);
+  Curl_dyn_init(&key_contents, DYN_KEYFILE_SIZE);
 
   if(!read_file_into(conn_config->clientcert, &cert_contents)) {
     failf(data, "rustls: failed to read client certificate file: '%s'",
@@ -961,8 +961,7 @@ init_config_builder_ech(struct Curl_easy *data,
     return CURLE_OK;
   }
 
-  if(data->set.tls_ech & CURLECH_CLA_CFG
-       && data->set.str[STRING_ECH_CONFIG]) {
+  if(data->set.tls_ech & CURLECH_CLA_CFG && data->set.str[STRING_ECH_CONFIG]) {
     const char *b64 = data->set.str[STRING_ECH_CONFIG];
     size_t decode_result;
     if(!b64) {
@@ -980,10 +979,8 @@ init_config_builder_ech(struct Curl_easy *data,
   }
   else {
     if(connssl->peer.hostname) {
-      dns = Curl_fetch_addr(
-        data,
-        connssl->peer.hostname,
-        connssl->peer.port);
+      dns = Curl_dnscache_get(data, connssl->peer.hostname,
+                              connssl->peer.port, data->conn->ip_version);
     }
     if(!dns) {
       failf(data, "rustls: ECH requested but no DNS info available");
@@ -1010,6 +1007,10 @@ init_config_builder_ech(struct Curl_easy *data,
     goto cleanup;
   }
 cleanup:
+  /* if we base64 decoded, we can free now */
+  if(data->set.tls_ech & CURLECH_CLA_CFG && data->set.str[STRING_ECH_CONFIG]) {
+    free(ech_config);
+  }
   if(dns) {
     Curl_resolv_unlink(data, &dns);
   }

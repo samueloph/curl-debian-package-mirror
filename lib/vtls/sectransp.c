@@ -28,18 +28,18 @@
  * TLS/SSL layer. No code but vtls.c should ever call or use these functions.
  */
 
-#include "curl_setup.h"
+#include "../curl_setup.h"
 
 #ifdef USE_SECTRANSP
 
-#include "urldata.h" /* for the Curl_easy definition */
-#include "curl_base64.h"
-#include "strparse.h"
-#include "multiif.h"
-#include "strcase.h"
+#include "../urldata.h" /* for the Curl_easy definition */
+#include "../curl_base64.h"
+#include "../strparse.h"
+#include "../multiif.h"
+#include "../strcase.h"
 #include "x509asn1.h"
 #include "vtls_scache.h"
-#include "strerror.h"
+#include "../strerror.h"
 #include "cipher_suite.h"
 
 #ifdef __clang__
@@ -134,19 +134,19 @@
 #include <sys/sysctl.h>
 #endif /* CURL_BUILD_MAC */
 
-#include "sendf.h"
-#include "inet_pton.h"
-#include "connect.h"
-#include "select.h"
+#include "../sendf.h"
+#include "../inet_pton.h"
+#include "../connect.h"
+#include "../select.h"
 #include "vtls.h"
 #include "vtls_int.h"
 #include "sectransp.h"
-#include "curl_printf.h"
-#include "strdup.h"
+#include "../curl_printf.h"
+#include "../strdup.h"
 
-#include "curl_memory.h"
+#include "../curl_memory.h"
 /* The last #include file should be: */
-#include "memdebug.h"
+#include "../memdebug.h"
 
 
 /* From MacTypes.h (which we cannot include because it is not present in
@@ -1092,8 +1092,8 @@ static CURLcode sectransp_connect_step1(struct Curl_cfilter *cf,
     return result;
 
   if(connssl->alpn) {
-#if (CURL_BUILD_MAC_10_13 || CURL_BUILD_IOS_11) && \
-    defined(HAVE_BUILTIN_AVAILABLE)
+#if CURL_BUILD_MAC_10_13 || CURL_BUILD_IOS_11
+#ifdef HAVE_BUILTIN_AVAILABLE
     if(__builtin_available(macOS 10.13.4, iOS 11, tvOS 11, *)) {
 #else
     if(&SSLSetALPNProtocols && &SSLCopyALPNProtocols) {
@@ -1119,6 +1119,7 @@ static CURLcode sectransp_connect_step1(struct Curl_cfilter *cf,
       Curl_alpn_to_proto_str(&proto, connssl->alpn);
       infof(data, VTLS_INFOF_ALPN_OFFER_1STR, proto.data);
     }
+#endif /* CURL_BUILD_MAC_10_13 || CURL_BUILD_IOS_11 */
   }
 
   if(ssl_config->key) {
@@ -2092,8 +2093,8 @@ check_handshake:
     }
 
     if(connssl->alpn) {
-#if (CURL_BUILD_MAC_10_13 || CURL_BUILD_IOS_11) && \
-    defined(HAVE_BUILTIN_AVAILABLE)
+#if CURL_BUILD_MAC_10_13 || CURL_BUILD_IOS_11
+#ifdef HAVE_BUILTIN_AVAILABLE
       if(__builtin_available(macOS 10.13.4, iOS 11, tvOS 11, *)) {
 #else
       if(&SSLSetALPNProtocols && &SSLCopyALPNProtocols) {
@@ -2124,6 +2125,7 @@ check_handshake:
         if(alpnArr)
           CFRelease(alpnArr);
       }
+#endif /* CURL_BUILD_MAC_10_13 || CURL_BUILD_IOS_11 */
     }
 
     return CURLE_OK;

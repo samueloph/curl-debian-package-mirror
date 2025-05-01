@@ -28,7 +28,7 @@
  *
  */
 
-#include "curl_setup.h"
+#include "../curl_setup.h"
 
 #ifdef USE_WOLFSSL
 
@@ -56,30 +56,30 @@
 
 #include <limits.h>
 
-#include "urldata.h"
-#include "sendf.h"
-#include "inet_pton.h"
+#include "../urldata.h"
+#include "../sendf.h"
+#include "../inet_pton.h"
 #include "vtls.h"
 #include "vtls_int.h"
 #include "vtls_scache.h"
 #include "keylog.h"
-#include "parsedate.h"
-#include "connect.h" /* for the connect timeout */
-#include "progress.h"
-#include "select.h"
-#include "strcase.h"
-#include "strdup.h"
+#include "../parsedate.h"
+#include "../connect.h" /* for the connect timeout */
+#include "../progress.h"
+#include "../select.h"
+#include "../strcase.h"
+#include "../strdup.h"
 #include "x509asn1.h"
-#include "curl_printf.h"
-#include "multiif.h"
+#include "../curl_printf.h"
+#include "../multiif.h"
 
 #include <wolfssl/ssl.h>
 #include <wolfssl/error-ssl.h>
 #include "wolfssl.h"
 
 /* The last #include files should be: */
-#include "curl_memory.h"
-#include "memdebug.h"
+#include "../curl_memory.h"
+#include "../memdebug.h"
 
 #ifdef HAVE_WOLFSSL_CTX_GENERATEECHCONFIG
 #define USE_ECH_WOLFSSL
@@ -96,11 +96,11 @@
 #endif
 #endif
 
-#ifdef HAVE_WOLFSSL_BIO
+#ifdef HAVE_WOLFSSL_BIO_NEW
 #define USE_BIO_CHAIN
-#ifdef HAVE_WOLFSSL_FULL_BIO
+#ifdef HAVE_WOLFSSL_BIO_SET_SHUTDOWN
 #define USE_FULL_BIO
-#else /* HAVE_WOLFSSL_FULL_BIO */
+#else /* HAVE_WOLFSSL_BIO_SET_SHUTDOWN */
 #undef USE_FULL_BIO
 #endif
 /* wolfSSL 5.7.4 and older do not have these symbols, but only the
@@ -114,7 +114,7 @@
 #define wolfSSL_BIO_set_retry_read    BIO_set_retry_read
 #endif /* !WOLFSSL_BIO_CTRL_GET_CLOSE */
 
-#else /* HAVE_WOLFSSL_BIO */
+#else /* HAVE_WOLFSSL_BIO_NEW */
 #undef USE_BIO_CHAIN
 #endif
 
@@ -1352,9 +1352,7 @@ CURLcode Curl_wssl_ctx_init(struct wssl_ctx *wctx,
       goto out;
     }
     if(data->set.tls_ech == CURLECH_GREASE) {
-      infof(data, "ECH: GREASE'd ECH not yet supported for wolfSSL");
-      result = CURLE_SSL_CONNECT_ERROR;
-      goto out;
+      infof(data, "ECH: GREASE is done by default by wolfSSL: no need to ask");
     }
     if(data->set.tls_ech & CURLECH_CLA_CFG
        && data->set.str[STRING_ECH_CONFIG]) {
@@ -1379,7 +1377,8 @@ CURLcode Curl_wssl_ctx_init(struct wssl_ctx *wctx,
       struct ssl_connect_data *connssl = cf->ctx;
       struct Curl_dns_entry *dns = NULL;
 
-      dns = Curl_fetch_addr(data, connssl->peer.hostname, connssl->peer.port);
+      dns = Curl_dnscache_get(data, connssl->peer.hostname, connssl->peer.port,
+                              cf->conn->ip_version);
       if(!dns) {
         infof(data, "ECH: requested but no DNS info available");
         if(data->set.tls_ech & CURLECH_HARD) {
@@ -1467,7 +1466,7 @@ wssl_connect_step1(struct Curl_cfilter *cf, struct Curl_easy *data)
   if(result)
     return result;
 
-#ifdef HAS_ALPN
+#ifdef HAVE_ALPN
   if(connssl->alpn && (connssl->state != ssl_connection_deferred)) {
     struct alpn_proto_buf proto;
     memset(&proto, 0, sizeof(proto));

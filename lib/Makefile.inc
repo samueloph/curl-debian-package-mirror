@@ -111,7 +111,8 @@ LIB_CFILES =         \
   altsvc.c           \
   amigaos.c          \
   asyn-ares.c        \
-  asyn-thread.c      \
+  asyn-base.c        \
+  asyn-thrdd.c       \
   base64.c           \
   bufq.c             \
   bufref.c           \
@@ -122,10 +123,10 @@ LIB_CFILES =         \
   cf-socket.c        \
   cfilters.c         \
   conncache.c        \
-  cshutdn.c          \
   connect.c          \
   content_encoding.c \
   cookie.c           \
+  cshutdn.c          \
   curl_addrinfo.c    \
   curl_des.c         \
   curl_endian.c      \
@@ -153,6 +154,7 @@ LIB_CFILES =         \
   easygetopt.c       \
   easyoptions.c      \
   escape.c           \
+  fake_addrinfo.c    \
   file.c             \
   fileinfo.c         \
   fopen.c            \
@@ -163,14 +165,11 @@ LIB_CFILES =         \
   getinfo.c          \
   gopher.c           \
   hash.c             \
-  hash_offt.c        \
   headers.c          \
   hmac.c             \
-  hostasyn.c         \
   hostip.c           \
   hostip4.c          \
   hostip6.c          \
-  hostsyn.c          \
   hsts.c             \
   http.c             \
   http1.c            \
@@ -237,6 +236,10 @@ LIB_CFILES =         \
   timediff.c         \
   timeval.c          \
   transfer.c         \
+  uint-bset.c        \
+  uint-hash.c        \
+  uint-spbset.c      \
+  uint-table.c       \
   url.c              \
   urlapi.c           \
   version.c          \
@@ -302,6 +305,7 @@ LIB_HFILES =         \
   easyif.h           \
   easyoptions.h      \
   escape.h           \
+  fake_addrinfo.h    \
   file.h             \
   fileinfo.h         \
   fopen.h            \
@@ -312,7 +316,6 @@ LIB_HFILES =         \
   getinfo.h          \
   gopher.h           \
   hash.h             \
-  hash_offt.h        \
   headers.h          \
   hostip.h           \
   hsts.h             \
@@ -377,6 +380,10 @@ LIB_HFILES =         \
   timediff.h         \
   timeval.h          \
   transfer.h         \
+  uint-bset.h        \
+  uint-hash.h        \
+  uint-spbset.h      \
+  uint-table.h       \
   url.h              \
   urlapi-int.h       \
   urldata.h          \

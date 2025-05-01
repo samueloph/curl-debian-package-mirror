@@ -22,11 +22,9 @@
 #
 ###########################################################################
 
-SERVERPROGS = resolve rtspd sockfilt sws tftpd socksd disabled mqttd
+SERVERPROGS = resolve rtspd sockfilt sws tftpd socksd mqttd dnsd
 
 MEMDEBUG = \
-  ../../lib/curl_multibyte.c \
-  ../../lib/curl_multibyte.h \
   ../../lib/memdebug.c \
   ../../lib/memdebug.h
 
@@ -42,6 +40,7 @@ CURLX_SRCS = \
   ../../lib/strcase.c \
   ../../lib/strdup.c \
   ../../lib/curl_get_line.c \
+  ../../lib/curl_multibyte.c \
   ../../lib/version_win32.c
 
 CURLX_HDRS = \
@@ -56,6 +55,7 @@ CURLX_HDRS = \
   ../../lib/strcase.h \
   ../../lib/strdup.h \
   ../../lib/curl_get_line.h \
+  ../../lib/curl_multibyte.h \
   ../../lib/version_win32.h
 
 UTIL = \
@@ -118,4 +118,7 @@ tftpd_SOURCES = $(MEMDEBUG) $(CURLX_SRCS) $(CURLX_HDRS) $(UTIL) \
 tftpd_LDADD = @CURL_NETWORK_AND_TIME_LIBS@
 tftpd_CFLAGS = $(AM_CFLAGS)
 
-disabled_SOURCES = disabled.c
+dnsd_SOURCES = $(MEMDEBUG) $(CURLX_SRCS) $(CURLX_HDRS) $(UTIL) \
+  dnsd.c
+dnsd_LDADD = @CURL_NETWORK_AND_TIME_LIBS@
+dnsd_CFLAGS = $(AM_CFLAGS)

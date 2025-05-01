@@ -38,7 +38,7 @@
    https://httpd.apache.org/docs/2.0/ssl/ssl_intro.html
 */
 
-#include "curl_setup.h"
+#include "../curl_setup.h"
 
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
@@ -50,8 +50,8 @@
 #include <fcntl.h>
 #endif
 
-#include "urldata.h"
-#include "cfilters.h"
+#include "../urldata.h"
+#include "../cfilters.h"
 
 #include "vtls.h" /* generic SSL protos etc */
 #include "vtls_int.h"
@@ -66,28 +66,28 @@
 #include "bearssl.h"        /* BearSSL versions */
 #include "rustls.h"         /* Rustls versions */
 
-#include "slist.h"
-#include "sendf.h"
-#include "strcase.h"
-#include "url.h"
-#include "progress.h"
-#include "share.h"
-#include "multiif.h"
-#include "timeval.h"
-#include "curl_md5.h"
-#include "curl_sha256.h"
-#include "warnless.h"
-#include "curl_base64.h"
-#include "curl_printf.h"
-#include "inet_pton.h"
-#include "connect.h"
-#include "select.h"
-#include "strdup.h"
-#include "rand.h"
+#include "../slist.h"
+#include "../sendf.h"
+#include "../strcase.h"
+#include "../url.h"
+#include "../progress.h"
+#include "../share.h"
+#include "../multiif.h"
+#include "../timeval.h"
+#include "../curl_md5.h"
+#include "../curl_sha256.h"
+#include "../warnless.h"
+#include "../curl_base64.h"
+#include "../curl_printf.h"
+#include "../inet_pton.h"
+#include "../connect.h"
+#include "../select.h"
+#include "../strdup.h"
+#include "../rand.h"
 
 /* The last #include files should be: */
-#include "curl_memory.h"
-#include "memdebug.h"
+#include "../curl_memory.h"
+#include "../memdebug.h"
 
 
 #define CLONE_STRING(var)                    \
@@ -215,6 +215,7 @@ match_ssl_primary_config(struct Curl_easy *data,
      strcasecompare(c1->cipher_list, c2->cipher_list) &&
      strcasecompare(c1->cipher_list13, c2->cipher_list13) &&
      strcasecompare(c1->curves, c2->curves) &&
+     strcasecompare(c1->signature_algorithms, c2->signature_algorithms) &&
      strcasecompare(c1->CRLfile, c2->CRLfile) &&
      strcasecompare(c1->pinned_key, c2->pinned_key))
     return TRUE;
@@ -259,6 +260,7 @@ static bool clone_ssl_primary_config(struct ssl_primary_config *source,
   CLONE_STRING(cipher_list13);
   CLONE_STRING(pinned_key);
   CLONE_STRING(curves);
+  CLONE_STRING(signature_algorithms);
   CLONE_STRING(CRLfile);
 #ifdef USE_TLS_SRP
   CLONE_STRING(username);
@@ -281,6 +283,7 @@ static void free_primary_ssl_config(struct ssl_primary_config *sslc)
   Curl_safefree(sslc->ca_info_blob);
   Curl_safefree(sslc->issuercert_blob);
   Curl_safefree(sslc->curves);
+  Curl_safefree(sslc->signature_algorithms);
   Curl_safefree(sslc->CRLfile);
 #ifdef USE_TLS_SRP
   Curl_safefree(sslc->username);
@@ -299,6 +302,8 @@ CURLcode Curl_ssl_easy_config_complete(struct Curl_easy *data)
     data->set.str[STRING_SSL_CIPHER_LIST];
   data->set.ssl.primary.cipher_list13 =
     data->set.str[STRING_SSL_CIPHER13_LIST];
+  data->set.ssl.primary.signature_algorithms =
+    data->set.str[STRING_SSL_SIGNATURE_ALGORITHMS];
   data->set.ssl.primary.pinned_key =
     data->set.str[STRING_SSL_PINNEDPUBLICKEY];
   data->set.ssl.primary.cert_blob = data->set.blobs[BLOB_CERT];
@@ -1661,8 +1666,14 @@ static CURLcode cf_ssl_create(struct Curl_cfilter **pcf,
 
   DEBUGASSERT(data->conn);
 
+#ifdef CURL_DISABLE_HTTP
+  /* We only support ALPN for HTTP so far. */
+  DEBUGASSERT(!conn->bits.tls_enable_alpn);
+  ctx = cf_ctx_new(data, NULL);
+#else
   ctx = cf_ctx_new(data, alpn_get_spec(data->state.http_neg.wanted,
                                        conn->bits.tls_enable_alpn));
+#endif
   if(!ctx) {
     result = CURLE_OUT_OF_MEMORY;
     goto out;

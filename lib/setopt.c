@@ -1129,12 +1129,8 @@ static CURLcode setopt_long(struct Curl_easy *data, CURLoption option,
     /*
      * disable libcurl transfer encoding is used
      */
-#ifndef USE_HYPER
     data->set.http_te_skip = !enabled; /* reversed */
     break;
-#else
-    return CURLE_NOT_BUILT_IN; /* hyper does not support */
-#endif
 
   case CURLOPT_HTTP_CONTENT_DECODING:
     /*
@@ -1388,7 +1384,8 @@ static CURLcode setopt_long(struct Curl_easy *data, CURLoption option,
 #endif /* ! CURL_DISABLE_ALTSVC */
 #ifndef CURL_DISABLE_WEBSOCKETS
   case CURLOPT_WS_OPTIONS:
-    data->set.ws_raw_mode =  (bool)(arg & CURLWS_RAW_MODE);
+    data->set.ws_raw_mode = (bool)(arg & CURLWS_RAW_MODE);
+    data->set.ws_no_auto_pong = (bool)(arg & CURLWS_NOAUTOPONG);
     break;
 #endif
   case CURLOPT_QUICK_EXIT:
@@ -1569,11 +1566,6 @@ static CURLcode setopt_pointers(struct Curl_easy *data, CURLoption option,
     if(data->share) {
       Curl_share_lock(data, CURL_LOCK_DATA_SHARE, CURL_LOCK_ACCESS_SINGLE);
 
-      if(data->dns.hostcachetype == HCACHE_SHARED) {
-        data->dns.hostcache = NULL;
-        data->dns.hostcachetype = HCACHE_NONE;
-      }
-
 #if !defined(CURL_DISABLE_HTTP) && !defined(CURL_DISABLE_COOKIES)
       if(data->share->cookies == data->cookies)
         data->cookies = NULL;
@@ -1603,11 +1595,6 @@ static CURLcode setopt_pointers(struct Curl_easy *data, CURLoption option,
 
       data->share->dirty++;
 
-      if(data->share->specifier & (1 << CURL_LOCK_DATA_DNS)) {
-        /* use shared host cache */
-        data->dns.hostcache = &data->share->hostcache;
-        data->dns.hostcachetype = HCACHE_SHARED;
-      }
 #if !defined(CURL_DISABLE_HTTP) && !defined(CURL_DISABLE_COOKIES)
       if(data->share->cookies) {
         /* use shared cookie list, first free own one if any */
@@ -2406,6 +2393,15 @@ static CURLcode setopt_cptr(struct Curl_easy *data, CURLoption option,
      */
     return Curl_setstropt(&data->set.str[STRING_SSL_EC_CURVES], ptr);
 
+  case CURLOPT_SSL_SIGNATURE_ALGORITHMS:
+    /*
+     * Set accepted signature algorithms.
+     * Specify colon-delimited list of signature scheme names.
+     */
+    if(Curl_ssl_supports(data, SSLSUPP_SIGNATURE_ALGORITHMS))
+      return Curl_setstropt(&data->set.str[STRING_SSL_SIGNATURE_ALGORITHMS],
+                            ptr);
+    return CURLE_NOT_BUILT_IN;
 #endif
 #ifdef USE_SSH
   case CURLOPT_SSH_PUBLIC_KEYFILE:
@@ -2548,30 +2544,30 @@ static CURLcode setopt_cptr(struct Curl_easy *data, CURLoption option,
     break;
 #endif
 #endif
-#ifdef USE_ARES
+#ifdef CURLRES_ARES
   case CURLOPT_DNS_SERVERS:
     result = Curl_setstropt(&data->set.str[STRING_DNS_SERVERS], ptr);
     if(result)
       return result;
-    return Curl_set_dns_servers(data, data->set.str[STRING_DNS_SERVERS]);
+    return Curl_async_ares_set_dns_servers(data);
 
   case CURLOPT_DNS_INTERFACE:
     result = Curl_setstropt(&data->set.str[STRING_DNS_INTERFACE], ptr);
     if(result)
       return result;
-    return Curl_set_dns_interface(data, data->set.str[STRING_DNS_INTERFACE]);
+    return Curl_async_ares_set_dns_interface(data);
 
   case CURLOPT_DNS_LOCAL_IP4:
     result = Curl_setstropt(&data->set.str[STRING_DNS_LOCAL_IP4], ptr);
     if(result)
       return result;
-    return Curl_set_dns_local_ip4(data, data->set.str[STRING_DNS_LOCAL_IP4]);
+    return Curl_async_ares_set_dns_local_ip4(data);
 
   case CURLOPT_DNS_LOCAL_IP6:
     result = Curl_setstropt(&data->set.str[STRING_DNS_LOCAL_IP6], ptr);
     if(result)
       return result;
-    return Curl_set_dns_local_ip6(data, data->set.str[STRING_DNS_LOCAL_IP6]);
+    return Curl_async_ares_set_dns_local_ip6(data);
 
 #endif
 #ifdef USE_UNIX_SOCKETS
