@@ -1,3 +1,9 @@
+curl (8.13.0-5~bpo12+1) bookworm-backports; urgency=medium
+
+  * Rebuild for bookworm-backports.
+
+ -- Samuel Henrique <samueloph@debian.org>  Mon, 05 May 2025 18:54:02 -0300
+
 curl (8.13.0-5) unstable; urgency=medium
 
   * d/t/upstream-*: ensure clean build by calling override_dh_auto_clean
