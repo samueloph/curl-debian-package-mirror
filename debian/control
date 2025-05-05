@@ -10,7 +10,6 @@ Build-Depends:
  autoconf,
  automake,
  ca-certificates,
- dh-exec,
  groff-base,
  libbrotli-dev,
  libgnutls28-dev,
@@ -20,7 +19,6 @@ Build-Depends:
  libnghttp2-dev,
  libpsl-dev,
  librtmp-dev,
- libssh-dev,
  libssh2-1-dev,
  libssl-dev,
  libtool,
@@ -37,7 +35,7 @@ Build-Depends:
  stunnel4 <!nocheck>,
  zlib1g-dev,
 Build-Conflicts: autoconf2.13, automake1.4
-Standards-Version: 4.7.0
+Standards-Version: 4.7.2
 Vcs-Git: https://salsa.debian.org/debian/curl.git
 Vcs-Browser: https://salsa.debian.org/debian/curl
 Homepage: https://curl.se/
@@ -45,7 +43,8 @@ Rules-Requires-Root: no
 
 Package: curl
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libcurl3-gnutls (= ${binary:Version})
+Depends: ${shlibs:Depends}, ${misc:Depends}, libcurl4 (= ${binary:Version})
+Recommends: bash-completion
 Multi-Arch: foreign
 Description: command line tool for transferring data with URL syntax
  curl is a command line tool for transferring data with URL syntax, supporting

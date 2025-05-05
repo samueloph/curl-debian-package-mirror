@@ -1,6 +1,5 @@
 ZZZgnutls-build.patch
 build-Divide-mit-krb5-gssapi-link-flags-between-LDFLAGS-a.patch
 11_omit-directories-from-config.patch
-
-# Post 8.12.1
-fix-managen-script.patch
+scripts_completion_pl_sort_the_completion_file_for_all_shells.patch
+autotools_install_shell_completion_files_on_cross_build.patch

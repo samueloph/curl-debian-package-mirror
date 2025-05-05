@@ -1,5 +1,4 @@
-#!/usr/bin/dh-exec
 ../wcurl/wcurl usr/bin
 usr/bin/curl
-<!cross> usr/share/zsh/*
-<!cross> usr/share/fish/*
+usr/share/zsh/*
+usr/share/fish/*

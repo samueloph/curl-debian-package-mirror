@@ -7,10 +7,10 @@ set -e
 # It might be possible to patch the makefile to have libauthretry link against
 # the system's installed libcurl, patches welcome.
 #
-# openssl tests run against the built curl and libcurl rather than the installed
-# one as we don't ship a curl linked against openssl (only openssl libraries).
+# openssl tests run against the system's installed curl.
 
 export DEB_BUILD_PROFILES="pkg.curl.openssl-only"
+export TESTS_GENERAL_PARAMETERS="-c /usr/bin/curl -vc /usr/bin/curl"
 export VERBOSE=1
 
 # Don't skip tests which fail on ipv6-only environments for autopkgtests.
@@ -21,18 +21,20 @@ export VERBOSE=1
 # https://github.com/curl/curl/issues/10682
 export TESTS_FAILS_ON_IPV6_ONLY_MACHINES=""
 
+echo "debian/rules override_dh_auto_clean"
+debian/rules override_dh_auto_clean > "${AUTOPKGTEST_ARTIFACTS}/openssl_auto_clean.log"
+
 echo "dh_update_autotools_config"
-dh_update_autotools_config
+dh_update_autotools_config > "${AUTOPKGTEST_ARTIFACTS}/openssl_autotools_config.log"
 
 echo "dh_autoreconf"
-dh_autoreconf
+dh_autoreconf > "${AUTOPKGTEST_ARTIFACTS}/openssl_autorefconf.log"
 
-echo "debian/rules override_dh_auto_configure "
-debian/rules override_dh_auto_configure
+echo "debian/rules override_dh_auto_configure"
+debian/rules override_dh_auto_configure > "${AUTOPKGTEST_ARTIFACTS}/openssl_auto_configure.log"
 
 echo "debian/rules override_dh_auto_build"
-debian/rules override_dh_auto_build
+debian/rules override_dh_auto_build > "${AUTOPKGTEST_ARTIFACTS}/openssl_auto_build.log"
 
 echo "debian/rules override_dh_auto_test"
 debian/rules override_dh_auto_test
-

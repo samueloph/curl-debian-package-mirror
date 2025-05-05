@@ -1,3 +1,12 @@
+curl (8.13.0-2) unstable; urgency=medium
+
+  The curl CLI is now back to using OpenSSL, instead of GnuTLS:
+    HTTP/3 support is still there, compared to the GnuTLS curl CLI.
+    The performance of HTTP/3 on OpenSSL is not as good, but it's also not used
+    by default.
+
+ -- Samuel Henrique <samueloph@debian.org>  Sun, 06 Apr 2025 22:13:18 +0100
+
 curl (8.8.0-2) unstable; urgency=medium
 
   The curl CLI is now using GnuTLS instead of OpenSSL:

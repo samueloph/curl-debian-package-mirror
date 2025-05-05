@@ -1,0 +1,30 @@
+From 2f5e4e0db464acff921901b7bf98dd94f8a73745 Mon Sep 17 00:00:00 2001
+From: Carlos Henrique Lima Melara <charlesmelara@riseup.net>
+Date: Sat, 5 Apr 2025 19:53:51 -0300
+Subject: [PATCH] scripts: completion.pl: sort the completion file for all
+ shells
+
+The reproducible builds effort in Debian has caught a regression in curl
+8.13.0-rc1 but we were a bit slow to realize it. The ordering of the
+completion file for fish is not deterministic so it can differ between
+builds. Since there is no restriction about the order of the completion
+file for fish, let's just sort it too.
+
+Closes #16985
+---
+ scripts/completion.pl | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/scripts/completion.pl b/scripts/completion.pl
+index a2cfc37df7e4..bc4cc9fea337 100755
+--- a/scripts/completion.pl
++++ b/scripts/completion.pl
+@@ -153,7 +153,7 @@ sub parse_main_opts {
+         $b =~ /([^=]*)/; my $mb = $1;
+ 
+         length($mb) <=> length($ma) || $ma cmp $mb
+-    } @list if $shell eq 'zsh';
++    } @list;
+ 
+     return @list;
+ }
