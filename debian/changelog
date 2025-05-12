@@ -1,3 +1,11 @@
+curl (8.14.0~rc2-1+exp1) experimental; urgency=medium
+
+  * New upstream version 8.14.0~rc2
+  * debian/patches: refresh patches.
+      - ZZZgnutls-build.patch: update to also work with tests/tunit makefile.
+
+ -- Carlos Henrique Lima Melara <charlesmelara@riseup.net>  Mon, 12 May 2025 18:02:19 -0300
+
 curl (8.14.0~rc1-1+exp1) experimental; urgency=medium
 
   * New upstream version 8.14.0~rc1
