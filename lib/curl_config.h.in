@@ -1,5 +1,7 @@
 /* lib/curl_config.h.in.  Generated from configure.ac by autoheader.  */
 
+/* !checksrc! disable COPYRIGHT all */
+
 /* Location of default ca bundle */
 #undef CURL_CA_BUNDLE
 

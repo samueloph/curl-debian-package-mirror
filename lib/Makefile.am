@@ -30,8 +30,7 @@ CHECKSRC_DIST = .checksrc vauth/.checksrc vquic/.checksrc vssh/.checksrc \
 
 EXTRA_DIST = config-mac.h config-os400.h config-plan9.h config-riscos.h \
  config-win32.h curl_config.h.in libcurl.rc libcurl.def                 \
- $(CMAKE_DIST) Makefile.soname optiontable.pl $(CHECKSRC_DIST)  \
- curlx/README.md
+ $(CMAKE_DIST) Makefile.soname optiontable.pl $(CHECKSRC_DIST)
 
 lib_LTLIBRARIES = libcurl.la
 
@@ -164,9 +163,11 @@ checksrc:
 	$(CHECKSRC)(@PERL@ $(top_srcdir)/scripts/checksrc.pl -D$(srcdir) \
 	$(CSOURCES) $(HHEADERS))
 
+if NOT_CURL_CI
 if DEBUGBUILD
 # for debug builds, we scan the sources on all regular make invokes
 all-local: checksrc
+endif
 endif
 
 # disable the tests that are mostly causing false positives

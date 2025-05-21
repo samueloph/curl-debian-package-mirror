@@ -1239,8 +1239,7 @@ CHECKSRC_DIST = .checksrc vauth/.checksrc vquic/.checksrc vssh/.checksrc \
 
 EXTRA_DIST = config-mac.h config-os400.h config-plan9.h config-riscos.h \
  config-win32.h curl_config.h.in libcurl.rc libcurl.def                 \
- $(CMAKE_DIST) Makefile.soname optiontable.pl $(CHECKSRC_DIST)  \
- curlx/README.md
+ $(CMAKE_DIST) Makefile.soname optiontable.pl $(CHECKSRC_DIST)
 
 lib_LTLIBRARIES = libcurl.la
 @BUILD_UNITTESTS_FALSE@noinst_LTLIBRARIES = 
@@ -5060,6 +5059,7 @@ distdir-am: $(DISTFILES)
 check-am: all-am
 check: check-am
 @DEBUGBUILD_FALSE@all-local:
+@NOT_CURL_CI_FALSE@all-local:
 all-am: Makefile $(LTLIBRARIES) curl_config.h all-local
 installdirs:
 	for dir in "$(DESTDIR)$(libdir)"; do \
@@ -5940,7 +5940,7 @@ checksrc:
 	$(CSOURCES) $(HHEADERS))
 
 # for debug builds, we scan the sources on all regular make invokes
-@DEBUGBUILD_TRUE@all-local: checksrc
+@DEBUGBUILD_TRUE@@NOT_CURL_CI_TRUE@all-local: checksrc
 
 tidy:
 	(_csources=`echo ' $(CSOURCES)' | sed -E -e 's/ +$$//' -e 's/ +/ /g' -e 's| | $(srcdir)/|g'`; \

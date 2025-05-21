@@ -275,8 +275,8 @@ struct ssl_primary_config {
   char *password; /* TLS password (for, e.g., SRP) */
 #endif
   char *curves;          /* list of curves to use */
-  unsigned char ssl_options;  /* the CURLOPT_SSL_OPTIONS bitmask */
   unsigned int version_max; /* max supported version the client wants to use */
+  unsigned char ssl_options;  /* the CURLOPT_SSL_OPTIONS bitmask */
   unsigned char version;    /* what version the client wants to use */
   BIT(verifypeer);       /* set TRUE if this is desired */
   BIT(verifyhost);       /* set TRUE if CN/SAN must match hostname */
@@ -753,12 +753,6 @@ struct connectdata {
    * the connection is cleaned up (see Curl_hash_add2()).*/
   struct Curl_hash meta_hash;
 
-  /* 'dns_entry' is the particular host we use. This points to an entry in the
-     DNS cache and it will not get pruned while locked. It gets unlocked in
-     multi_done(). This entry will be NULL if the connection is reused as then
-     there is no name resolve done. */
-  struct Curl_dns_entry *dns_entry;
-
   /* 'remote_addr' is the particular IP we connected to. it is owned, set
    * and NULLed by the connected socket filter (if there is one). */
   const struct Curl_sockaddr_ex *remote_addr;
@@ -1150,6 +1144,8 @@ struct UrlState {
 #endif
   struct auth authhost;  /* auth details for host */
   struct auth authproxy; /* auth details for proxy */
+
+  struct Curl_dns_entry *dns[2]; /* DNS to connect FIRST/SECONDARY */
 #ifdef USE_CURL_ASYNC
   struct Curl_async async;  /* asynchronous name resolver data */
 #endif

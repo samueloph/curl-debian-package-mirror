@@ -5835,7 +5835,7 @@ distdir-am: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-@DEBUGBUILD_FALSE@all-local:
+@NOT_CURL_CI_FALSE@all-local:
 all-am: Makefile $(PROGRAMS) $(LTLIBRARIES) all-local
 installdirs:
 install: install-am
@@ -6661,13 +6661,12 @@ lib1521.c: $(top_srcdir)/tests/libtest/mk-lib1521.pl $(top_srcdir)/include/curl/
 	@PERL@ $(top_srcdir)/tests/libtest/mk-lib1521.pl < $(top_srcdir)/include/curl/curl.h lib1521.c
 
 # ignore generated C files since they play by slightly different rules!
-checksrc:
+checksrc: lib1521.c
 	$(CHECKSRC)(@PERL@ $(top_srcdir)/scripts/checksrc.pl -D$(srcdir) \
 	  -W$(srcdir)/libtest_bundle.c \
 	  $(srcdir)/*.[ch])
 
-# for debug builds, we scan the sources on all regular make invokes
-@DEBUGBUILD_TRUE@all-local: checksrc
+@NOT_CURL_CI_TRUE@all-local: checksrc
 
 clean-local:
 	rm -f $(BUNDLE)
