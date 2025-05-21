@@ -1,3 +1,15 @@
+curl (8.14.0~rc3-1+exp1) experimental; urgency=medium
+
+  * New upstream version 8.14.0~rc3
+  * Refresh patches
+  * d/copyright: Update for upstream moved files, they were moved from lib/ to
+    lib/curlx/:
+     - lib/curlx/version_win32.c
+     - lib/curlx/version_win32.h
+     - lib/curlx/inet_pton.c
+
+ -- Samuel Henrique <samueloph@debian.org>  Wed, 21 May 2025 09:45:55 -0300
+
 curl (8.14.0~rc2-1+exp1) experimental; urgency=medium
 
   * New upstream version 8.14.0~rc2
