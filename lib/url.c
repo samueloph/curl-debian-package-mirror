@@ -83,8 +83,9 @@
 #include "multiif.h"
 #include "easyif.h"
 #include "speedcheck.h"
-#include "warnless.h"
+#include "curlx/warnless.h"
 #include "getinfo.h"
+#include "pop3.h"
 #include "urlapi-int.h"
 #include "system_win32.h"
 #include "hsts.h"
@@ -117,9 +118,9 @@
 #include "strdup.h"
 #include "setopt.h"
 #include "altsvc.h"
-#include "dynbuf.h"
+#include "curlx/dynbuf.h"
 #include "headers.h"
-#include "strparse.h"
+#include "curlx/strparse.h"
 /* The last 3 #include files should be in this order */
 #include "curl_printf.h"
 #include "curl_memory.h"
@@ -271,7 +272,7 @@ CURLcode Curl_close(struct Curl_easy **datap)
   data->state.referer = NULL;
 
   up_free(data);
-  Curl_dyn_free(&data->state.headerb);
+  curlx_dyn_free(&data->state.headerb);
   Curl_flush_cookies(data, TRUE);
 #ifndef CURL_DISABLE_ALTSVC
   Curl_altsvc_save(data, data->asi, data->set.str[STRING_ALTSVC]);
@@ -290,7 +291,10 @@ CURLcode Curl_close(struct Curl_easy **datap)
   Curl_safefree(data->info.contenttype);
   Curl_safefree(data->info.wouldredirect);
 
+  /* release any resolve information this transfer kept */
   Curl_async_destroy(data);
+  Curl_resolv_unlink(data, &data->state.dns[0]); /* done with this */
+  Curl_resolv_unlink(data, &data->state.dns[1]);
 
   data_priority_cleanup(data);
 
@@ -532,8 +536,8 @@ CURLcode Curl_open(struct Curl_easy **curl)
   data->state.current_speed = -1; /* init to negative == impossible */
 
   Curl_hash_init(&data->meta_hash, 23,
-                 Curl_hash_str, Curl_str_key_compare, easy_meta_freeentry);
-  Curl_dyn_init(&data->state.headerb, CURL_MAX_HTTP_HEADER);
+                 Curl_hash_str, curlx_str_key_compare, easy_meta_freeentry);
+  curlx_dyn_init(&data->state.headerb, CURL_MAX_HTTP_HEADER);
   Curl_req_init(&data->req);
   Curl_initinfo(data);
 #ifndef CURL_DISABLE_HTTP
@@ -544,7 +548,7 @@ CURLcode Curl_open(struct Curl_easy **curl)
   result = Curl_init_userdefined(data);
 
   if(result) {
-    Curl_dyn_free(&data->state.headerb);
+    curlx_dyn_free(&data->state.headerb);
     Curl_freeset(data);
     Curl_req_free(&data->req, data);
     Curl_hash_destroy(&data->meta_hash);
@@ -679,7 +683,7 @@ static bool conn_maxage(struct Curl_easy *data,
 {
   timediff_t idletime, lifetime;
 
-  idletime = Curl_timediff(now, conn->lastused);
+  idletime = curlx_timediff(now, conn->lastused);
   idletime /= 1000; /* integer seconds is fine */
 
   if(idletime > data->set.maxage_conn) {
@@ -688,7 +692,7 @@ static bool conn_maxage(struct Curl_easy *data,
     return TRUE;
   }
 
-  lifetime = Curl_timediff(now, conn->created);
+  lifetime = curlx_timediff(now, conn->created);
   lifetime /= 1000; /* integer seconds is fine */
 
   if(data->set.maxlifetime_conn && lifetime > data->set.maxlifetime_conn) {
@@ -716,7 +720,7 @@ bool Curl_conn_seems_dead(struct connectdata *conn,
     bool dead;
     struct curltime now;
     if(!pnow) {
-      now = Curl_now();
+      now = curlx_now();
       pnow = &now;
     }
 
@@ -774,7 +778,7 @@ CURLcode Curl_conn_upkeep(struct Curl_easy *data,
                           struct curltime *now)
 {
   CURLcode result = CURLE_OK;
-  if(Curl_timediff(*now, conn->keepalive) <= data->set.upkeep_interval_ms)
+  if(curlx_timediff(*now, conn->keepalive) <= data->set.upkeep_interval_ms)
     return result;
 
   /* briefly attach for action */
@@ -800,8 +804,12 @@ CURLcode Curl_conn_upkeep(struct Curl_easy *data,
 static bool ssh_config_matches(struct connectdata *one,
                                struct connectdata *two)
 {
-  return Curl_safecmp(one->proto.sshc.rsa, two->proto.sshc.rsa) &&
-         Curl_safecmp(one->proto.sshc.rsa_pub, two->proto.sshc.rsa_pub);
+  struct ssh_conn *sshc1, *sshc2;
+
+  sshc1 = Curl_conn_meta_get(one, CURL_META_SSH_CONN);
+  sshc2 = Curl_conn_meta_get(two, CURL_META_SSH_CONN);
+  return (sshc1 && sshc2 && Curl_safecmp(sshc1->rsa, sshc2->rsa) &&
+          Curl_safecmp(sshc1->rsa_pub, sshc2->rsa_pub));
 }
 #endif
 
@@ -1046,13 +1054,7 @@ static bool url_match_conn(struct connectdata *conn, void *userdata)
 #endif
 #ifndef CURL_DISABLE_FTP
   else if(get_protocol_family(needle->handler) & PROTO_FAMILY_FTP) {
-    /* Also match ACCOUNT, ALTERNATIVE-TO-USER, USE_SSL and CCC options */
-    if(Curl_timestrcmp(needle->proto.ftpc.account,
-                       conn->proto.ftpc.account) ||
-       Curl_timestrcmp(needle->proto.ftpc.alternative_to_user,
-                       conn->proto.ftpc.alternative_to_user) ||
-       (needle->proto.ftpc.use_ssl != conn->proto.ftpc.use_ssl) ||
-       (needle->proto.ftpc.ccc != conn->proto.ftpc.ccc))
+    if(!ftp_conns_match(needle, conn))
       return FALSE;
   }
 #endif
@@ -1326,7 +1328,7 @@ static struct connectdata *allocate_conn(struct Curl_easy *data)
   connclose(conn, "Default to force-close");
 
   /* Store creation time to help future close decision making */
-  conn->created = Curl_now();
+  conn->created = curlx_now();
 
   /* Store current time to give a baseline to keepalive connection times. */
   conn->keepalive = conn->created;
@@ -1682,7 +1684,7 @@ static void zonefrom_url(CURLU *uh, struct Curl_easy *data,
   if(!uc && zoneid) {
     const char *p = zoneid;
     curl_off_t scope;
-    if(!Curl_str_number(&p, &scope, UINT_MAX))
+    if(!curlx_str_number(&p, &scope, UINT_MAX))
       /* A plain number, use it directly as a scope id. */
       conn->scope_id = (unsigned int)scope;
 #ifdef HAVE_IF_NAMETOINDEX
@@ -1925,7 +1927,7 @@ static CURLcode parseurlandfillconn(struct Curl_easy *data,
       port = data->set.use_port;
     else {
       const char *p = data->state.up.port;
-      if(Curl_str_number(&p, &port, 0xffff))
+      if(curlx_str_number(&p, &port, 0xffff))
         valid = FALSE;
     }
     if(valid)
@@ -2259,7 +2261,7 @@ static CURLcode parse_proxy(struct Curl_easy *data,
   if(portptr) {
     curl_off_t num;
     const char *p = portptr;
-    if(!Curl_str_number(&p, &num, 0xffff))
+    if(!curlx_str_number(&p, &num, 0xffff))
       port = (int)num;
     free(portptr);
   }
@@ -2903,7 +2905,7 @@ static CURLcode parse_connect_to_host_port(struct Curl_easy *data,
     if(*host_portno) {
       curl_off_t portparse;
       const char *p = host_portno;
-      if(Curl_str_number(&p, &portparse, 0xffff)) {
+      if(curlx_str_number(&p, &portparse, 0xffff)) {
         failf(data, "No valid port number in connect to host string (%s)",
               host_portno);
         result = CURLE_SETOPT_OPTION_SYNTAX;
@@ -2981,7 +2983,7 @@ static CURLcode parse_connect_to_string(struct Curl_easy *data,
       char *ptr_next = strchr(ptr, ':');
       if(ptr_next) {
         curl_off_t port_to_match;
-        if(!Curl_str_number(&ptr, &port_to_match, 0xffff) &&
+        if(!curlx_str_number(&ptr, &port_to_match, 0xffff) &&
            (port_to_match == (curl_off_t)conn->remote_port))
           port_match = TRUE;
         ptr = ptr_next + 1;
@@ -3144,13 +3146,14 @@ static CURLcode parse_connect_to_slist(struct Curl_easy *data,
 #ifdef USE_UNIX_SOCKETS
 static CURLcode resolve_unix(struct Curl_easy *data,
                              struct connectdata *conn,
-                             char *unix_path)
+                             char *unix_path,
+                             struct Curl_dns_entry **pdns)
 {
-  struct Curl_dns_entry *hostaddr = NULL;
+  struct Curl_dns_entry *hostaddr;
   bool longpath = FALSE;
 
   DEBUGASSERT(unix_path);
-  DEBUGASSERT(conn->dns_entry == NULL);
+  *pdns = NULL;
 
   /* Unix domain sockets are local. The host gets ignored, just use the
    * specified domain socket address. Do not cache "DNS entries". There is
@@ -3170,7 +3173,7 @@ static CURLcode resolve_unix(struct Curl_easy *data,
   }
 
   hostaddr->refcount = 1; /* connection is the only one holding this */
-  conn->dns_entry = hostaddr;
+  *pdns = hostaddr;
   return CURLE_OK;
 }
 #endif
@@ -3180,30 +3183,34 @@ static CURLcode resolve_unix(struct Curl_easy *data,
  *************************************************************/
 static CURLcode resolve_server(struct Curl_easy *data,
                                struct connectdata *conn,
-                               bool *async)
+                               bool *async,
+                               struct Curl_dns_entry **pdns)
 {
   struct hostname *ehost;
   timediff_t timeout_ms = Curl_timeleft(data, NULL, TRUE);
   const char *peertype = "host";
   CURLcode result;
+
+  *pdns = NULL;
+
 #ifdef USE_UNIX_SOCKETS
-  char *unix_path = conn->unix_domain_socket;
+  {
+    char *unix_path = conn->unix_domain_socket;
 
 #ifndef CURL_DISABLE_PROXY
-  if(!unix_path && CONN_IS_PROXIED(conn) && conn->socks_proxy.host.name &&
-     !strncmp(UNIX_SOCKET_PREFIX"/",
-              conn->socks_proxy.host.name, sizeof(UNIX_SOCKET_PREFIX)))
-    unix_path = conn->socks_proxy.host.name + sizeof(UNIX_SOCKET_PREFIX) - 1;
+    if(!unix_path && CONN_IS_PROXIED(conn) && conn->socks_proxy.host.name &&
+       !strncmp(UNIX_SOCKET_PREFIX"/",
+                conn->socks_proxy.host.name, sizeof(UNIX_SOCKET_PREFIX)))
+      unix_path = conn->socks_proxy.host.name + sizeof(UNIX_SOCKET_PREFIX) - 1;
 #endif
 
-  if(unix_path) {
-    /* This only works if previous transport is TRNSPRT_TCP. Check it? */
-    conn->transport = TRNSPRT_UNIX;
-    return resolve_unix(data, conn, unix_path);
+    if(unix_path) {
+      /* This only works if previous transport is TRNSPRT_TCP. Check it? */
+      conn->transport = TRNSPRT_UNIX;
+      return resolve_unix(data, conn, unix_path, pdns);
+    }
   }
 #endif
-
-  DEBUGASSERT(conn->dns_entry == NULL);
 
 #ifndef CURL_DISABLE_PROXY
   if(CONN_IS_PROXIED(conn)) {
@@ -3228,23 +3235,23 @@ static CURLcode resolve_server(struct Curl_easy *data,
 
   result = Curl_resolv_timeout(data, conn->hostname_resolve,
                                conn->primary.remote_port, conn->ip_version,
-                               &conn->dns_entry, timeout_ms);
+                               pdns, timeout_ms);
+  DEBUGASSERT(!result || !*pdns);
   if(result == CURLE_AGAIN) {
-    DEBUGASSERT(!conn->dns_entry);
     *async = TRUE;
     return CURLE_OK;
   }
   else if(result == CURLE_OPERATION_TIMEDOUT) {
     failf(data, "Failed to resolve %s '%s' with timeout after %"
           FMT_TIMEDIFF_T " ms", peertype, ehost->dispname,
-          Curl_timediff(Curl_now(), data->progress.t_startsingle));
+          curlx_timediff(curlx_now(), data->progress.t_startsingle));
     return CURLE_OPERATION_TIMEDOUT;
   }
   else if(result) {
     failf(data, "Could not resolve %s: %s", peertype, ehost->dispname);
     return result;
   }
-  DEBUGASSERT(conn->dns_entry);
+  DEBUGASSERT(*pdns);
   return CURLE_OK;
 }
 
@@ -3349,7 +3356,7 @@ static void conn_meta_freeentry(void *p)
 
 static CURLcode create_conn(struct Curl_easy *data,
                             struct connectdata **in_connect,
-                            bool *async)
+                            bool *reusedp)
 {
   CURLcode result = CURLE_OK;
   struct connectdata *conn;
@@ -3359,7 +3366,7 @@ static CURLcode create_conn(struct Curl_easy *data,
   bool force_reuse = FALSE;
   bool waitpipe = FALSE;
 
-  *async = FALSE;
+  *reusedp = FALSE;
   *in_connect = NULL;
 
   /*************************************************************
@@ -3388,7 +3395,7 @@ static CURLcode create_conn(struct Curl_easy *data,
 
   /* Do the unfailable inits first, before checks that may early return */
   Curl_hash_init(&conn->meta_hash, 23,
-               Curl_hash_str, Curl_str_key_compare, conn_meta_freeentry);
+               Curl_hash_str, curlx_str_key_compare, conn_meta_freeentry);
 
   /* GSSAPI related inits */
   Curl_sec_conn_init(conn);
@@ -3719,15 +3726,7 @@ static CURLcode create_conn(struct Curl_easy *data,
     /* We are reusing the connection - no need to resolve anything, and
        idnconvert_hostname() was called already in create_conn() for the reuse
        case. */
-    *async = FALSE;
-  }
-  else {
-    /*************************************************************
-     * Resolve the address of the server or proxy
-     *************************************************************/
-    result = resolve_server(data, conn, async);
-    if(result)
-      goto out;
+    *reusedp = TRUE;
   }
 
   /* persist the scheme and handler the transfer is using */
@@ -3756,21 +3755,17 @@ out:
  * Curl_setup_conn() also handles reused connections
  */
 CURLcode Curl_setup_conn(struct Curl_easy *data,
+                         struct Curl_dns_entry *dns,
                          bool *protocol_done)
 {
   CURLcode result = CURLE_OK;
   struct connectdata *conn = data->conn;
 
+  DEBUGASSERT(dns);
   Curl_pgrsTime(data, TIMER_NAMELOOKUP);
 
-  if(conn->handler->flags & PROTOPT_NONETWORK) {
-    /* nothing to setup when not using a network */
-    *protocol_done = TRUE;
-    return result;
-  }
-
   if(!conn->bits.reuse)
-    result = Curl_conn_setup(data, conn, FIRSTSOCKET, conn->dns_entry,
+    result = Curl_conn_setup(data, conn, FIRSTSOCKET, dns,
                              CURL_CF_SSL_DEFAULT);
   if(!result)
     result = Curl_headers_init(data);
@@ -3786,31 +3781,52 @@ CURLcode Curl_connect(struct Curl_easy *data,
 {
   CURLcode result;
   struct connectdata *conn;
+  bool reused = FALSE;
 
   *asyncp = FALSE; /* assume synchronous resolves by default */
+  *protocol_done = FALSE;
 
   /* Set the request to virgin state based on transfer settings */
   Curl_req_hard_reset(&data->req, data);
 
   /* call the stuff that needs to be called */
-  result = create_conn(data, &conn, asyncp);
+  result = create_conn(data, &conn, &reused);
+
+  if(result == CURLE_NO_CONNECTION_AVAILABLE) {
+    DEBUGASSERT(!conn);
+    return result;
+  }
 
   if(!result) {
-    if(CONN_ATTACHED(conn) > 1)
-      /* multiplexed */
+    DEBUGASSERT(conn);
+    if(reused) {
+      if(CONN_ATTACHED(conn) > 1)
+        /* multiplexed */
+        *protocol_done = TRUE;
+    }
+    else if(conn->handler->flags & PROTOPT_NONETWORK) {
+      *asyncp = FALSE;
+      Curl_pgrsTime(data, TIMER_NAMELOOKUP);
       *protocol_done = TRUE;
-    else if(!*asyncp) {
-      /* DNS resolution is done: that is either because this is a reused
-         connection, in which case DNS was unnecessary, or because DNS
-         really did finish already (synch resolver/fast async resolve) */
-      result = Curl_setup_conn(data, protocol_done);
+    }
+    else {
+      /*************************************************************
+       * Resolve the address of the server or proxy
+       *************************************************************/
+      struct Curl_dns_entry *dns;
+      result = resolve_server(data, conn, asyncp, &dns);
+      if(!result) {
+        *asyncp = !dns;
+        if(dns)
+          /* DNS resolution is done: that is either because this is a reused
+             connection, in which case DNS was unnecessary, or because DNS
+             really did finish already (synch resolver/fast async resolve) */
+          result = Curl_setup_conn(data, dns, protocol_done);
+      }
     }
   }
 
-  if(result == CURLE_NO_CONNECTION_AVAILABLE) {
-    return result;
-  }
-  else if(result && conn) {
+  if(result && conn) {
     /* We are not allowed to return failure with memory left allocated in the
        connectdata struct, free those here */
     Curl_detach_connection(data);

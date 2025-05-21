@@ -979,6 +979,8 @@ CURL_LT_SHLIB_USE_NO_UNDEFINED_FALSE
 CURL_LT_SHLIB_USE_NO_UNDEFINED_TRUE
 CURL_LT_SHLIB_USE_VERSION_INFO_FALSE
 CURL_LT_SHLIB_USE_VERSION_INFO_TRUE
+NOT_CURL_CI_FALSE
+NOT_CURL_CI_TRUE
 RC
 LT_SYS_LIBRARY_PATH
 OTOOL64
@@ -3485,6 +3487,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 ac_config_headers="$ac_config_headers lib/curl_config.h"
+
 
 
 
@@ -6892,7 +6895,7 @@ TEST_NGHTTPX=nghttpx
 if test ${with_test_nghttpx+y}
 then :
   withval=$with_test_nghttpx; TEST_NGHTTPX=$withval
-  if test X"$OPT_TEST_NGHTTPX" = "Xno"; then
+  if test X"$TEST_NGHTTPX" = "Xno"; then
     TEST_NGHTTPX=""
   fi
 
@@ -6900,13 +6903,19 @@ fi
 
 
 
-CADDY=/usr/bin/caddy
+if test -x /usr/bin/caddy; then
+  CADDY=/usr/bin/caddy
+elif test -x /usr/local/bin/caddy; then
+  CADDY=/usr/local/bin/caddy
+elif test -x `brew --prefix`/bin/caddy; then
+  CADDY=`brew --prefix`/bin/caddy
+fi
 
 # Check whether --with-test-caddy was given.
 if test ${with_test_caddy+y}
 then :
   withval=$with_test_caddy; CADDY=$withval
-  if test X"$OPT_CADDY" = "Xno"; then
+  if test X"$CADDY" = "Xno"; then
     CADDY=""
   fi
 
@@ -6914,13 +6923,19 @@ fi
 
 
 
-VSFTPD=/usr/sbin/vsftpd
+if test -x /usr/sbin/vsftpd; then
+  VSFTPD=/usr/sbin/vsftpd
+elif test -x /usr/local/sbin/vsftpd; then
+  VSFTPD=/usr/local/sbin/vsftpd
+elif test -x `brew --prefix`/sbin/vsftpd; then
+  VSFTPD=`brew --prefix`/sbin/vsftpd
+fi
 
 # Check whether --with-test-vsftpd was given.
 if test ${with_test_vsftpd+y}
 then :
   withval=$with_test_vsftpd; VSFTPD=$withval
-  if test X"$OPT_VSFTPD" = "Xno"; then
+  if test X"$VSFTPD" = "Xno"; then
     VSFTPD=""
   fi
 
@@ -17099,6 +17114,15 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 CC=$lt_save_CC
 CFLAGS=$lt_save_CFLAGS
+
+
+ if test -z "$CURL_CI"; then
+  NOT_CURL_CI_TRUE=
+  NOT_CURL_CI_FALSE='#'
+else
+  NOT_CURL_CI_TRUE='#'
+  NOT_CURL_CI_FALSE=
+fi
 
 
 #
@@ -45874,6 +45898,10 @@ else
   am__EXEEXT_FALSE=
 fi
 
+if test -z "${NOT_CURL_CI_TRUE}" && test -z "${NOT_CURL_CI_FALSE}"; then
+  as_fn_error $? "conditional \"NOT_CURL_CI\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
 if test -z "${CURL_LT_SHLIB_USE_VERSION_INFO_TRUE}" && test -z "${CURL_LT_SHLIB_USE_VERSION_INFO_FALSE}"; then
   as_fn_error $? "conditional \"CURL_LT_SHLIB_USE_VERSION_INFO\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
