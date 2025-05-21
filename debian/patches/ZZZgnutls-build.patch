@@ -16,10 +16,10 @@ Last-Update: 2024-11-06
  7 files changed, 78 insertions(+), 8 deletions(-)
 
 diff --git a/configure.ac b/configure.ac
-index 50f60ee..801f56b 100644
+index 8a91594..6455fca 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -258,6 +258,16 @@ AS_HELP_STRING([--with-gnutls=PATH],[where to look for GnuTLS, PATH points to th
+@@ -259,6 +259,16 @@ AS_HELP_STRING([--with-gnutls=PATH],[where to look for GnuTLS, PATH points to th
    fi
  ])
  
@@ -36,7 +36,7 @@ index 50f60ee..801f56b 100644
  OPT_MBEDTLS=no
  AC_ARG_WITH(mbedtls,dnl
  AS_HELP_STRING([--with-mbedtls=PATH],[where to look for mbedTLS, PATH points to the installation root]),[
-@@ -2659,7 +2669,7 @@ AS_HELP_STRING([--disable-versioned-symbols], [Disable versioned symbols in shar
+@@ -2674,7 +2684,7 @@ AS_HELP_STRING([--disable-versioned-symbols], [Disable versioned symbols in shar
  )
  
  AC_SUBST([CURL_LIBCURL_VERSIONED_SYMBOLS_PREFIX], ["$versioned_symbols_flavour"])
@@ -46,7 +46,7 @@ index 50f60ee..801f56b 100644
    [test "x$versioned_symbols" = 'xyes'])
  
 diff --git a/docs/examples/Makefile.am b/docs/examples/Makefile.am
-index 02ba20b..8d8dd8f 100644
+index 042922f..f162687 100644
 --- a/docs/examples/Makefile.am
 +++ b/docs/examples/Makefile.am
 @@ -52,7 +52,7 @@ endif
@@ -59,12 +59,12 @@ index 02ba20b..8d8dd8f 100644
  # This might hold -Werror
  CFLAGS += @CURL_CFLAG_EXTRAS@
 diff --git a/lib/Makefile.am b/lib/Makefile.am
-index 477cbe6..d88e147 100644
+index 8dac236..880a713 100644
 --- a/lib/Makefile.am
 +++ b/lib/Makefile.am
-@@ -33,7 +33,11 @@ EXTRA_DIST = config-mac.h config-os400.h config-plan9.h config-riscos.h \
-  $(CMAKE_DIST) Makefile.soname optiontable.pl $(CHECKSRC_DIST)  \
-  curlx/README.md
+@@ -32,7 +32,11 @@ EXTRA_DIST = config-mac.h config-os400.h config-plan9.h config-riscos.h \
+  config-win32.h curl_config.h.in libcurl.rc libcurl.def                 \
+  $(CMAKE_DIST) Makefile.soname optiontable.pl $(CHECKSRC_DIST)
  
 +if GNUTLSBUILD
 +lib_LTLIBRARIES = libcurl-gnutls.la
@@ -74,7 +74,7 @@ index 477cbe6..d88e147 100644
  
  if BUILD_UNITTESTS
  noinst_LTLIBRARIES = libcurlu.la
-@@ -98,59 +102,115 @@ endif
+@@ -97,59 +101,115 @@ endif
  libcurl_unity.c: $(top_srcdir)/scripts/mk-unity.pl $(CSOURCES)
  	@PERL@ $(top_srcdir)/scripts/mk-unity.pl $(srcdir) $(CSOURCES) --exclude $(curl_EXCLUDE) > libcurl_unity.c
  
@@ -192,7 +192,7 @@ index 477cbe6..d88e147 100644
  libcurlu_la_LDFLAGS = $(AM_LDFLAGS) -static $(LIBCURL_PC_LIBS_PRIVATE)
  libcurlu_la_CFLAGS = $(AM_CFLAGS)
 diff --git a/src/Makefile.am b/src/Makefile.am
-index 5e84a20..ba76b4f 100644
+index 2df95a0..27657d0 100644
 --- a/src/Makefile.am
 +++ b/src/Makefile.am
 @@ -102,7 +102,7 @@ CFLAGS += @CURL_CFLAG_EXTRAS@
@@ -205,7 +205,7 @@ index 5e84a20..ba76b4f 100644
  # if unit tests are enabled, build a static library to link them with
  if BUILD_UNITTESTS
 diff --git a/tests/http/clients/Makefile.am b/tests/http/clients/Makefile.am
-index bae747f..befdb9a 100644
+index d1acb95..663f0bd 100644
 --- a/tests/http/clients/Makefile.am
 +++ b/tests/http/clients/Makefile.am
 @@ -53,7 +53,7 @@ endif
@@ -218,7 +218,7 @@ index bae747f..befdb9a 100644
  # This might hold -Werror
  CFLAGS += @CURL_CFLAG_EXTRAS@
 diff --git a/tests/libtest/Makefile.am b/tests/libtest/Makefile.am
-index 497493c..2ad5490 100644
+index 07980f8..3c2b664 100644
 --- a/tests/libtest/Makefile.am
 +++ b/tests/libtest/Makefile.am
 @@ -52,8 +52,8 @@ CLEANFILES = lib1521.c
@@ -233,7 +233,7 @@ index 497493c..2ad5490 100644
  # Dependencies (may need to be overridden)
  LDADD = $(SUPPORTFILES_LIBS)
 diff --git a/tests/tunit/Makefile.am b/tests/tunit/Makefile.am
-index 92e160b..e77faac 100644
+index 01d2767..5d74bb4 100644
 --- a/tests/tunit/Makefile.am
 +++ b/tests/tunit/Makefile.am
 @@ -49,7 +49,7 @@ CFLAGS += @CURL_CFLAG_EXTRAS@
