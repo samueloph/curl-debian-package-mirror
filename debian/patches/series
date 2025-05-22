@@ -82,6 +82,7 @@ CVE-2023-38546.patch
 CVE-2024-7264.patch
 CVE-2023-27534.patch
 CVE-2023-28321.patch
+CVE-2023-28322.patch
 
 # Always add CVE patches before these two patches
 90_gnutls.patch
