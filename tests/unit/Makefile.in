@@ -197,6 +197,8 @@ CONFIG_CLEAN_VPATH_FILES =
 @BUILD_UNITTESTS_TRUE@@USE_TEST_BUNDLES_FALSE@	unit1661$(EXEEXT) \
 @BUILD_UNITTESTS_TRUE@@USE_TEST_BUNDLES_FALSE@	unit1663$(EXEEXT) \
 @BUILD_UNITTESTS_TRUE@@USE_TEST_BUNDLES_FALSE@	unit1664$(EXEEXT) \
+@BUILD_UNITTESTS_TRUE@@USE_TEST_BUNDLES_FALSE@	unit1979$(EXEEXT) \
+@BUILD_UNITTESTS_TRUE@@USE_TEST_BUNDLES_FALSE@	unit1980$(EXEEXT) \
 @BUILD_UNITTESTS_TRUE@@USE_TEST_BUNDLES_FALSE@	unit2600$(EXEEXT) \
 @BUILD_UNITTESTS_TRUE@@USE_TEST_BUNDLES_FALSE@	unit2601$(EXEEXT) \
 @BUILD_UNITTESTS_TRUE@@USE_TEST_BUNDLES_FALSE@	unit2602$(EXEEXT) \
@@ -517,6 +519,20 @@ am__unit1664_SOURCES_DIST = unit1664.c curlcheck.h ../libtest/first.c \
 unit1664_OBJECTS = $(am_unit1664_OBJECTS)
 unit1664_LDADD = $(LDADD)
 unit1664_DEPENDENCIES = $(top_builddir)/lib/libcurlu.la
+am__unit1979_SOURCES_DIST = unit1979.c curlcheck.h ../libtest/first.c \
+	../libtest/first.h
+@BUILD_UNITTESTS_TRUE@@USE_TEST_BUNDLES_FALSE@am_unit1979_OBJECTS = unit1979.$(OBJEXT) \
+@BUILD_UNITTESTS_TRUE@@USE_TEST_BUNDLES_FALSE@	$(am__objects_2)
+unit1979_OBJECTS = $(am_unit1979_OBJECTS)
+unit1979_LDADD = $(LDADD)
+unit1979_DEPENDENCIES = $(top_builddir)/lib/libcurlu.la
+am__unit1980_SOURCES_DIST = unit1980.c curlcheck.h ../libtest/first.c \
+	../libtest/first.h
+@BUILD_UNITTESTS_TRUE@@USE_TEST_BUNDLES_FALSE@am_unit1980_OBJECTS = unit1980.$(OBJEXT) \
+@BUILD_UNITTESTS_TRUE@@USE_TEST_BUNDLES_FALSE@	$(am__objects_2)
+unit1980_OBJECTS = $(am_unit1980_OBJECTS)
+unit1980_LDADD = $(LDADD)
+unit1980_DEPENDENCIES = $(top_builddir)/lib/libcurlu.la
 am__unit2600_SOURCES_DIST = unit2600.c curlcheck.h ../libtest/first.c \
 	../libtest/first.h
 @BUILD_UNITTESTS_TRUE@@USE_TEST_BUNDLES_FALSE@am_unit2600_OBJECTS = unit2600.$(OBJEXT) \
@@ -628,7 +644,8 @@ am__depfiles_remade = ../libtest/$(DEPDIR)/first.Po \
 	./$(DEPDIR)/unit1656.Po ./$(DEPDIR)/unit1657.Po \
 	./$(DEPDIR)/unit1658.Po ./$(DEPDIR)/unit1660.Po \
 	./$(DEPDIR)/unit1661.Po ./$(DEPDIR)/unit1663.Po \
-	./$(DEPDIR)/unit1664.Po ./$(DEPDIR)/unit2600.Po \
+	./$(DEPDIR)/unit1664.Po ./$(DEPDIR)/unit1979.Po \
+	./$(DEPDIR)/unit1980.Po ./$(DEPDIR)/unit2600.Po \
 	./$(DEPDIR)/unit2601.Po ./$(DEPDIR)/unit2602.Po \
 	./$(DEPDIR)/unit2603.Po ./$(DEPDIR)/unit2604.Po \
 	./$(DEPDIR)/unit3200.Po ./$(DEPDIR)/unit3205.Po \
@@ -667,11 +684,11 @@ SOURCES = $(unit1300_SOURCES) $(unit1302_SOURCES) $(unit1303_SOURCES) \
 	$(unit1653_SOURCES) $(unit1654_SOURCES) $(unit1655_SOURCES) \
 	$(unit1656_SOURCES) $(unit1657_SOURCES) $(unit1658_SOURCES) \
 	$(unit1660_SOURCES) $(unit1661_SOURCES) $(unit1663_SOURCES) \
-	$(unit1664_SOURCES) $(unit2600_SOURCES) $(unit2601_SOURCES) \
-	$(unit2602_SOURCES) $(unit2603_SOURCES) $(unit2604_SOURCES) \
-	$(unit3200_SOURCES) $(unit3205_SOURCES) $(unit3211_SOURCES) \
-	$(unit3212_SOURCES) $(unit3213_SOURCES) \
-	$(nodist_units_SOURCES)
+	$(unit1664_SOURCES) $(unit1979_SOURCES) $(unit1980_SOURCES) \
+	$(unit2600_SOURCES) $(unit2601_SOURCES) $(unit2602_SOURCES) \
+	$(unit2603_SOURCES) $(unit2604_SOURCES) $(unit3200_SOURCES) \
+	$(unit3205_SOURCES) $(unit3211_SOURCES) $(unit3212_SOURCES) \
+	$(unit3213_SOURCES) $(nodist_units_SOURCES)
 DIST_SOURCES = $(am__unit1300_SOURCES_DIST) \
 	$(am__unit1302_SOURCES_DIST) $(am__unit1303_SOURCES_DIST) \
 	$(am__unit1304_SOURCES_DIST) $(am__unit1305_SOURCES_DIST) \
@@ -694,6 +711,7 @@ DIST_SOURCES = $(am__unit1300_SOURCES_DIST) \
 	$(am__unit1657_SOURCES_DIST) $(am__unit1658_SOURCES_DIST) \
 	$(am__unit1660_SOURCES_DIST) $(am__unit1661_SOURCES_DIST) \
 	$(am__unit1663_SOURCES_DIST) $(am__unit1664_SOURCES_DIST) \
+	$(am__unit1979_SOURCES_DIST) $(am__unit1980_SOURCES_DIST) \
 	$(am__unit2600_SOURCES_DIST) $(am__unit2601_SOURCES_DIST) \
 	$(am__unit2602_SOURCES_DIST) $(am__unit2603_SOURCES_DIST) \
 	$(am__unit2604_SOURCES_DIST) $(am__unit3200_SOURCES_DIST) \
@@ -952,6 +970,7 @@ BUNDLE = units
 @BUILD_UNITTESTS_TRUE@@USE_TEST_BUNDLES_FALSE@ unit1650 unit1651 unit1652 unit1653 unit1654 unit1655 unit1656 unit1657 \
 @BUILD_UNITTESTS_TRUE@@USE_TEST_BUNDLES_FALSE@ unit1658 \
 @BUILD_UNITTESTS_TRUE@@USE_TEST_BUNDLES_FALSE@ unit1660 unit1661 unit1663 unit1664 \
+@BUILD_UNITTESTS_TRUE@@USE_TEST_BUNDLES_FALSE@ unit1979 unit1980 \
 @BUILD_UNITTESTS_TRUE@@USE_TEST_BUNDLES_FALSE@ unit2600 unit2601 unit2602 unit2603 unit2604 \
 @BUILD_UNITTESTS_TRUE@@USE_TEST_BUNDLES_FALSE@ unit3200 \
 @BUILD_UNITTESTS_TRUE@@USE_TEST_BUNDLES_FALSE@ unit3205 \
@@ -1000,6 +1019,8 @@ BUNDLE = units
 @BUILD_UNITTESTS_TRUE@@USE_TEST_BUNDLES_FALSE@unit1661_SOURCES = unit1661.c $(UNITFILES)
 @BUILD_UNITTESTS_TRUE@@USE_TEST_BUNDLES_FALSE@unit1663_SOURCES = unit1663.c $(UNITFILES)
 @BUILD_UNITTESTS_TRUE@@USE_TEST_BUNDLES_FALSE@unit1664_SOURCES = unit1664.c $(UNITFILES)
+@BUILD_UNITTESTS_TRUE@@USE_TEST_BUNDLES_FALSE@unit1979_SOURCES = unit1979.c $(UNITFILES)
+@BUILD_UNITTESTS_TRUE@@USE_TEST_BUNDLES_FALSE@unit1980_SOURCES = unit1980.c $(UNITFILES)
 @BUILD_UNITTESTS_TRUE@@USE_TEST_BUNDLES_FALSE@unit2600_SOURCES = unit2600.c $(UNITFILES)
 @BUILD_UNITTESTS_TRUE@@USE_TEST_BUNDLES_FALSE@unit2601_SOURCES = unit2601.c $(UNITFILES)
 @BUILD_UNITTESTS_TRUE@@USE_TEST_BUNDLES_FALSE@unit2602_SOURCES = unit2602.c $(UNITFILES)
@@ -1238,6 +1259,14 @@ unit1664$(EXEEXT): $(unit1664_OBJECTS) $(unit1664_DEPENDENCIES) $(EXTRA_unit1664
 	@rm -f unit1664$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(unit1664_OBJECTS) $(unit1664_LDADD) $(LIBS)
 
+unit1979$(EXEEXT): $(unit1979_OBJECTS) $(unit1979_DEPENDENCIES) $(EXTRA_unit1979_DEPENDENCIES) 
+	@rm -f unit1979$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(unit1979_OBJECTS) $(unit1979_LDADD) $(LIBS)
+
+unit1980$(EXEEXT): $(unit1980_OBJECTS) $(unit1980_DEPENDENCIES) $(EXTRA_unit1980_DEPENDENCIES) 
+	@rm -f unit1980$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(unit1980_OBJECTS) $(unit1980_LDADD) $(LIBS)
+
 unit2600$(EXEEXT): $(unit2600_OBJECTS) $(unit2600_DEPENDENCIES) $(EXTRA_unit2600_DEPENDENCIES) 
 	@rm -f unit2600$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(unit2600_OBJECTS) $(unit2600_LDADD) $(LIBS)
@@ -1333,6 +1362,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/unit1661.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/unit1663.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/unit1664.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/unit1979.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/unit1980.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/unit2600.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/unit2601.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/unit2602.Po@am__quote@ # am--include-marker
@@ -1553,6 +1584,8 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/unit1661.Po
 	-rm -f ./$(DEPDIR)/unit1663.Po
 	-rm -f ./$(DEPDIR)/unit1664.Po
+	-rm -f ./$(DEPDIR)/unit1979.Po
+	-rm -f ./$(DEPDIR)/unit1980.Po
 	-rm -f ./$(DEPDIR)/unit2600.Po
 	-rm -f ./$(DEPDIR)/unit2601.Po
 	-rm -f ./$(DEPDIR)/unit2602.Po
@@ -1653,6 +1686,8 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/unit1661.Po
 	-rm -f ./$(DEPDIR)/unit1663.Po
 	-rm -f ./$(DEPDIR)/unit1664.Po
+	-rm -f ./$(DEPDIR)/unit1979.Po
+	-rm -f ./$(DEPDIR)/unit1980.Po
 	-rm -f ./$(DEPDIR)/unit2600.Po
 	-rm -f ./$(DEPDIR)/unit2601.Po
 	-rm -f ./$(DEPDIR)/unit2602.Po
