@@ -1,3 +1,11 @@
+curl (7.64.0-4+deb10u12) buster-security; urgency=medium
+
+  * Non-maintainer upload by the ELTS Security Team.
+  * debian/patches/fix-CVE-2023-27534-regression.patch: add new patch from
+    upstream to restore sftp://host/~ behaviour.
+
+ -- Carlos Henrique Lima Melara <charlesmelara@riseup.net>  Fri, 06 Jun 2025 22:51:34 -0300
+
 curl (7.64.0-4+deb10u11) buster-security; urgency=high
 
   * Non-maintainer upload by the ELTS Security Team.
