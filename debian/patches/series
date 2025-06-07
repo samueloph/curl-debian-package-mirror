@@ -59,6 +59,9 @@ CVE-2024-2398.patch
 # Post 8.10.0
 CVE-2024-8096.patch
 
+# Patches from 8.15.0
+fix-CVE-2023-27534-regression.patch
+
 # Always add patches before this line!
 90_gnutls.patch
 99_nss.patch
