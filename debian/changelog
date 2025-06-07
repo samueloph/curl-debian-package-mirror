@@ -1,3 +1,13 @@
+curl (7.52.1-5+deb9u24) stretch-security; urgency=medium
+
+  * Non-maintainer upload by the ELTS Security Team.
+  * debian/patches/:
+      - CVE-2023-27534.patch: remove leftover + sign from the patch.
+      - fix-CVE-2023-27534-regression.patch: add new patch from upstream
+        to restore sftp://host/~ behaviour.
+
+ -- Carlos Henrique Lima Melara <charlesmelara@riseup.net>  Fri, 06 Jun 2025 23:41:58 -0300
+
 curl (7.52.1-5+deb9u23) stretch-security; urgency=medium
 
   * Non-maintainer upload by the ELTS team.
