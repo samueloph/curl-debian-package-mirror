@@ -1,3 +1,14 @@
+curl (7.74.0-1.3+deb11u15) bullseye-security; urgency=medium
+
+  * Non-maintainer upload by the LTS Security Team.
+  * debian/gbp.conf: add file with minimal settings and debian/bullseye
+    default.
+  * debian/patches/fix-CVE-2023-27534-regression-{1,2}.patch: add new patches
+    from upstream to restore sftp://host/~ behaviour.
+  * debian/salsa-ci.yml: add (E)LTS pipeline for bullseye.
+
+ -- Carlos Henrique Lima Melara <charlesmelara@riseup.net>  Sun, 08 Jun 2025 22:01:17 -0300
+
 curl (7.74.0-1.3+deb11u14) bullseye-security; urgency=medium
 
   * Team upload.
