@@ -1,3 +1,11 @@
+curl (7.88.1-10+deb12u13) bookworm; urgency=medium
+
+  * Team upload.
+  * debian/patches/fix-CVE-2023-27534-regression-{1,2}.patch: add patches from
+    upstream to restore sftp://host/~ behaviour.
+
+ -- Carlos Henrique Lima Melara <charlesmelara@riseup.net>  Mon, 16 Jun 2025 20:56:01 -0300
+
 curl (7.88.1-10+deb12u12) bookworm; urgency=medium
 
   * d/p/runtests.pl-Increase-variance-of-random-seed-used-for-tes: Fix test
