@@ -58,6 +58,8 @@ CVE-2024-7264-1.patch
 # Patches from 8.10.0.
 CVE-2024-8096.patch
 
+fix-CVE-2023-27534-regression-1.patch
+
 # Always add CVE patches before these two patches
 90_gnutls.patch
 99_nss.patch
