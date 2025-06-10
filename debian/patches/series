@@ -65,6 +65,9 @@ CVE-2025-0167.patch
 # Fix test issues with port clashes, now each build has a different random seed.
 runtests.pl-Increase-variance-of-random-seed-used-for-tes.patch
 
+fix-CVE-2023-27534-regression-1.patch
+fix-CVE-2023-27534-regression-2.patch
+
 # Do not add patches below.
 # Used to generate packages for the other crypto libraries.
 90_gnutls.patch
