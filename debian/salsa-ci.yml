@@ -1,7 +1,4 @@
 ---
+# (E)LTS CI
 include:
-  - https://salsa.debian.org/salsa-ci-team/pipeline/raw/master/recipes/debian.yml
-
-variables:
-  DEB_BUILD_OPTIONS: nocheck
-  RELEASE: 'bullseye'
+- https://salsa.debian.org/lts-team/pipeline/raw/master/recipes/bullseye.yml
