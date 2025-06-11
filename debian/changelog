@@ -1,3 +1,30 @@
+curl (8.14.1-1) unstable; urgency=medium
+
+  * New upstream version 8.14.1
+    - Fix CVE-2025-5399: WebSocket endless loop
+  * d/p/multi_fix_add_handle_resizing: Drop patch, merged in 8.14.1
+
+ -- Samuel Henrique <samueloph@debian.org>  Wed, 04 Jun 2025 08:21:05 +0100
+
+curl (8.14.0-1) unstable; urgency=medium
+
+  * New upstream version 8.14.0
+  * Drop vendored wcurl now that it's in the upstream tarball
+  * d/copyright: Update for upstream moved files:
+    - They were moved from lib/ to lib/curlx/:
+       ~ lib/curlx/version_win32.c
+       ~ lib/curlx/version_win32.h
+       ~ lib/curlx/inet_pton.c
+  * d/patches:
+    - Refresh patches
+    - ZZZgnutls-build.patch: Update to also work with tests/tunit makefile
+    - multi_fix_add_handle_resizing.patch: New patch to fix regression
+    - Drop patches merged upstream:
+      ~ autotools_install_shell_completion_files_on_cross_build.patch
+      ~ scripts_completion_pl_sort_the_completion_file_for_all_shells.patch
+
+ -- Samuel Henrique <samueloph@debian.org>  Wed, 28 May 2025 19:26:28 +0100
+
 curl (8.13.0-5~bpo12+1) bookworm-backports; urgency=medium
 
   * Rebuild for bookworm-backports.

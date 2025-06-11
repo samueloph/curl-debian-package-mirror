@@ -69,8 +69,8 @@ Files: lib/curl_des.c
  lib/vauth/krb5_sspi.c
  lib/vauth/vauth.c
  lib/vauth/vauth.h
- lib/version_win32.c
- lib/version_win32.h
+ lib/curlx/version_win32.c
+ lib/curlx/version_win32.h
  projects/build-openssl.bat
  projects/checksrc.bat
  projects/generate.bat
@@ -115,7 +115,7 @@ Copyright: 1992-2022, Free Software Foundation, Inc.
 License: GPL-3+ with Autoconf-data exception
 
 Files: lib/inet_ntop.c
- lib/inet_pton.c
+ lib/curlx/inet_pton.c
 Copyright: 1996-2022, Internet Software Consortium.
 License: ISC
 

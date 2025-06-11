@@ -1,4 +1,4 @@
-../wcurl/wcurl usr/bin
 usr/bin/curl
+usr/bin/wcurl
 usr/share/zsh/*
 usr/share/fish/*
