@@ -1,48 +1,42 @@
-curl (8.14.0-1+exp1) experimental; urgency=medium
+curl (8.14.1-2) unstable; urgency=medium
 
-  * New upstream version 8.14.0~rc3
-  * d/p/multi_fix_add_handle_resizing.patch: New patch to fix regression
+  * gbp pq import/export: Updated hunks offsets
+  * d/patches:
+    - tool_getparam_fix_ftp_pasv.patch: New upstream patch to fix regression
+      in --ftp-pasv
+    - curl_path_make_SFTP_handle_a_path.patch: New patch to fix longstanding
+      regression on paths /~ for SFTP
+    - tool_operate_fix_return_code_when_retry_is_used_but_not_triggered.patch:
+      New patch to fix regression from 8.14.1
 
- -- Samuel Henrique <samueloph@debian.org>  Wed, 28 May 2025 18:48:14 +0100
+ -- Samuel Henrique <samueloph@debian.org>  Wed, 11 Jun 2025 19:18:58 +0100
 
-curl (8.14.0~rc3-1+exp1) experimental; urgency=medium
+curl (8.14.1-1) unstable; urgency=medium
 
-  * New upstream version 8.14.0~rc3
-  * Refresh patches
-  * d/copyright: Update for upstream moved files, they were moved from lib/ to
-    lib/curlx/:
-     - lib/curlx/version_win32.c
-     - lib/curlx/version_win32.h
-     - lib/curlx/inet_pton.c
+  * New upstream version 8.14.1
+    - Fix CVE-2025-5399: WebSocket endless loop
+  * d/p/multi_fix_add_handle_resizing: Drop patch, merged in 8.14.1
 
- -- Samuel Henrique <samueloph@debian.org>  Wed, 21 May 2025 09:45:55 -0300
+ -- Samuel Henrique <samueloph@debian.org>  Wed, 04 Jun 2025 08:21:05 +0100
 
-curl (8.14.0~rc2-1+exp1) experimental; urgency=medium
+curl (8.14.0-1) unstable; urgency=medium
 
-  * New upstream version 8.14.0~rc2
-  * debian/patches: refresh patches.
-      - ZZZgnutls-build.patch: update to also work with tests/tunit makefile.
+  * New upstream version 8.14.0
+  * Drop vendored wcurl now that it's in the upstream tarball
+  * d/copyright: Update for upstream moved files:
+    - They were moved from lib/ to lib/curlx/:
+       ~ lib/curlx/version_win32.c
+       ~ lib/curlx/version_win32.h
+       ~ lib/curlx/inet_pton.c
+  * d/patches:
+    - Refresh patches
+    - ZZZgnutls-build.patch: Update to also work with tests/tunit makefile
+    - multi_fix_add_handle_resizing.patch: New patch to fix regression
+    - Drop patches merged upstream:
+      ~ autotools_install_shell_completion_files_on_cross_build.patch
+      ~ scripts_completion_pl_sort_the_completion_file_for_all_shells.patch
 
- -- Carlos Henrique Lima Melara <charlesmelara@riseup.net>  Mon, 12 May 2025 18:02:19 -0300
-
-curl (8.14.0~rc1-1+exp1) experimental; urgency=medium
-
-  * New upstream version 8.14.0~rc1
-  * d/patches: Drop merged patches:
-    - autotools_install_shell_completion_files_on_cross_build.patch
-    - scripts_completion_pl_sort_the_completion_file_for_all_shells.patch
-  * Revert "d/control: Build with SASL support with libgsasl-dev"
-  * d/wcurl: Drop vendored wcurl now that it's in the upstream tarball
-
- -- Samuel Henrique <samueloph@debian.org>  Thu, 01 May 2025 19:29:02 -0300
-
-curl (8.13.0-5+exp1) experimental; urgency=medium
-
-  * d/rules: Enable experimental features: HTTPS RR and SSL session
-    import/export
-  * d/control: Build with SASL support with libgsasl-dev
-
- -- Samuel Henrique <samueloph@debian.org>  Fri, 25 Apr 2025 22:20:27 +0100
+ -- Samuel Henrique <samueloph@debian.org>  Wed, 28 May 2025 19:26:28 +0100
 
 curl (8.13.0-5) unstable; urgency=medium
 
