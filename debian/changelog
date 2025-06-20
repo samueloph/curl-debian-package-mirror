@@ -1,4 +1,4 @@
-curl (8.14.1-2~exp1) experimental; urgency=medium
+curl (8.14.1-2+exp1) experimental; urgency=medium
 
   * Enable experimental features: HTTPS RR and SSL session import/export
 
