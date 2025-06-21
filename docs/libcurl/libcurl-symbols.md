@@ -198,7 +198,7 @@ Introduced in 7.10.8. See CURLOPT_IPRESOLVE(3).
 Introduced in 7.10.8. See CURLOPT_IPRESOLVE(3).
 
 ## CURL_ISOCPP
-Introduced in 7.10.2.
+Introduced in 7.10.2. Last used in 8.14.1.
 
 ## CURL_LOCK_ACCESS_NONE
 Introduced in 7.10.3. See CURLSHOPT_SHARE(3).
@@ -2532,7 +2532,7 @@ Introduced in 7.36.0. See CURLOPT_SSL_ENABLE_ALPN(3).
 Introduced in 7.36.0. Deprecated since 7.86.0.
 
 ## CURLOPT_SSL_FALSESTART
-Introduced in 7.42.0. See CURLOPT_SSL_FALSESTART(3).
+Introduced in 7.42.0. Deprecated since 8.15.0.
 
 ## CURLOPT_SSL_OPTIONS
 Introduced in 7.25.0. See CURLOPT_SSL_OPTIONS(3).
@@ -3111,7 +3111,7 @@ Introduced in 8.1.0. See curl_global_sslset(3).
 Introduced in 7.38.0. Deprecated since 7.61.0.
 
 ## CURLSSLBACKEND_BEARSSL
-Introduced in 7.68.0. See curl_global_sslset(3).
+Introduced in 7.68.0. Deprecated since 8.15.0.
 
 ## CURLSSLBACKEND_BORINGSSL
 Introduced in 7.49.0. See curl_global_sslset(3).
@@ -3126,7 +3126,7 @@ Introduced in 7.34.0. Deprecated since 7.64.1.
 Introduced in 7.34.0. See curl_global_sslset(3).
 
 ## CURLSSLBACKEND_GSKIT
-Introduced in 7.34.0. See curl_global_sslset(3).
+Introduced in 7.34.0. Deprecated since 8.3.0.
 
 ## CURLSSLBACKEND_LIBRESSL
 Introduced in 7.49.0. See curl_global_sslset(3).
@@ -3135,13 +3135,13 @@ Introduced in 7.49.0. See curl_global_sslset(3).
 Introduced in 7.46.0. See curl_global_sslset(3).
 
 ## CURLSSLBACKEND_MESALINK
-Introduced in 7.62.0. See curl_global_sslset(3).
+Introduced in 7.62.0. Deprecated since 7.82.0.
 
 ## CURLSSLBACKEND_NONE
 Introduced in 7.34.0. See curl_global_sslset(3).
 
 ## CURLSSLBACKEND_NSS
-Introduced in 7.34.0. See curl_global_sslset(3).
+Introduced in 7.34.0. Deprecated since 8.3.0.
 
 ## CURLSSLBACKEND_OPENSSL
 Introduced in 7.34.0. See curl_global_sslset(3).
@@ -3159,7 +3159,7 @@ Introduced in 7.76.0. See curl_global_sslset(3).
 Introduced in 7.34.0. See curl_global_sslset(3).
 
 ## CURLSSLBACKEND_SECURETRANSPORT
-Introduced in 7.64.1. See curl_global_sslset(3).
+Introduced in 7.64.1. Deprecated since 8.15.0.
 
 ## CURLSSLBACKEND_WOLFSSL
 Introduced in 7.49.0. See curl_global_sslset(3).
