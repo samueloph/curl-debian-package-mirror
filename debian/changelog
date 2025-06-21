@@ -1,3 +1,14 @@
+curl (8.15.0~rc1-1) UNRELEASED; urgency=medium
+
+  * New upstream version 8.15.0~rc1
+  * d/patches: Drop patches merged upstream:
+    - curl_path_make_SFTP_handle_a_path.patch
+    - tool_getparam_fix_ftp_pasv.patch
+    - tool_operate_fix_return_code_when_retry_is_used_but_not_triggered.patch
+  * d/watch: Switch to RC releases (rc1, rc2...) for Debian Experimental
+
+ -- Samuel Henrique <samueloph@debian.org>  Sat, 21 Jun 2025 11:44:49 +0100
+
 curl (8.14.1-2+exp1) experimental; urgency=medium
 
   * Enable experimental features: HTTPS RR and SSL session import/export
