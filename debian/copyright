@@ -114,7 +114,7 @@ Files: config.guess
 Copyright: 1992-2022, Free Software Foundation, Inc.
 License: GPL-3+ with Autoconf-data exception
 
-Files: lib/inet_ntop.c
+Files: lib/curlx/inet_ntop.c
  lib/curlx/inet_pton.c
 Copyright: 1996-2022, Internet Software Consortium.
 License: ISC
@@ -156,12 +156,6 @@ Copyright: 2011-2012, Markus Moeller, <markus_moeller@compuserve.com>
   2012-2022, Daniel Stenberg, <daniel@haxx.se>, et al.
 License: curl
 
-Files: lib/vtls/sectransp.c
- lib/vtls/sectransp.h
-Copyright: 2012-2017, Nick Zitzmann, <nickzman@gmail.com>.
-  2012-2022, Daniel Stenberg, <daniel@haxx.se>, et al.
-License: curl
-
 Files: lib/vauth/digest_sspi.c
  lib/vauth/krb5_gssapi.c
 Copyright: 2014-2019, Steve Holme, <steve_holme@hotmail.com>.
@@ -181,11 +175,6 @@ License: curl
 Files: tests/libtest/lib1908.c
  tests/libtest/lib1910.c
 Copyright: 2013-2022, Linus Nielsen Feltzing, <linus@haxx.se>
-License: curl
-
-Files: lib/vtls/bearssl.c
- lib/vtls/bearssl.h
-Copyright: 2019-2022, Michael Forney, <mforney@mforney.org>
 License: curl
 
 Files: tests/libtest/lib1526.c
@@ -263,10 +252,6 @@ License: curl
 
 Files: docs/examples/crawler.c
 Copyright: 2018-2022, Jeroen Ooms <jeroenooms@gmail.com>
-License: curl
-
-Files: tests/libtest/libprereq.c
-Copyright: 2021-2022, Max Dymond, <max.dymond@microsoft.com>
 License: curl
 
 Files: tests/libtest/lib3010.c
