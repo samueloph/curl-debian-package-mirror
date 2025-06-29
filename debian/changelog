@@ -1,3 +1,16 @@
+curl (8.14.1-2) unstable; urgency=medium
+
+  * gbp pq import/export: Updated hunks offsets
+  * d/patches:
+    - tool_getparam_fix_ftp_pasv.patch: New upstream patch to fix regression
+      in --ftp-pasv
+    - curl_path_make_SFTP_handle_a_path.patch: New patch to fix longstanding
+      regression on paths /~ for SFTP
+    - tool_operate_fix_return_code_when_retry_is_used_but_not_triggered.patch:
+      New patch to fix regression from 8.14.1
+
+ -- Samuel Henrique <samueloph@debian.org>  Wed, 11 Jun 2025 19:18:58 +0100
+
 curl (8.14.1-1~bpo12+1) bookworm-backports; urgency=medium
 
   * Rebuild for bookworm-backports.
