@@ -21,7 +21,7 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-#include "curl_setup.h"
+#include "first.h"
 
 /*
  * curl's test suite Real Time Streaming Protocol (RTSP) server.
@@ -29,30 +29,9 @@
  * This source file was started based on curl's HTTP test suite server.
  */
 
-#ifndef UNDER_CE
-#include <signal.h>
-#endif
-#ifdef HAVE_NETINET_IN_H
-#include <netinet/in.h>
-#endif
-#ifdef HAVE_NETINET_IN6_H
-#include <netinet/in6.h>
-#endif
-#ifdef HAVE_ARPA_INET_H
-#include <arpa/inet.h>
-#endif
-#ifdef HAVE_NETDB_H
-#include <netdb.h>
-#endif
 #ifdef HAVE_NETINET_TCP_H
 #include <netinet/tcp.h> /* for TCP_NODELAY */
 #endif
-
-#include <curlx.h> /* from the private lib dir */
-#include "getpart.h"
-
-/* include memdebug.h last */
-#include <memdebug.h>
 
 #undef REQBUFSIZ
 #define REQBUFSIZ 150000
@@ -1148,7 +1127,7 @@ static int test_rtspd(int argc, char *argv[])
     rc = bind(sock, &me.sa, sizeof(me.sa6));
   }
 #endif /* USE_IPV6 */
-  if(0 != rc) {
+  if(rc) {
     error = SOCKERRNO;
     logmsg("Error binding socket on port %hu (%d) %s",
            port, error, sstrerror(error));
@@ -1202,7 +1181,7 @@ static int test_rtspd(int argc, char *argv[])
 
   /* start accepting connections */
   rc = listen(sock, 5);
-  if(0 != rc) {
+  if(rc) {
     error = SOCKERRNO;
     logmsg("listen() failed with error (%d) %s",
            error, sstrerror(error));

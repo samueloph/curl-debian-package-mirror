@@ -420,20 +420,21 @@ AUTOMAKE_OPTIONS = foreign nostdinc
 # $(top_srcdir)/lib for libcurl's lib/curl_setup.h and other "borrowed" files
 # $(srcdir) for the generated bundle source to find included test sources
 AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_builddir)/lib \
-	-I$(top_srcdir)/lib -I$(top_srcdir)/lib/curlx -I$(srcdir) \
-	$(am__append_1) -DCURL_NO_OLDIES
+	-I$(top_srcdir)/lib -I$(srcdir) $(am__append_1) \
+	-DCURL_NO_OLDIES
 BUNDLE = clients
 
 # Files referenced from the bundle source
-FIRSTFILES = first.c first.h
-CURLX_CFILES = \
+FIRST_C = first.c
+FIRST_H = first.h
+CURLX_C = \
   ../../lib/curlx/multibyte.c \
   ../../lib/curlx/timediff.c \
   ../../lib/curlx/wait.c
 
 
 # All test clients
-TESTFILES = \
+TESTS_C = \
   h2_pausing.c \
   h2_serverpush.c \
   h2_upgrade_extreme.c \
@@ -445,13 +446,13 @@ TESTFILES = \
   ws_pingpong.c
 
 
-# Get BUNDLE, FIRSTFILES, CURLX_CFILES, TESTFILES variables
-EXTRA_DIST = CMakeLists.txt $(FIRSTFILES) $(TESTFILES)
+# Get BUNDLE, FIRST_C, FIRST_H, CURLX_C, TESTS_C variables
+EXTRA_DIST = CMakeLists.txt $(FIRST_C) $(FIRST_H) $(TESTS_C)
 # These are part of the libcurl static lib. Add them here when linking shared.
-@USE_CPPFLAG_CURL_STATICLIB_FALSE@curlx_src = $(CURLX_CFILES)
-@USE_CPPFLAG_CURL_STATICLIB_TRUE@curlx_src = 
+@USE_CPPFLAG_CURL_STATICLIB_FALSE@curlx_c_lib = $(CURLX_C)
+@USE_CPPFLAG_CURL_STATICLIB_TRUE@curlx_c_lib = 
 LDADD = $(top_builddir)/lib/libcurl.la
-CLEANFILES = ${BUNDLE}.c
+CLEANFILES = $(BUNDLE).c
 CHECKSRC = $(CS_$(V))
 CS_0 = @echo "  RUN     " $@;
 CS_1 = 
@@ -757,13 +758,13 @@ uninstall-am:
 
 .PRECIOUS: Makefile
 
-${BUNDLE}.c: $(top_srcdir)/scripts/mk-unity.pl Makefile.inc $(FIRSTFILES) $(curlx_src) $(TESTFILES)
-	@PERL@ $(top_srcdir)/scripts/mk-unity.pl --include $(curlx_src) --test $(TESTFILES) > ${BUNDLE}.c
+$(BUNDLE).c: $(top_srcdir)/scripts/mk-unity.pl Makefile.inc $(FIRST_C) $(curlx_c_lib) $(TESTS_C)
+	@PERL@ $(top_srcdir)/scripts/mk-unity.pl --include $(curlx_c_lib) --test $(TESTS_C) > $(BUNDLE).c
 
 # ignore generated C files since they play by slightly different rules!
 checksrc:
 	$(CHECKSRC)(@PERL@ $(top_srcdir)/scripts/checksrc.pl -D$(srcdir) \
-	  -W$(srcdir)/${BUNDLE}.c \
+	  -W$(srcdir)/$(BUNDLE).c \
 	  $(srcdir)/*.[ch])
 
 @NOT_CURL_CI_TRUE@all-local: checksrc

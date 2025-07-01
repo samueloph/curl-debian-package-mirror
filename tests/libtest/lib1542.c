@@ -30,9 +30,8 @@
  * first connection and open a second.
  */
 
-#include "test.h"
+#include "first.h"
 
-#include "testutil.h"
 #include "testtrace.h"
 #include "memdebug.h"
 

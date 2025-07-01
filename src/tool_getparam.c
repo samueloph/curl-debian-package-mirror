@@ -23,7 +23,6 @@
  ***************************************************************************/
 #include "tool_setup.h"
 
-#include <curlx.h>
 #include "tool_cfgable.h"
 #include "tool_cb_prg.h"
 #include "tool_filetime.h"
@@ -39,7 +38,7 @@
 #include "tool_help.h"
 #include "var.h"
 
-#include <memdebug.h> /* keep this as LAST include */
+#include "memdebug.h" /* keep this as LAST include */
 
 #define ALLOW_BLANK TRUE
 #define DENY_BLANK FALSE

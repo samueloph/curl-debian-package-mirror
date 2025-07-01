@@ -21,9 +21,8 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-#include "test.h"
+#include "first.h"
 
-#include "testutil.h"
 #include "memdebug.h"
 
 #define print_err(name, exp)                                            \

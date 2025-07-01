@@ -21,7 +21,7 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-#include "curl_setup.h"
+#include "first.h"
 
 /* sws.c: simple (silly?) web server
 
@@ -30,30 +30,9 @@
 
  */
 
-#ifndef UNDER_CE
-#include <signal.h>
-#endif
-#ifdef HAVE_NETINET_IN_H
-#include <netinet/in.h>
-#endif
-#ifdef HAVE_NETINET_IN6_H
-#include <netinet/in6.h>
-#endif
-#ifdef HAVE_ARPA_INET_H
-#include <arpa/inet.h>
-#endif
-#ifdef HAVE_NETDB_H
-#include <netdb.h>
-#endif
 #ifdef HAVE_NETINET_TCP_H
 #include <netinet/tcp.h> /* for TCP_NODELAY */
 #endif
-
-#include <curlx.h> /* from the private lib dir */
-#include "getpart.h"
-
-/* include memdebug.h last */
-#include <memdebug.h>
 
 static bool use_gopher = FALSE;
 static bool is_proxy = FALSE;
@@ -2221,7 +2200,7 @@ static int test_sws(int argc, char *argv[])
     rc = bind_unix_socket(sock, unix_socket, &me.sau);
 #endif /* USE_UNIX_SOCKETS */
   }
-  if(0 != rc) {
+  if(rc) {
     error = SOCKERRNO;
 #ifdef USE_UNIX_SOCKETS
     if(socket_domain == AF_UNIX)
@@ -2287,7 +2266,7 @@ static int test_sws(int argc, char *argv[])
 
   /* start accepting connections */
   rc = listen(sock, 50);
-  if(0 != rc) {
+  if(rc) {
     error = SOCKERRNO;
     logmsg("listen() failed with error (%d) %s", error, sstrerror(error));
     goto sws_cleanup;

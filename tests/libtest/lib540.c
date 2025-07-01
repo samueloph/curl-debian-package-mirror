@@ -30,11 +30,8 @@
  * argv4 = host name to use for the custom Host: header
  */
 
-#include "test.h"
+#include "first.h"
 
-#include <limits.h>
-
-#include "testutil.h"
 #include "memdebug.h"
 
 #define PROXY libtest_arg2

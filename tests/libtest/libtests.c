@@ -8,7 +8,9 @@
 #include "../../lib/curlx/warnless.c"
 #include "../../lib/curlx/multibyte.c"
 #include "../../lib/curlx/timediff.c"
+#include "../../lib/curlx/timeval.c"
 #include "../../lib/curl_threads.c"
+#include "../../lib/curlx/version_win32.c"
 #include "../../lib/curlx/wait.c"
 #include "lib500.c"
 #include "lib501.c"
@@ -238,7 +240,7 @@
 #include "lib3208.c"
 #include "lib1521.c"
 
-static const struct entry_s s_entries[] = {
+const struct entry_s s_entries[] = {
   {"lib500", test_lib500},
   {"lib501", test_lib501},
   {"lib502", test_lib502},
@@ -466,6 +468,7 @@ static const struct entry_s s_entries[] = {
   {"lib3207", test_lib3207},
   {"lib3208", test_lib3208},
   {"lib1521", test_lib1521},
+  {NULL, NULL}
 };
 
 #include "first.c"

@@ -181,12 +181,7 @@ am__libcurltool_la_SOURCES_DIST = config2setopts.c slist_wc.c \
 	tool_paramhlp.c tool_parsecfg.c tool_progress.c tool_setopt.c \
 	tool_ssls.c tool_stderr.c tool_strdup.c tool_urlglob.c \
 	tool_util.c tool_vms.c tool_writeout.c tool_writeout_json.c \
-	tool_xattr.c var.c ../lib/curlx/base64.c \
-	../lib/curlx/multibyte.c ../lib/curlx/dynbuf.c \
-	../lib/curlx/nonblock.c ../lib/curlx/strparse.c \
-	../lib/curlx/timediff.c ../lib/curlx/timeval.c \
-	../lib/curlx/version_win32.c ../lib/curlx/wait.c \
-	../lib/curlx/warnless.c config2setopts.h slist_wc.h terminal.h \
+	tool_xattr.c var.c config2setopts.h slist_wc.h terminal.h \
 	tool_bname.h tool_cb_dbg.h tool_cb_hdr.h tool_cb_prg.h \
 	tool_cb_rea.h tool_cb_see.h tool_cb_soc.h tool_cb_wrt.h \
 	tool_cfgable.h tool_dirhie.h tool_doswin.h tool_easysrc.h \
@@ -197,7 +192,17 @@ am__libcurltool_la_SOURCES_DIST = config2setopts.c slist_wc.c \
 	tool_progress.h tool_sdecls.h tool_setopt.h tool_setup.h \
 	tool_ssls.h tool_stderr.h tool_strdup.h tool_urlglob.h \
 	tool_util.h tool_version.h tool_vms.h tool_writeout.h \
-	tool_writeout_json.h tool_xattr.h var.h
+	tool_writeout_json.h tool_xattr.h var.h ../lib/curlx/base64.c \
+	../lib/curlx/multibyte.c ../lib/curlx/dynbuf.c \
+	../lib/curlx/nonblock.c ../lib/curlx/strparse.c \
+	../lib/curlx/timediff.c ../lib/curlx/timeval.c \
+	../lib/curlx/version_win32.c ../lib/curlx/wait.c \
+	../lib/curlx/warnless.c ../lib/curlx/binmode.h \
+	../lib/curlx/multibyte.h ../lib/curl_setup.h \
+	../lib/curlx/dynbuf.h ../lib/curlx/nonblock.h \
+	../lib/curlx/strparse.h ../lib/curlx/timediff.h \
+	../lib/curlx/timeval.h ../lib/curlx/version_win32.h \
+	../lib/curlx/wait.h ../lib/curlx/warnless.h
 am__objects_1 = libcurltool_la-config2setopts.lo \
 	libcurltool_la-slist_wc.lo libcurltool_la-terminal.lo \
 	libcurltool_la-tool_bname.lo libcurltool_la-tool_cb_dbg.lo \
@@ -223,8 +228,9 @@ am__objects_1 = libcurltool_la-config2setopts.lo \
 	libcurltool_la-tool_writeout.lo \
 	libcurltool_la-tool_writeout_json.lo \
 	libcurltool_la-tool_xattr.lo libcurltool_la-var.lo
+am__objects_2 =
 am__dirstamp = $(am__leading_dot)dirstamp
-am__objects_2 = ../lib/curlx/libcurltool_la-base64.lo \
+am__objects_3 = ../lib/curlx/libcurltool_la-base64.lo \
 	../lib/curlx/libcurltool_la-multibyte.lo \
 	../lib/curlx/libcurltool_la-dynbuf.lo \
 	../lib/curlx/libcurltool_la-nonblock.lo \
@@ -234,10 +240,13 @@ am__objects_2 = ../lib/curlx/libcurltool_la-base64.lo \
 	../lib/curlx/libcurltool_la-version_win32.lo \
 	../lib/curlx/libcurltool_la-wait.lo \
 	../lib/curlx/libcurltool_la-warnless.lo
-am__objects_3 =
-am__objects_4 = $(am__objects_1) $(am__objects_2) $(am__objects_3)
+@USE_CPPFLAG_CURL_STATICLIB_FALSE@am__objects_4 = $(am__objects_3)
+@USE_CPPFLAG_CURL_STATICLIB_FALSE@am__objects_5 = $(am__objects_2)
 @BUILD_UNITTESTS_TRUE@@USE_UNITY_FALSE@am_libcurltool_la_OBJECTS =  \
-@BUILD_UNITTESTS_TRUE@@USE_UNITY_FALSE@	$(am__objects_4)
+@BUILD_UNITTESTS_TRUE@@USE_UNITY_FALSE@	$(am__objects_1) \
+@BUILD_UNITTESTS_TRUE@@USE_UNITY_FALSE@	$(am__objects_2) \
+@BUILD_UNITTESTS_TRUE@@USE_UNITY_FALSE@	$(am__objects_4) \
+@BUILD_UNITTESTS_TRUE@@USE_UNITY_FALSE@	$(am__objects_5)
 @BUILD_UNITTESTS_TRUE@@USE_UNITY_TRUE@nodist_libcurltool_la_OBJECTS = libcurltool_la-libcurltool_unity.lo
 libcurltool_la_OBJECTS = $(am_libcurltool_la_OBJECTS) \
 	$(nodist_libcurltool_la_OBJECTS)
@@ -261,24 +270,30 @@ am__curl_SOURCES_DIST = config2setopts.c slist_wc.c terminal.c \
 	tool_parsecfg.c tool_progress.c tool_setopt.c tool_ssls.c \
 	tool_stderr.c tool_strdup.c tool_urlglob.c tool_util.c \
 	tool_vms.c tool_writeout.c tool_writeout_json.c tool_xattr.c \
-	var.c ../lib/curlx/base64.c ../lib/curlx/multibyte.c \
+	var.c config2setopts.h slist_wc.h terminal.h tool_bname.h \
+	tool_cb_dbg.h tool_cb_hdr.h tool_cb_prg.h tool_cb_rea.h \
+	tool_cb_see.h tool_cb_soc.h tool_cb_wrt.h tool_cfgable.h \
+	tool_dirhie.h tool_doswin.h tool_easysrc.h tool_filetime.h \
+	tool_findfile.h tool_formparse.h tool_getparam.h \
+	tool_getpass.h tool_help.h tool_helpers.h tool_ipfs.h \
+	tool_libinfo.h tool_main.h tool_msgs.h tool_operate.h \
+	tool_operhlp.h tool_paramhlp.h tool_parsecfg.h tool_progress.h \
+	tool_sdecls.h tool_setopt.h tool_setup.h tool_ssls.h \
+	tool_stderr.h tool_strdup.h tool_urlglob.h tool_util.h \
+	tool_version.h tool_vms.h tool_writeout.h tool_writeout_json.h \
+	tool_xattr.h var.h tool_hugehelp.c tool_ca_embed.c \
+	tool_hugehelp.h ../lib/curlx/base64.c ../lib/curlx/multibyte.c \
 	../lib/curlx/dynbuf.c ../lib/curlx/nonblock.c \
 	../lib/curlx/strparse.c ../lib/curlx/timediff.c \
 	../lib/curlx/timeval.c ../lib/curlx/version_win32.c \
-	../lib/curlx/wait.c ../lib/curlx/warnless.c config2setopts.h \
-	slist_wc.h terminal.h tool_bname.h tool_cb_dbg.h tool_cb_hdr.h \
-	tool_cb_prg.h tool_cb_rea.h tool_cb_see.h tool_cb_soc.h \
-	tool_cb_wrt.h tool_cfgable.h tool_dirhie.h tool_doswin.h \
-	tool_easysrc.h tool_filetime.h tool_findfile.h \
-	tool_formparse.h tool_getparam.h tool_getpass.h tool_help.h \
-	tool_helpers.h tool_ipfs.h tool_libinfo.h tool_main.h \
-	tool_msgs.h tool_operate.h tool_operhlp.h tool_paramhlp.h \
-	tool_parsecfg.h tool_progress.h tool_sdecls.h tool_setopt.h \
-	tool_setup.h tool_ssls.h tool_stderr.h tool_strdup.h \
-	tool_urlglob.h tool_util.h tool_version.h tool_vms.h \
-	tool_writeout.h tool_writeout_json.h tool_xattr.h var.h \
-	tool_hugehelp.c tool_ca_embed.c tool_hugehelp.h curl.rc
-am__objects_5 = curl-config2setopts.$(OBJEXT) curl-slist_wc.$(OBJEXT) \
+	../lib/curlx/wait.c ../lib/curlx/warnless.c \
+	../lib/curlx/binmode.h ../lib/curlx/multibyte.h \
+	../lib/curl_setup.h ../lib/curlx/dynbuf.h \
+	../lib/curlx/nonblock.h ../lib/curlx/strparse.h \
+	../lib/curlx/timediff.h ../lib/curlx/timeval.h \
+	../lib/curlx/version_win32.h ../lib/curlx/wait.h \
+	../lib/curlx/warnless.h curl.rc
+am__objects_6 = curl-config2setopts.$(OBJEXT) curl-slist_wc.$(OBJEXT) \
 	curl-terminal.$(OBJEXT) curl-tool_bname.$(OBJEXT) \
 	curl-tool_cb_dbg.$(OBJEXT) curl-tool_cb_hdr.$(OBJEXT) \
 	curl-tool_cb_prg.$(OBJEXT) curl-tool_cb_rea.$(OBJEXT) \
@@ -300,7 +315,10 @@ am__objects_5 = curl-config2setopts.$(OBJEXT) curl-slist_wc.$(OBJEXT) \
 	curl-tool_vms.$(OBJEXT) curl-tool_writeout.$(OBJEXT) \
 	curl-tool_writeout_json.$(OBJEXT) curl-tool_xattr.$(OBJEXT) \
 	curl-var.$(OBJEXT)
-am__objects_6 = ../lib/curlx/curl-base64.$(OBJEXT) \
+am__objects_7 = curl-tool_hugehelp.$(OBJEXT)
+am__objects_8 = curl-tool_ca_embed.$(OBJEXT)
+am__objects_9 = $(am__objects_7) $(am__objects_8)
+am__objects_10 = ../lib/curlx/curl-base64.$(OBJEXT) \
 	../lib/curlx/curl-multibyte.$(OBJEXT) \
 	../lib/curlx/curl-dynbuf.$(OBJEXT) \
 	../lib/curlx/curl-nonblock.$(OBJEXT) \
@@ -310,15 +328,14 @@ am__objects_6 = ../lib/curlx/curl-base64.$(OBJEXT) \
 	../lib/curlx/curl-version_win32.$(OBJEXT) \
 	../lib/curlx/curl-wait.$(OBJEXT) \
 	../lib/curlx/curl-warnless.$(OBJEXT)
-am__objects_7 = $(am__objects_5) $(am__objects_6) $(am__objects_3)
-am__objects_8 = curl-tool_hugehelp.$(OBJEXT)
-am__objects_9 = curl-tool_ca_embed.$(OBJEXT)
-am__objects_10 = $(am__objects_8) $(am__objects_9)
-am__objects_11 = curl.$(OBJEXT)
-@HAVE_WINDRES_TRUE@am__objects_12 = $(am__objects_11)
-@USE_UNITY_FALSE@am_curl_OBJECTS = $(am__objects_7) $(am__objects_10) \
-@USE_UNITY_FALSE@	$(am__objects_3) $(am__objects_12)
-@USE_UNITY_TRUE@am_curl_OBJECTS = $(am__objects_12)
+@USE_CPPFLAG_CURL_STATICLIB_FALSE@am__objects_11 = $(am__objects_10)
+am__objects_12 = curl.$(OBJEXT)
+@HAVE_WINDRES_TRUE@am__objects_13 = $(am__objects_12)
+@USE_UNITY_FALSE@am_curl_OBJECTS = $(am__objects_6) $(am__objects_2) \
+@USE_UNITY_FALSE@	$(am__objects_9) $(am__objects_2) \
+@USE_UNITY_FALSE@	$(am__objects_11) $(am__objects_5) \
+@USE_UNITY_FALSE@	$(am__objects_13)
+@USE_UNITY_TRUE@am_curl_OBJECTS = $(am__objects_13)
 @USE_UNITY_TRUE@nodist_curl_OBJECTS = curl-curltool_unity.$(OBJEXT)
 curl_OBJECTS = $(am_curl_OBJECTS) $(nodist_curl_OBJECTS)
 curl_DEPENDENCIES = $(top_builddir)/lib/libcurl.la
@@ -686,25 +703,6 @@ top_srcdir = @top_srcdir@
 #
 ###########################################################################
 AUTOMAKE_OPTIONS = foreign nostdinc
-EXTRA_DIST = mk-file-embed.pl mkhelp.pl \
- curl.rc Makefile.inc CMakeLists.txt .checksrc
-
-
-# Specify our include paths here, and do it relative to $(top_srcdir) and
-# $(top_builddir), to ensure that these paths which belong to the library
-# being currently built and tested are searched before the library which
-# might possibly already be installed in the system.
-#
-# $(top_srcdir)/include is for libcurl's external include files
-# $(top_builddir)/lib is for libcurl's generated lib/curl_config.h file
-# $(top_srcdir)/lib for libcurl's lib/curl_setup.h and other "borrowed" files
-# $(srcdir) for generated sources to find included sources
-AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_builddir)/lib \
-	-I$(top_srcdir)/lib -I$(top_srcdir)/lib/curlx -I$(srcdir) \
-	$(am__append_1) $(am__append_2) $(am__append_3)
-curlinfo_SOURCES = curlinfo.c
-AM_LDFLAGS = 
-@USE_UNICODE_TRUE@UNICODEFLAG = -municode
 
 # libcurl has sources that provide functions named curlx_* that are not part of
 # the official API, but we reuse the code here to avoid duplication.
@@ -827,21 +825,37 @@ CURL_HFILES = \
 
 CURL_RCFILES = curl.rc
 
-# curl_SOURCES is special and gets assigned in src/Makefile.am
-CURL_FILES = $(CURL_CFILES) $(CURLX_CFILES) $(CURL_HFILES)
+# Get CURL_CFILES, CURL_HFILES, CURLX_CFILES, CURLX_HFILES, CURL_RCFILES variables
+EXTRA_DIST = CMakeLists.txt .checksrc mk-file-embed.pl mkhelp.pl $(CURL_RCFILES)
 
-# Get CURL_CFILES, CURLX_CFILES, CURL_HFILES variables
+# Specify our include paths here, and do it relative to $(top_srcdir) and
+# $(top_builddir), to ensure that these paths which belong to the library
+# being currently built and tested are searched before the library which
+# might possibly already be installed in the system.
+#
+# $(top_srcdir)/include is for libcurl's external include files
+# $(top_builddir)/lib is for libcurl's generated lib/curl_config.h file
+# $(top_srcdir)/lib for libcurl's lib/curl_setup.h and other "borrowed" files
+# $(srcdir) for generated sources to find included sources
+AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_builddir)/lib \
+	-I$(top_srcdir)/lib -I$(srcdir) $(am__append_1) \
+	$(am__append_2) $(am__append_3)
+curlinfo_SOURCES = curlinfo.c
+AM_LDFLAGS = 
+@USE_UNICODE_TRUE@UNICODEFLAG = -municode
 curl_cfiles_gen = $(HUGE) $(CA_EMBED_CSOURCE)
 curl_hfiles_gen = tool_hugehelp.h
 CLEANFILES = $(am__append_4) $(am__append_6) $(HUGE) \
 	$(CA_EMBED_CSOURCE)
 # These are part of the libcurl static lib. Add them here when linking shared.
-@USE_CPPFLAG_CURL_STATICLIB_FALSE@@USE_UNITY_TRUE@curlx_src = $(CURLX_CFILES)
-@USE_CPPFLAG_CURL_STATICLIB_TRUE@@USE_UNITY_TRUE@curlx_src = 
+@USE_CPPFLAG_CURL_STATICLIB_FALSE@curlx_csrc = $(CURLX_CFILES)
+@USE_CPPFLAG_CURL_STATICLIB_TRUE@curlx_csrc = 
+@USE_CPPFLAG_CURL_STATICLIB_FALSE@curlx_hsrc = $(CURLX_HFILES)
+@USE_CPPFLAG_CURL_STATICLIB_TRUE@curlx_hsrc = 
 @USE_UNITY_TRUE@nodist_curl_SOURCES = curltool_unity.c
-# CURL_FILES comes from Makefile.inc
-@USE_UNITY_FALSE@curl_SOURCES = $(CURL_FILES) $(curl_cfiles_gen) \
-@USE_UNITY_FALSE@	$(curl_hfiles_gen) $(am__append_5)
+@USE_UNITY_FALSE@curl_SOURCES = $(CURL_CFILES) $(CURL_HFILES) \
+@USE_UNITY_FALSE@	$(curl_cfiles_gen) $(curl_hfiles_gen) \
+@USE_UNITY_FALSE@	$(curlx_csrc) $(curlx_hsrc) $(am__append_5)
 @USE_UNITY_TRUE@curl_SOURCES = $(am__append_5)
 curl_LDFLAGS = $(AM_LDFLAGS) $(CURL_LDFLAGS_BIN) $(UNICODEFLAG)
 curl_LDADD = $(top_builddir)/lib/libcurl.la @LIBCURL_PC_LIBS_PRIVATE@
@@ -852,7 +866,7 @@ curl_LDADD = $(top_builddir)/lib/libcurl.la @LIBCURL_PC_LIBS_PRIVATE@
 @BUILD_UNITTESTS_TRUE@libcurltool_la_CFLAGS = 
 @BUILD_UNITTESTS_TRUE@libcurltool_la_LDFLAGS = -static $(LIBCURL_PC_LIBS_PRIVATE)
 @BUILD_UNITTESTS_TRUE@@USE_UNITY_TRUE@nodist_libcurltool_la_SOURCES = libcurltool_unity.c
-@BUILD_UNITTESTS_TRUE@@USE_UNITY_FALSE@libcurltool_la_SOURCES = $(CURL_FILES)
+@BUILD_UNITTESTS_TRUE@@USE_UNITY_FALSE@libcurltool_la_SOURCES = $(CURL_CFILES) $(CURL_HFILES) $(curlx_csrc) $(curlx_hsrc)
 @BUILD_UNITTESTS_TRUE@@USE_UNITY_TRUE@libcurltool_la_SOURCES = 
 
 # Use absolute directory to disable VPATH
@@ -872,7 +886,7 @@ CS_1 =
 CS_ = $(CS_0)
 
 # disable the tests that are mostly causing false positives
-TIDYFLAGS := -checks=-clang-analyzer-security.insecureAPI.strcpy,-clang-analyzer-optin.performance.Padding,-clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling \
+TIDYFLAGS := -checks=-clang-analyzer-security.insecureAPI.bzero,-clang-analyzer-security.insecureAPI.strcpy,-clang-analyzer-optin.performance.Padding,-clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling \
 	-quiet $(am__append_9)
 TIDY := clang-tidy
 all: all-am
@@ -2169,6 +2183,34 @@ curl-var.obj: var.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(curl_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o curl-var.obj `if test -f 'var.c'; then $(CYGPATH_W) 'var.c'; else $(CYGPATH_W) '$(srcdir)/var.c'; fi`
 
+curl-tool_hugehelp.o: tool_hugehelp.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(curl_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT curl-tool_hugehelp.o -MD -MP -MF $(DEPDIR)/curl-tool_hugehelp.Tpo -c -o curl-tool_hugehelp.o `test -f 'tool_hugehelp.c' || echo '$(srcdir)/'`tool_hugehelp.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/curl-tool_hugehelp.Tpo $(DEPDIR)/curl-tool_hugehelp.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tool_hugehelp.c' object='curl-tool_hugehelp.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(curl_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o curl-tool_hugehelp.o `test -f 'tool_hugehelp.c' || echo '$(srcdir)/'`tool_hugehelp.c
+
+curl-tool_hugehelp.obj: tool_hugehelp.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(curl_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT curl-tool_hugehelp.obj -MD -MP -MF $(DEPDIR)/curl-tool_hugehelp.Tpo -c -o curl-tool_hugehelp.obj `if test -f 'tool_hugehelp.c'; then $(CYGPATH_W) 'tool_hugehelp.c'; else $(CYGPATH_W) '$(srcdir)/tool_hugehelp.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/curl-tool_hugehelp.Tpo $(DEPDIR)/curl-tool_hugehelp.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tool_hugehelp.c' object='curl-tool_hugehelp.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(curl_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o curl-tool_hugehelp.obj `if test -f 'tool_hugehelp.c'; then $(CYGPATH_W) 'tool_hugehelp.c'; else $(CYGPATH_W) '$(srcdir)/tool_hugehelp.c'; fi`
+
+curl-tool_ca_embed.o: tool_ca_embed.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(curl_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT curl-tool_ca_embed.o -MD -MP -MF $(DEPDIR)/curl-tool_ca_embed.Tpo -c -o curl-tool_ca_embed.o `test -f 'tool_ca_embed.c' || echo '$(srcdir)/'`tool_ca_embed.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/curl-tool_ca_embed.Tpo $(DEPDIR)/curl-tool_ca_embed.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tool_ca_embed.c' object='curl-tool_ca_embed.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(curl_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o curl-tool_ca_embed.o `test -f 'tool_ca_embed.c' || echo '$(srcdir)/'`tool_ca_embed.c
+
+curl-tool_ca_embed.obj: tool_ca_embed.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(curl_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT curl-tool_ca_embed.obj -MD -MP -MF $(DEPDIR)/curl-tool_ca_embed.Tpo -c -o curl-tool_ca_embed.obj `if test -f 'tool_ca_embed.c'; then $(CYGPATH_W) 'tool_ca_embed.c'; else $(CYGPATH_W) '$(srcdir)/tool_ca_embed.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/curl-tool_ca_embed.Tpo $(DEPDIR)/curl-tool_ca_embed.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tool_ca_embed.c' object='curl-tool_ca_embed.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(curl_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o curl-tool_ca_embed.obj `if test -f 'tool_ca_embed.c'; then $(CYGPATH_W) 'tool_ca_embed.c'; else $(CYGPATH_W) '$(srcdir)/tool_ca_embed.c'; fi`
+
 ../lib/curlx/curl-base64.o: ../lib/curlx/base64.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(curl_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT ../lib/curlx/curl-base64.o -MD -MP -MF ../lib/curlx/$(DEPDIR)/curl-base64.Tpo -c -o ../lib/curlx/curl-base64.o `test -f '../lib/curlx/base64.c' || echo '$(srcdir)/'`../lib/curlx/base64.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../lib/curlx/$(DEPDIR)/curl-base64.Tpo ../lib/curlx/$(DEPDIR)/curl-base64.Po
@@ -2308,34 +2350,6 @@ curl-var.obj: var.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../lib/curlx/warnless.c' object='../lib/curlx/curl-warnless.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(curl_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o ../lib/curlx/curl-warnless.obj `if test -f '../lib/curlx/warnless.c'; then $(CYGPATH_W) '../lib/curlx/warnless.c'; else $(CYGPATH_W) '$(srcdir)/../lib/curlx/warnless.c'; fi`
-
-curl-tool_hugehelp.o: tool_hugehelp.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(curl_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT curl-tool_hugehelp.o -MD -MP -MF $(DEPDIR)/curl-tool_hugehelp.Tpo -c -o curl-tool_hugehelp.o `test -f 'tool_hugehelp.c' || echo '$(srcdir)/'`tool_hugehelp.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/curl-tool_hugehelp.Tpo $(DEPDIR)/curl-tool_hugehelp.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tool_hugehelp.c' object='curl-tool_hugehelp.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(curl_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o curl-tool_hugehelp.o `test -f 'tool_hugehelp.c' || echo '$(srcdir)/'`tool_hugehelp.c
-
-curl-tool_hugehelp.obj: tool_hugehelp.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(curl_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT curl-tool_hugehelp.obj -MD -MP -MF $(DEPDIR)/curl-tool_hugehelp.Tpo -c -o curl-tool_hugehelp.obj `if test -f 'tool_hugehelp.c'; then $(CYGPATH_W) 'tool_hugehelp.c'; else $(CYGPATH_W) '$(srcdir)/tool_hugehelp.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/curl-tool_hugehelp.Tpo $(DEPDIR)/curl-tool_hugehelp.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tool_hugehelp.c' object='curl-tool_hugehelp.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(curl_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o curl-tool_hugehelp.obj `if test -f 'tool_hugehelp.c'; then $(CYGPATH_W) 'tool_hugehelp.c'; else $(CYGPATH_W) '$(srcdir)/tool_hugehelp.c'; fi`
-
-curl-tool_ca_embed.o: tool_ca_embed.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(curl_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT curl-tool_ca_embed.o -MD -MP -MF $(DEPDIR)/curl-tool_ca_embed.Tpo -c -o curl-tool_ca_embed.o `test -f 'tool_ca_embed.c' || echo '$(srcdir)/'`tool_ca_embed.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/curl-tool_ca_embed.Tpo $(DEPDIR)/curl-tool_ca_embed.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tool_ca_embed.c' object='curl-tool_ca_embed.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(curl_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o curl-tool_ca_embed.o `test -f 'tool_ca_embed.c' || echo '$(srcdir)/'`tool_ca_embed.c
-
-curl-tool_ca_embed.obj: tool_ca_embed.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(curl_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT curl-tool_ca_embed.obj -MD -MP -MF $(DEPDIR)/curl-tool_ca_embed.Tpo -c -o curl-tool_ca_embed.obj `if test -f 'tool_ca_embed.c'; then $(CYGPATH_W) 'tool_ca_embed.c'; else $(CYGPATH_W) '$(srcdir)/tool_ca_embed.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/curl-tool_ca_embed.Tpo $(DEPDIR)/curl-tool_ca_embed.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tool_ca_embed.c' object='curl-tool_ca_embed.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(curl_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o curl-tool_ca_embed.obj `if test -f 'tool_ca_embed.c'; then $(CYGPATH_W) 'tool_ca_embed.c'; else $(CYGPATH_W) '$(srcdir)/tool_ca_embed.c'; fi`
 
 curl-curltool_unity.o: curltool_unity.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(curl_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT curl-curltool_unity.o -MD -MP -MF $(DEPDIR)/curl-curltool_unity.Tpo -c -o curl-curltool_unity.o `test -f 'curltool_unity.c' || echo '$(srcdir)/'`curltool_unity.c
@@ -2801,11 +2815,12 @@ uninstall-am: uninstall-binPROGRAMS
 
 # remove targets if the command fails
 .DELETE_ON_ERROR:
-@USE_UNITY_TRUE@curltool_unity.c: $(top_srcdir)/scripts/mk-unity.pl $(CURL_CFILES) $(curl_cfiles_gen) $(curlx_src)
-@USE_UNITY_TRUE@	@PERL@ $(top_srcdir)/scripts/mk-unity.pl --srcdir $(srcdir) --include $(CURL_CFILES) $(curl_cfiles_gen) $(curlx_src) > curltool_unity.c
+
+@USE_UNITY_TRUE@curltool_unity.c: $(top_srcdir)/scripts/mk-unity.pl $(CURL_CFILES) $(curl_cfiles_gen) $(curlx_csrc)
+@USE_UNITY_TRUE@	@PERL@ $(top_srcdir)/scripts/mk-unity.pl --include $(CURL_CFILES) $(curl_cfiles_gen) $(curlx_csrc) > curltool_unity.c
 @HAVE_WINDRES_TRUE@$(CURL_RCFILES): tool_version.h
-@BUILD_UNITTESTS_TRUE@@USE_UNITY_TRUE@libcurltool_unity.c: $(top_srcdir)/scripts/mk-unity.pl $(CURL_CFILES) $(curlx_src)
-@BUILD_UNITTESTS_TRUE@@USE_UNITY_TRUE@	@PERL@ $(top_srcdir)/scripts/mk-unity.pl --include $(CURL_CFILES) $(curlx_src) > libcurltool_unity.c
+@BUILD_UNITTESTS_TRUE@@USE_UNITY_TRUE@libcurltool_unity.c: $(top_srcdir)/scripts/mk-unity.pl $(CURL_CFILES) $(curlx_csrc)
+@BUILD_UNITTESTS_TRUE@@USE_UNITY_TRUE@	@PERL@ $(top_srcdir)/scripts/mk-unity.pl --include $(CURL_CFILES) $(curlx_csrc) > libcurltool_unity.c
 
 @USE_MANUAL_TRUE@$(ASCIIPAGE):
 @USE_MANUAL_TRUE@	cd $(top_builddir)/docs && $(MAKE)

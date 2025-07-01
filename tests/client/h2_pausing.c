@@ -23,7 +23,7 @@
  ***************************************************************************/
 /* This is based on the PoC client of issue #11982
  */
-#include <assert.h>
+#include "first.h"
 
 static void usage_h2_pausing(const char *msg)
 {

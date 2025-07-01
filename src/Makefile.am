@@ -26,8 +26,10 @@ AUTOMAKE_OPTIONS = foreign nostdinc
 # remove targets if the command fails
 .DELETE_ON_ERROR:
 
-EXTRA_DIST = mk-file-embed.pl mkhelp.pl \
- curl.rc Makefile.inc CMakeLists.txt .checksrc
+# Get CURL_CFILES, CURL_HFILES, CURLX_CFILES, CURLX_HFILES, CURL_RCFILES variables
+include Makefile.inc
+
+EXTRA_DIST = CMakeLists.txt .checksrc mk-file-embed.pl mkhelp.pl $(CURL_RCFILES)
 
 # Specify our include paths here, and do it relative to $(top_srcdir) and
 # $(top_builddir), to ensure that these paths which belong to the library
@@ -42,7 +44,6 @@ EXTRA_DIST = mk-file-embed.pl mkhelp.pl \
 AM_CPPFLAGS = -I$(top_srcdir)/include        \
               -I$(top_builddir)/lib          \
               -I$(top_srcdir)/lib            \
-              -I$(top_srcdir)/lib/curlx      \
               -I$(srcdir)
 
 bin_PROGRAMS = curl
@@ -65,29 +66,28 @@ if USE_UNICODE
 UNICODEFLAG = -municode
 endif
 
-# Get CURL_CFILES, CURLX_CFILES, CURL_HFILES variables
-include Makefile.inc
-
 curl_cfiles_gen =
 curl_hfiles_gen =
 CLEANFILES =
 
-if USE_UNITY
 if USE_CPPFLAG_CURL_STATICLIB
-curlx_src =
+curlx_csrc =
+curlx_hsrc =
 else
 # These are part of the libcurl static lib. Add them here when linking shared.
-curlx_src = $(CURLX_CFILES)
+curlx_csrc = $(CURLX_CFILES)
+curlx_hsrc = $(CURLX_HFILES)
 endif
-curltool_unity.c: $(top_srcdir)/scripts/mk-unity.pl $(CURL_CFILES) $(curl_cfiles_gen) $(curlx_src)
-	@PERL@ $(top_srcdir)/scripts/mk-unity.pl --srcdir $(srcdir) --include $(CURL_CFILES) $(curl_cfiles_gen) $(curlx_src) > curltool_unity.c
+
+if USE_UNITY
+curltool_unity.c: $(top_srcdir)/scripts/mk-unity.pl $(CURL_CFILES) $(curl_cfiles_gen) $(curlx_csrc)
+	@PERL@ $(top_srcdir)/scripts/mk-unity.pl --include $(CURL_CFILES) $(curl_cfiles_gen) $(curlx_csrc) > curltool_unity.c
 
 nodist_curl_SOURCES = curltool_unity.c
 curl_SOURCES =
 CLEANFILES += curltool_unity.c
 else
-# CURL_FILES comes from Makefile.inc
-curl_SOURCES = $(CURL_FILES) $(curl_cfiles_gen) $(curl_hfiles_gen)
+curl_SOURCES = $(CURL_CFILES) $(CURL_HFILES) $(curl_cfiles_gen) $(curl_hfiles_gen) $(curlx_csrc) $(curlx_hsrc)
 endif
 if HAVE_WINDRES
 curl_SOURCES += $(CURL_RCFILES)
@@ -111,14 +111,14 @@ libcurltool_la_CPPFLAGS = $(AM_CPPFLAGS) -DCURL_STATICLIB -DUNITTESTS
 libcurltool_la_CFLAGS =
 libcurltool_la_LDFLAGS = -static $(LIBCURL_PC_LIBS_PRIVATE)
 if USE_UNITY
-libcurltool_unity.c: $(top_srcdir)/scripts/mk-unity.pl $(CURL_CFILES) $(curlx_src)
-	@PERL@ $(top_srcdir)/scripts/mk-unity.pl --include $(CURL_CFILES) $(curlx_src) > libcurltool_unity.c
+libcurltool_unity.c: $(top_srcdir)/scripts/mk-unity.pl $(CURL_CFILES) $(curlx_csrc)
+	@PERL@ $(top_srcdir)/scripts/mk-unity.pl --include $(CURL_CFILES) $(curlx_csrc) > libcurltool_unity.c
 
 nodist_libcurltool_la_SOURCES = libcurltool_unity.c
 libcurltool_la_SOURCES =
 CLEANFILES += libcurltool_unity.c
 else
-libcurltool_la_SOURCES = $(CURL_FILES)
+libcurltool_la_SOURCES = $(CURL_CFILES) $(CURL_HFILES) $(curlx_csrc) $(curlx_hsrc)
 endif
 endif
 
@@ -206,7 +206,7 @@ endif
 endif
 
 # disable the tests that are mostly causing false positives
-TIDYFLAGS := -checks=-clang-analyzer-security.insecureAPI.strcpy,-clang-analyzer-optin.performance.Padding,-clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling -quiet
+TIDYFLAGS := -checks=-clang-analyzer-security.insecureAPI.bzero,-clang-analyzer-security.insecureAPI.strcpy,-clang-analyzer-optin.performance.Padding,-clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling -quiet
 if CURL_WERROR
 TIDYFLAGS += --warnings-as-errors=*
 endif

@@ -21,9 +21,7 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-#include "test.h"
-
-#include "testutil.h"
+#include "first.h"
 
 #define NUM_THREADS 100
 
@@ -101,7 +99,6 @@ cleanup:
 
 #elif defined(HAVE_PTHREAD_H)
 #include <pthread.h>
-#include <unistd.h>
 
 static void *t3026_run_thread(void *ptr)
 {

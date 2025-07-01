@@ -545,7 +545,7 @@ sub checksystemfeatures {
             $curl =~ s/^(.*)(libcurl.*)/$1/g || die "Failure determining curl binary version";
 
             $libcurl = $2;
-            if($curl =~ /linux|bsd|solaris/) {
+            if($curl =~ /linux|bsd|solaris/i) {
                 # system supports LD_PRELOAD/LD_LIBRARY_PATH; may be disabled later
                 $feature{"ld_preload"} = 1;
             }
@@ -879,7 +879,7 @@ sub checksystemfeatures {
         $feature{"TrackMemory"} = 0;
     }
 
-    logmsg sprintf("* Env: %s%s%s%s%s", $valgrind?"Valgrind ":"",
+    logmsg sprintf("* Env: %s%s%s%s", $valgrind?"Valgrind ":"",
                    $run_duphandle?"test-duphandle ":"",
                    $run_event_based?"event-based ":"",
                    $nghttpx_h3);

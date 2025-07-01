@@ -423,30 +423,26 @@ AUTOMAKE_OPTIONS = foreign nostdinc
 # $(top_srcdir)/lib for libcurl's lib/curl_setup.h and other "borrowed" files
 # $(srcdir) for the generated bundle source to find included test sources
 AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_builddir)/lib \
-	-I$(top_srcdir)/lib -I$(top_srcdir)/lib/curlx \
-	-I$(top_srcdir)/src -I$(top_srcdir)/tests/libtest \
-	-I$(top_srcdir)/tests/unit -I$(srcdir) -DCURL_STATICLIB \
-	-DUNITTESTS $(am__append_1) $(am__append_2) -DCURL_NO_OLDIES \
-	-DCURL_DISABLE_DEPRECATION
+	-I$(top_srcdir)/lib -I$(top_srcdir)/src \
+	-I$(top_srcdir)/tests/libtest -I$(top_srcdir)/tests/unit \
+	-I$(srcdir) -DCURL_STATICLIB -DUNITTESTS $(am__append_1) \
+	$(am__append_2) -DCURL_NO_OLDIES -DCURL_DISABLE_DEPRECATION
 BUNDLE = tunits
 
 # Files referenced from the bundle source
-FIRSTFILES = ../libtest/first.c ../libtest/first.h
-
-# Common files used by test programs
-UTILS = ../unit/curlcheck.h
+FIRST_C = ../libtest/first.c
 
 # All tool unit test programs
-TESTFILES = \
+TESTS_C = \
   tool1394.c \
   tool1604.c \
   tool1621.c
 
 
-# Get BUNDLE, FIRSTFILES, UTILS, TESTFILES variables
-EXTRA_DIST = CMakeLists.txt README.md $(UTILS) $(TESTFILES)
+# Get BUNDLE, FIRST_C, TESTS_C variables
+EXTRA_DIST = CMakeLists.txt README.md $(TESTS_C)
 @BUILD_UNITTESTS_TRUE@LDADD = $(top_builddir)/src/libcurltool.la $(top_builddir)/lib/libcurl.la
-@BUILD_UNITTESTS_TRUE@CLEANFILES = ${BUNDLE}.c
+@BUILD_UNITTESTS_TRUE@CLEANFILES = $(BUNDLE).c
 CHECKSRC = $(CS_$(V))
 CS_0 = @echo "  RUN     " $@;
 CS_1 = 
@@ -753,13 +749,13 @@ uninstall-am:
 .PRECIOUS: Makefile
 
 
-@BUILD_UNITTESTS_TRUE@${BUNDLE}.c: $(top_srcdir)/scripts/mk-unity.pl Makefile.inc $(FIRSTFILES) $(UTILS) $(TESTFILES)
-@BUILD_UNITTESTS_TRUE@	@PERL@ $(top_srcdir)/scripts/mk-unity.pl --include $(UTILS) --test $(TESTFILES) > ${BUNDLE}.c
+@BUILD_UNITTESTS_TRUE@$(BUNDLE).c: $(top_srcdir)/scripts/mk-unity.pl Makefile.inc $(FIRST_C) $(TESTS_C)
+@BUILD_UNITTESTS_TRUE@	@PERL@ $(top_srcdir)/scripts/mk-unity.pl --test $(TESTS_C) > $(BUNDLE).c
 
 # ignore generated C files since they play by slightly different rules!
 checksrc:
 	$(CHECKSRC)(@PERL@ $(top_srcdir)/scripts/checksrc.pl -D$(srcdir) \
-	  -W$(srcdir)/${BUNDLE}.c \
+	  -W$(srcdir)/$(BUNDLE).c \
 	  $(srcdir)/*.[ch])
 
 @NOT_CURL_CI_TRUE@all-local: checksrc

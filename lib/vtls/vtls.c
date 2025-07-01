@@ -43,9 +43,6 @@
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
 #endif
-#ifdef HAVE_SYS_STAT_H
-#include <sys/stat.h>
-#endif
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
@@ -1349,7 +1346,7 @@ static CURLcode ssl_cf_set_earlydata(struct Curl_cfilter *cf,
                                      const void *buf, size_t blen)
 {
   struct ssl_connect_data *connssl = cf->ctx;
-  ssize_t nwritten = 0;
+  size_t nwritten = 0;
   CURLcode result = CURLE_OK;
 
   DEBUGASSERT(connssl->earlydata_state == ssl_earlydata_await);
@@ -1357,10 +1354,10 @@ static CURLcode ssl_cf_set_earlydata(struct Curl_cfilter *cf,
   if(blen) {
     if(blen > connssl->earlydata_max)
       blen = connssl->earlydata_max;
-    nwritten = Curl_bufq_write(&connssl->earlydata, buf, blen, &result);
+    result = Curl_bufq_write(&connssl->earlydata, buf, blen, &nwritten);
     CURL_TRC_CF(data, cf, "ssl_cf_set_earlydata(len=%zu) -> %zd",
                 blen, nwritten);
-    if(nwritten < 0)
+    if(result)
       return result;
   }
   return CURLE_OK;
@@ -1588,7 +1585,6 @@ struct Curl_cftype Curl_cft_ssl = {
   ssl_cf_connect,
   ssl_cf_close,
   ssl_cf_shutdown,
-  Curl_cf_def_get_host,
   ssl_cf_adjust_pollset,
   ssl_cf_data_pending,
   ssl_cf_send,
@@ -1609,7 +1605,6 @@ struct Curl_cftype Curl_cft_ssl_proxy = {
   ssl_cf_connect,
   ssl_cf_close,
   ssl_cf_shutdown,
-  Curl_cf_def_get_host,
   ssl_cf_adjust_pollset,
   ssl_cf_data_pending,
   ssl_cf_send,

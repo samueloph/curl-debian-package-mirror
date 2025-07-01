@@ -54,8 +54,6 @@
 #include <uv.h>
 #endif
 
-#include <curlx.h>
-
 #include "tool_cfgable.h"
 #include "tool_cb_dbg.h"
 #include "tool_cb_hdr.h"
@@ -96,7 +94,7 @@
 CURL_EXTERN CURLcode curl_easy_perform_ev(CURL *easy);
 #endif
 
-#include <memdebug.h> /* keep this as LAST include */
+#include "memdebug.h" /* keep this as LAST include */
 
 #ifdef CURL_CA_EMBED
 #ifndef CURL_DECLARED_CURL_CA_EMBED

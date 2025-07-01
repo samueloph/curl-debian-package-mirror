@@ -15,7 +15,7 @@
 #include "ws_data.c"
 #include "ws_pingpong.c"
 
-static const struct entry_s s_entries[] = {
+const struct entry_s s_entries[] = {
   {"h2_pausing", test_h2_pausing},
   {"h2_serverpush", test_h2_serverpush},
   {"h2_upgrade_extreme", test_h2_upgrade_extreme},
@@ -25,6 +25,7 @@ static const struct entry_s s_entries[] = {
   {"upload_pausing", test_upload_pausing},
   {"ws_data", test_ws_data},
   {"ws_pingpong", test_ws_pingpong},
+  {NULL, NULL}
 };
 
 #include "first.c"

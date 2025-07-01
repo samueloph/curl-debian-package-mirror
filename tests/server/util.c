@@ -21,99 +21,17 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-#include "curl_setup.h"
+#include "first.h"
 
-#ifndef UNDER_CE
-#include <signal.h>
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>
 #endif
-#ifdef HAVE_NETINET_IN_H
-#include <netinet/in.h>
-#endif
-#ifdef _XOPEN_SOURCE_EXTENDED
-/* This define is "almost" required to build on HP-UX 11 */
-#include <arpa/inet.h>
-#endif
-#ifdef HAVE_NETDB_H
-#include <netdb.h>
-#endif
-
-#include <curlx.h> /* from the private lib dir */
-
-/* adjust for old MSVC */
-#if defined(_MSC_VER) && (_MSC_VER < 1900)
-#  define snprintf _snprintf
-#endif
-
-#ifdef _WIN32
-#  define CURL_STRNICMP(p1, p2, n) _strnicmp(p1, p2, n)
-#elif defined(HAVE_STRCASECMP)
-#  ifdef HAVE_STRINGS_H
-#    include <strings.h>
-#  endif
-#  define CURL_STRNICMP(p1, p2, n) strncasecmp(p1, p2, n)
-#elif defined(HAVE_STRCMPI)
-#  define CURL_STRNICMP(p1, p2, n) strncmpi(p1, p2, n)
-#elif defined(HAVE_STRICMP)
-#  define CURL_STRNICMP(p1, p2, n) strnicmp(p1, p2, n)
-#else
-#  error "missing case insensitive comparison function"
-#endif
-
-enum {
-  DOCNUMBER_NOTHING    = -7,
-  DOCNUMBER_QUIT       = -6,
-  DOCNUMBER_BADCONNECT = -5,
-  DOCNUMBER_INTERNAL   = -4,
-  DOCNUMBER_CONNECT    = -3,
-  DOCNUMBER_WERULEZ    = -2,
-  DOCNUMBER_404        = -1
-};
-
-#define SERVERLOGS_LOCKDIR "lock"  /* within logdir */
-
-#include "timeval.h"
-
-#include <curl/curl.h> /* for curl_socket_t */
-
-#ifdef USE_UNIX_SOCKETS
-#ifdef HAVE_SYS_UN_H
-#include <sys/un.h> /* for sockaddr_un */
-#endif
-#endif /* USE_UNIX_SOCKETS */
-
-typedef union {
-  struct sockaddr      sa;
-  struct sockaddr_in   sa4;
-#ifdef USE_IPV6
-  struct sockaddr_in6  sa6;
-#endif
-#ifdef USE_UNIX_SOCKETS
-  struct sockaddr_un   sau;
-#endif
-} srvr_sockaddr_union_t;
-
-/* global variables */
-static const char *srcpath = "."; /* pointing to the test dir */
-static const char *pidname = NULL;
-static const char *portname = NULL; /* none by default */
-static const char *serverlogfile = NULL;
-static int serverlogslocked;
-static const char *configfile = NULL;
-static const char *logdir = "log";
-static char loglockfile[256];
-#ifdef USE_IPV6
-static bool use_ipv6 = FALSE;
-#endif
-static const char *ipv_inuse = "IPv4";
-static unsigned short server_port = 0;
-static const char *socket_type = "IPv4";
-static int socket_domain = AF_INET;
 
 /* This function returns a pointer to STATIC memory. It converts the given
  * binary lump to a hex formatted string usable for output in logs or
  * whatever.
  */
-static char *data_to_hex(char *data, size_t len)
+char *data_to_hex(char *data, size_t len)
 {
   static char buf[256*3];
   size_t i;
@@ -136,7 +54,26 @@ static char *data_to_hex(char *data, size_t len)
   return buf;
 }
 
-static void logmsg(const char *msg, ...)
+void loghex(unsigned char *buffer, ssize_t len)
+{
+  char data[12000];
+  ssize_t i;
+  unsigned char *ptr = buffer;
+  char *optr = data;
+  ssize_t width = 0;
+  int left = sizeof(data);
+
+  for(i = 0; i < len && (left >= 0); i++) {
+    snprintf(optr, left, "%02x", ptr[i]);
+    width += 2;
+    optr += 2;
+    left -= 2;
+  }
+  if(width)
+    logmsg("'%s'", data);
+}
+
+void logmsg(const char *msg, ...)
 {
   va_list ap;
   char buffer[2048 + 1];
@@ -194,26 +131,7 @@ static void logmsg(const char *msg, ...)
   }
 }
 
-static void loghex(unsigned char *buffer, ssize_t len)
-{
-  char data[12000];
-  ssize_t i;
-  unsigned char *ptr = buffer;
-  char *optr = data;
-  ssize_t width = 0;
-  int left = sizeof(data);
-
-  for(i = 0; i < len && (left >= 0); i++) {
-    snprintf(optr, left, "%02x", ptr[i]);
-    width += 2;
-    optr += 2;
-    left -= 2;
-  }
-  if(width)
-    logmsg("'%s'", data);
-}
-
-static unsigned char byteval(char *value)
+unsigned char byteval(char *value)
 {
   unsigned long num = strtoul(value, NULL, 10);
   return num & 0xff;
@@ -241,7 +159,7 @@ static void win32_cleanup(void)
   _flushall();
 }
 
-static int win32_init(void)
+int win32_init(void)
 {
   curlx_now_init();
 #ifdef USE_WINSOCK
@@ -273,7 +191,7 @@ static int win32_init(void)
 }
 
 /* socket-safe strerror (works on Winsock errors, too) */
-static const char *sstrerror(int err)
+const char *sstrerror(int err)
 {
   static char buf[512];
   return curlx_winapi_strerror(err, buf, sizeof(buf));
@@ -283,7 +201,7 @@ static const char *sstrerror(int err)
 #endif  /* _WIN32 */
 
 /* fopens the test case file */
-static FILE *test2fopen(long testno, const char *logdir2)
+FILE *test2fopen(long testno, const char *logdir2)
 {
   FILE *stream;
   char filename[256];
@@ -306,7 +224,7 @@ static FILE *test2fopen(long testno, const char *logdir2)
 #define t_getpid() getpid()
 #endif
 
-static curl_off_t our_getpid(void)
+curl_off_t our_getpid(void)
 {
   curl_off_t pid = (curl_off_t)t_getpid();
 #ifdef _WIN32
@@ -323,7 +241,7 @@ static curl_off_t our_getpid(void)
   return pid;
 }
 
-static int write_pidfile(const char *filename)
+int write_pidfile(const char *filename)
 {
   FILE *pidfile;
   curl_off_t pid;
@@ -341,7 +259,7 @@ static int write_pidfile(const char *filename)
 }
 
 /* store the used port number in a file */
-static int write_portfile(const char *filename, int port)
+int write_portfile(const char *filename, int port)
 {
   FILE *portfile = fopen(filename, "wb");
   if(!portfile) {
@@ -354,7 +272,7 @@ static int write_portfile(const char *filename, int port)
   return 1; /* success */
 }
 
-static void set_advisor_read_lock(const char *filename)
+void set_advisor_read_lock(const char *filename)
 {
   FILE *lockfile;
   int error = 0;
@@ -376,7 +294,7 @@ static void set_advisor_read_lock(const char *filename)
            filename, errno, strerror(errno));
 }
 
-static void clear_advisor_read_lock(const char *filename)
+void clear_advisor_read_lock(const char *filename)
 {
   int error = 0;
   int res;
@@ -435,18 +353,6 @@ static SIGHANDLER_T old_sigbreak_handler = SIG_ERR;
 static unsigned int thread_main_id = 0;
 static HANDLE thread_main_window = NULL;
 static HWND hidden_main_window = NULL;
-#endif
-
-/* global variable which if set indicates that the program should finish */
-static volatile int got_exit_signal = 0;
-
-/* global variable which if set indicates the first signal handled in
-   exit_signal_handler */
-static volatile int exit_signal = 0;
-
-#ifdef _WIN32
-/* global event which if set indicates that the program should finish */
-static HANDLE exit_event = NULL;
 #endif
 
 /* signal handler that will be triggered to indicate that the program
@@ -662,7 +568,7 @@ static SIGHANDLER_T set_signal(int signum, SIGHANDLER_T handler,
 }
 #endif
 
-static void install_signal_handlers(bool keep_sigalrm)
+void install_signal_handlers(bool keep_sigalrm)
 {
 #ifdef _WIN32
   /* setup Windows exit event before any signal can trigger */
@@ -730,7 +636,7 @@ static void install_signal_handlers(bool keep_sigalrm)
 #endif
 }
 
-static void restore_signal_handlers(bool keep_sigalrm)
+void restore_signal_handlers(bool keep_sigalrm)
 {
 #ifdef SIGHUP
   if(SIG_ERR != old_sighup_handler)
@@ -786,8 +692,8 @@ static void restore_signal_handlers(bool keep_sigalrm)
 
 #ifdef USE_UNIX_SOCKETS
 
-static int bind_unix_socket(curl_socket_t sock, const char *unix_socket,
-                            struct sockaddr_un *sau)
+int bind_unix_socket(curl_socket_t sock, const char *unix_socket,
+                     struct sockaddr_un *sau)
 {
   int error;
   int rc;
@@ -801,7 +707,7 @@ static int bind_unix_socket(curl_socket_t sock, const char *unix_socket,
   }
   strcpy(sau->sun_path, unix_socket);
   rc = bind(sock, (struct sockaddr*)sau, sizeof(struct sockaddr_un));
-  if(0 != rc && SOCKERRNO == SOCKEADDRINUSE) {
+  if(rc && SOCKERRNO == SOCKEADDRINUSE) {
     struct_stat statbuf;
     /* socket already exists. Perhaps it is stale? */
     curl_socket_t unixfd = socket(AF_UNIX, SOCK_STREAM, 0);
@@ -814,7 +720,7 @@ static int bind_unix_socket(curl_socket_t sock, const char *unix_socket,
     rc = connect(unixfd, (struct sockaddr*)sau, sizeof(struct sockaddr_un));
     error = SOCKERRNO;
     sclose(unixfd);
-    if(0 != rc && SOCKECONNREFUSED != error) {
+    if(rc && error != SOCKECONNREFUSED) {
       logmsg("Failed to connect to %s (%d) %s",
              unix_socket, error, sstrerror(error));
       return rc;
@@ -826,7 +732,7 @@ static int bind_unix_socket(curl_socket_t sock, const char *unix_socket,
 #else
     rc = lstat(unix_socket, &statbuf);
 #endif
-    if(0 != rc) {
+    if(rc) {
       logmsg("Error binding socket, failed to stat %s (%d) %s",
              unix_socket, errno, strerror(errno));
       return rc;
@@ -839,7 +745,7 @@ static int bind_unix_socket(curl_socket_t sock, const char *unix_socket,
 #endif
     /* dead socket, cleanup and retry bind */
     rc = unlink(unix_socket);
-    if(0 != rc) {
+    if(rc) {
       logmsg("Error binding socket, failed to unlink %s (%d) %s",
              unix_socket, errno, strerror(errno));
       return rc;
@@ -857,7 +763,7 @@ static int bind_unix_socket(curl_socket_t sock, const char *unix_socket,
 #define CURL_MASK_USHORT  ((unsigned short)~0)
 #define CURL_MASK_SSHORT  (CURL_MASK_USHORT >> 1)
 
-static unsigned short util_ultous(unsigned long ulnum)
+unsigned short util_ultous(unsigned long ulnum)
 {
 #ifdef __INTEL_COMPILER
 #  pragma warning(push)
@@ -870,4 +776,167 @@ static unsigned short util_ultous(unsigned long ulnum)
 #ifdef __INTEL_COMPILER
 #  pragma warning(pop)
 #endif
+}
+
+curl_socket_t sockdaemon(curl_socket_t sock,
+                         unsigned short *listenport,
+                         const char *unix_socket,
+                         bool bind_only)
+{
+  /* passive daemon style */
+  srvr_sockaddr_union_t listener;
+  int flag;
+  int rc;
+  int totdelay = 0;
+  int maxretr = 10;
+  int delay = 20;
+  int attempt = 0;
+  int error = 0;
+
+#ifndef USE_UNIX_SOCKETS
+  (void)unix_socket;
+#endif
+
+  do {
+    attempt++;
+    flag = 1;
+    rc = setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
+                    (void *)&flag, sizeof(flag));
+    if(rc) {
+      error = SOCKERRNO;
+      logmsg("setsockopt(SO_REUSEADDR) failed with error (%d) %s",
+             error, sstrerror(error));
+      if(maxretr) {
+        rc = curlx_wait_ms(delay);
+        if(rc) {
+          /* should not happen */
+          error = SOCKERRNO;
+          logmsg("curlx_wait_ms() failed with error (%d) %s",
+                 error, sstrerror(error));
+          sclose(sock);
+          return CURL_SOCKET_BAD;
+        }
+        if(got_exit_signal) {
+          logmsg("signalled to die, exiting...");
+          sclose(sock);
+          return CURL_SOCKET_BAD;
+        }
+        totdelay += delay;
+        delay *= 2; /* double the sleep for next attempt */
+      }
+    }
+  } while(rc && maxretr--);
+
+  if(rc) {
+    logmsg("setsockopt(SO_REUSEADDR) failed %d times in %d ms. Error (%d) %s",
+           attempt, totdelay, error, strerror(error));
+    logmsg("Continuing anyway...");
+  }
+
+  /* When the specified listener port is zero, it is actually a
+     request to let the system choose a non-zero available port. */
+
+  switch(socket_domain) {
+    case AF_INET:
+      memset(&listener.sa4, 0, sizeof(listener.sa4));
+      listener.sa4.sin_family = AF_INET;
+      listener.sa4.sin_addr.s_addr = INADDR_ANY;
+      listener.sa4.sin_port = htons(*listenport);
+      rc = bind(sock, &listener.sa, sizeof(listener.sa4));
+      break;
+#ifdef USE_IPV6
+    case AF_INET6:
+      memset(&listener.sa6, 0, sizeof(listener.sa6));
+      listener.sa6.sin6_family = AF_INET6;
+      listener.sa6.sin6_addr = in6addr_any;
+      listener.sa6.sin6_port = htons(*listenport);
+      rc = bind(sock, &listener.sa, sizeof(listener.sa6));
+      break;
+#endif /* USE_IPV6 */
+#ifdef USE_UNIX_SOCKETS
+    case AF_UNIX:
+      rc = bind_unix_socket(sock, unix_socket, &listener.sau);
+      break;
+#endif
+    default:
+      rc = 1;
+  }
+
+  if(rc) {
+    error = SOCKERRNO;
+#ifdef USE_UNIX_SOCKETS
+    if(socket_domain == AF_UNIX)
+      logmsg("Error binding socket on path %s (%d) %s",
+             unix_socket, error, sstrerror(error));
+    else
+#endif
+      logmsg("Error binding socket on port %hu (%d) %s",
+             *listenport, error, sstrerror(error));
+    sclose(sock);
+    return CURL_SOCKET_BAD;
+  }
+
+  if(!*listenport
+#ifdef USE_UNIX_SOCKETS
+     && !unix_socket
+#endif
+    ) {
+    /* The system was supposed to choose a port number, figure out which
+       port we actually got and update the listener port value with it. */
+    curl_socklen_t la_size;
+    srvr_sockaddr_union_t localaddr;
+#ifdef USE_IPV6
+    if(socket_domain == AF_INET6)
+      la_size = sizeof(localaddr.sa6);
+    else
+#endif
+      la_size = sizeof(localaddr.sa4);
+    memset(&localaddr.sa, 0, (size_t)la_size);
+    if(getsockname(sock, &localaddr.sa, &la_size) < 0) {
+      error = SOCKERRNO;
+      logmsg("getsockname() failed with error (%d) %s",
+             error, sstrerror(error));
+      sclose(sock);
+      return CURL_SOCKET_BAD;
+    }
+    switch(localaddr.sa.sa_family) {
+    case AF_INET:
+      *listenport = ntohs(localaddr.sa4.sin_port);
+      break;
+#ifdef USE_IPV6
+    case AF_INET6:
+      *listenport = ntohs(localaddr.sa6.sin6_port);
+      break;
+#endif
+    default:
+      break;
+    }
+    if(!*listenport) {
+      /* Real failure, listener port shall not be zero beyond this point. */
+      logmsg("Apparently getsockname() succeeded, with listener port zero.");
+      logmsg("A valid reason for this failure is a binary built without");
+      logmsg("proper network library linkage. This might not be the only");
+      logmsg("reason, but double check it before anything else.");
+      sclose(sock);
+      return CURL_SOCKET_BAD;
+    }
+  }
+
+  /* bindonly option forces no listening */
+  if(bind_only) {
+    logmsg("instructed to bind port without listening");
+    return sock;
+  }
+
+  /* start accepting connections */
+  rc = listen(sock, 5);
+  if(rc) {
+    error = SOCKERRNO;
+    logmsg("listen(%ld, 5) failed with error (%d) %s",
+           (long)sock, error, sstrerror(error));
+    sclose(sock);
+    return CURL_SOCKET_BAD;
+  }
+
+  return sock;
 }

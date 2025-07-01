@@ -160,7 +160,9 @@ PROGRAMS = $(noinst_PROGRAMS)
 LTLIBRARIES = $(noinst_LTLIBRARIES)
 am__libstubgss_la_SOURCES_DIST = stub_gssapi.c stub_gssapi.h
 am__objects_1 = libstubgss_la-stub_gssapi.lo
-@BUILD_STUB_GSS_TRUE@am_libstubgss_la_OBJECTS = $(am__objects_1)
+am__objects_2 =
+@BUILD_STUB_GSS_TRUE@am_libstubgss_la_OBJECTS = $(am__objects_1) \
+@BUILD_STUB_GSS_TRUE@	$(am__objects_2)
 libstubgss_la_OBJECTS = $(am_libstubgss_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -438,26 +440,30 @@ AUTOMAKE_OPTIONS = foreign nostdinc
 # $(top_srcdir)/lib for libcurl's lib/curl_setup.h and other "borrowed" files
 # $(srcdir) for the generated bundle source to find included test sources
 AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_builddir)/lib \
-	-I$(top_srcdir)/lib -I$(top_srcdir)/lib/curlx -I$(srcdir) \
-	-I$(top_srcdir)/tests/unit $(am__append_1) $(am__append_2) \
-	$(am__append_3) -DCURL_NO_OLDIES -DCURL_DISABLE_DEPRECATION
+	-I$(top_srcdir)/lib -I$(srcdir) -I$(top_srcdir)/tests/unit \
+	$(am__append_1) $(am__append_2) $(am__append_3) \
+	-DCURL_NO_OLDIES -DCURL_DISABLE_DEPRECATION
 BUNDLE = libtests
 
 # Files referenced from the bundle source
-FIRSTFILES = first.c first.h
+FIRST_C = first.c
+FIRST_H = first.h
 
 # Common files used by test programs
-UTILS = memptr.c testutil.c testutil.h testtrace.c testtrace.h test.h ../unit/curlcheck.h
-CURLX_CFILES = \
+UTILS_C = memptr.c testutil.c testtrace.c
+UTILS_H = test.h testutil.h testtrace.h
+CURLX_C = \
   ../../lib/curlx/warnless.c \
   ../../lib/curlx/multibyte.c \
   ../../lib/curlx/timediff.c \
+  ../../lib/curlx/timeval.c \
   ../../lib/curl_threads.c \
+  ../../lib/curlx/version_win32.c \
   ../../lib/curlx/wait.c
 
 
 # All libtest programs
-TESTFILES = \
+TESTS_C = \
   lib500.c lib501.c lib502.c lib503.c lib504.c lib505.c lib506.c lib507.c \
   lib508.c lib509.c lib510.c lib511.c lib512.c lib513.c lib514.c lib515.c \
   lib516.c lib517.c lib518.c lib519.c lib520.c lib521.c lib523.c lib524.c \
@@ -511,26 +517,27 @@ TESTFILES = \
   lib3100.c lib3101.c lib3102.c lib3103.c lib3104.c lib3105.c \
   lib3207.c lib3208.c
 
-STUB_GSS = stub_gssapi.c stub_gssapi.h
+STUB_GSS_C = stub_gssapi.c
+STUB_GSS_H = stub_gssapi.h
 
-# Get BUNDLE, FIRSTFILES, UTILS, CURLX_CFILES, TESTFILES, STUB_GSS variables
-EXTRA_DIST = CMakeLists.txt .checksrc $(FIRSTFILES) $(UTILS) $(TESTFILES) \
+# Get BUNDLE, FIRST_C, FIRST_H, UTILS_C, UTILS_H, CURLX_C, TESTS_C, STUB_GSS_C, STUB_GSS_H variables
+EXTRA_DIST = CMakeLists.txt $(FIRST_C) $(FIRST_H) $(UTILS_C) $(UTILS_H) $(TESTS_C) \
   test307.pl test610.pl test613.pl test1013.pl test1022.pl mk-lib1521.pl
 
 noinst_LTLIBRARIES = $(am__append_4)
 AM_LDFLAGS = 
 AM_CFLAGS = 
-@BUILD_STUB_GSS_TRUE@libstubgss_la_CPPFLAGS = $(AM_CPPFLAGS)
+@BUILD_STUB_GSS_TRUE@libstubgss_la_CPPFLAGS = 
 @BUILD_STUB_GSS_TRUE@libstubgss_la_LDFLAGS = $(AM_LDFLAGS) \
 @BUILD_STUB_GSS_TRUE@	-avoid-version -rpath /nowhere \
 @BUILD_STUB_GSS_TRUE@	$(am__append_5)
 @BUILD_STUB_GSS_TRUE@libstubgss_la_CFLAGS = $(AM_CFLAGS) -g
-@BUILD_STUB_GSS_TRUE@libstubgss_la_SOURCES = $(STUB_GSS)
+@BUILD_STUB_GSS_TRUE@libstubgss_la_SOURCES = $(STUB_GSS_C) $(STUB_GSS_H)
 @BUILD_STUB_GSS_TRUE@libstubgss_la_LIBADD = 
 @BUILD_STUB_GSS_TRUE@libstubgss_la_DEPENDENCIES = 
 # These are part of the libcurl static lib. Add them here when linking shared.
-@USE_CPPFLAG_CURL_STATICLIB_FALSE@curlx_src = $(CURLX_CFILES)
-@USE_CPPFLAG_CURL_STATICLIB_TRUE@curlx_src = 
+@USE_CPPFLAG_CURL_STATICLIB_FALSE@curlx_c_lib = $(CURLX_C)
+@USE_CPPFLAG_CURL_STATICLIB_TRUE@curlx_c_lib = 
 LDADD = $(top_builddir)/lib/libcurl.la
 CLEANFILES = $(BUNDLE).c lib1521.c
 CHECKSRC = $(CS_$(V))
@@ -863,8 +870,8 @@ uninstall-am:
 
 .PRECIOUS: Makefile
 
-$(BUNDLE).c: $(top_srcdir)/scripts/mk-unity.pl Makefile.inc $(FIRSTFILES) $(UTILS) $(curlx_src) $(TESTFILES) lib1521.c
-	@PERL@ $(top_srcdir)/scripts/mk-unity.pl --include $(UTILS) $(curlx_src) --test $(TESTFILES) lib1521.c > $(BUNDLE).c
+$(BUNDLE).c: $(top_srcdir)/scripts/mk-unity.pl Makefile.inc $(FIRST_C) $(UTILS_C) $(curlx_c_lib) $(TESTS_C) lib1521.c
+	@PERL@ $(top_srcdir)/scripts/mk-unity.pl --include $(UTILS_C) $(curlx_c_lib) --test $(TESTS_C) lib1521.c > $(BUNDLE).c
 
 lib1521.c: $(top_srcdir)/tests/libtest/mk-lib1521.pl $(top_srcdir)/include/curl/curl.h
 	@PERL@ $(top_srcdir)/tests/libtest/mk-lib1521.pl < $(top_srcdir)/include/curl/curl.h lib1521.c

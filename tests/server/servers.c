@@ -2,10 +2,12 @@
 
 #include "first.h"
 
+#include "memptr.c"
 #include "getpart.c"
 #include "util.c"
 #include "../../lib/curlx/base64.c"
 #include "../../lib/curlx/inet_pton.c"
+#include "../../lib/curlx/inet_ntop.c"
 #include "../../lib/curlx/multibyte.c"
 #include "../../lib/curlx/nonblock.c"
 #include "../../lib/curlx/strparse.c"
@@ -24,7 +26,7 @@
 #include "sws.c"
 #include "tftpd.c"
 
-static const struct entry_s s_entries[] = {
+const struct entry_s s_entries[] = {
   {"dnsd", test_dnsd},
   {"mqttd", test_mqttd},
   {"resolve", test_resolve},
@@ -33,6 +35,7 @@ static const struct entry_s s_entries[] = {
   {"socksd", test_socksd},
   {"sws", test_sws},
   {"tftpd", test_tftpd},
+  {NULL, NULL}
 };
 
 #include "first.c"

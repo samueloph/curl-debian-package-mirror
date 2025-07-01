@@ -26,6 +26,7 @@
 
 #include "curlx/timediff.h"
 
+struct bufq;
 struct Curl_cfilter;
 struct Curl_easy;
 struct Curl_dns_entry;
@@ -52,23 +53,6 @@ typedef CURLcode Curl_cft_shutdown(struct Curl_cfilter *cf,
 typedef CURLcode Curl_cft_connect(struct Curl_cfilter *cf,
                                   struct Curl_easy *data,
                                   bool *done);
-
-/* Return the hostname and port the connection goes to.
- * This may change with the connection state of filters when tunneling
- * is involved.
- * @param cf     the filter to ask
- * @param data   the easy handle currently active
- * @param phost  on return, points to the relevant, real hostname.
- *               this is owned by the connection.
- * @param pdisplay_host  on return, points to the printable hostname.
- *               this is owned by the connection.
- * @param pport  on return, contains the port number
- */
-typedef void     Curl_cft_get_host(struct Curl_cfilter *cf,
-                                   struct Curl_easy *data,
-                                   const char **phost,
-                                   const char **pdisplay_host,
-                                   int *pport);
 
 struct easy_pollset;
 
@@ -166,6 +150,7 @@ typedef CURLcode Curl_cft_cntrl(struct Curl_cfilter *cf,
  * - CF_QUERY_NEED_FLUSH: TRUE iff any of the filters have unsent data
  * - CF_QUERY_IP_INFO: res1 says if connection used IPv6, res2 is the
  *                   ip quadruple
+ * - CF_QUERY_HOST_PORT: the remote hostname and port a filter talks to
  */
 /*      query                             res1       res2     */
 #define CF_QUERY_MAX_CONCURRENT     1  /* number     -        */
@@ -180,6 +165,7 @@ typedef CURLcode Curl_cft_cntrl(struct Curl_cfilter *cf,
 /* pass in a `const struct Curl_sockaddr_ex **` as `pres2`. Gets set
  * to NULL when not connected. */
 #define CF_QUERY_REMOTE_ADDR       10  /* -          `Curl_sockaddr_ex *` */
+#define CF_QUERY_HOST_PORT         11  /* port       const char * */
 
 /**
  * Query the cfilter for properties. Filters ignorant of a query will
@@ -216,7 +202,6 @@ struct Curl_cftype {
   Curl_cft_connect *do_connect;           /* establish connection */
   Curl_cft_close *do_close;               /* close conn */
   Curl_cft_shutdown *do_shutdown;         /* shutdown conn */
-  Curl_cft_get_host *get_host;            /* host filter talks to */
   Curl_cft_adjust_pollset *adjust_pollset; /* adjust transfer poll set */
   Curl_cft_data_pending *has_data_pending;/* conn has data pending */
   Curl_cft_send *do_send;                 /* send data */
@@ -244,9 +229,6 @@ void Curl_cf_def_destroy_this(struct Curl_cfilter *cf,
 
 /* Default implementations for the type functions, implementing pass-through
  * the filter chain. */
-void     Curl_cf_def_get_host(struct Curl_cfilter *cf, struct Curl_easy *data,
-                              const char **phost, const char **pdisplay_host,
-                              int *pport);
 void     Curl_cf_def_adjust_pollset(struct Curl_cfilter *cf,
                                     struct Curl_easy *data,
                                     struct easy_pollset *ps);
@@ -497,6 +479,28 @@ CURLcode Curl_cf_send(struct Curl_easy *data, int sockindex,
                       size_t *pnwritten);
 
 /**
+ * Receive bytes from connection filter `cf` into `bufq`.
+ * Convenience wrappter around `Curl_bufq_sipn()`,
+ * so users do not have to implement a callback.
+ */
+CURLcode Curl_cf_recv_bufq(struct Curl_cfilter *cf,
+                           struct Curl_easy *data,
+                           struct bufq *bufq,
+                           size_t maxlen,
+                           size_t *pnread);
+
+/**
+ * Send bytes in `bufq` using connection filter `cf`.
+ * A convenience wrapper around `Curl_bufq_write_pass()`,
+ * so users do not have to implement a callback.
+ */
+CURLcode Curl_cf_send_bufq(struct Curl_cfilter *cf,
+                           struct Curl_easy *data,
+                           struct bufq *bufq,
+                           const unsigned char *buf, size_t blen,
+                           size_t *pnwritten);
+
+/**
  * Notify connection filters that they need to setup data for
  * a transfer.
  */
@@ -541,9 +545,17 @@ CURLcode Curl_conn_keep_alive(struct Curl_easy *data,
 #ifdef UNITTESTS
 void Curl_cf_def_close(struct Curl_cfilter *cf, struct Curl_easy *data);
 #endif
-void Curl_conn_get_host(struct Curl_easy *data, int sockindex,
-                        const char **phost, const char **pdisplay_host,
-                        int *pport);
+
+/**
+ * Get the remote hostname and port that the connection is currently
+ * talking to (or will talk to).
+ * Once connected or before connect starts,
+ * it is `conn->host.name` and `conn->remote_port`.
+ * During connect, when tunneling proxies are involved (http or socks),
+ * it will be the name and port the proxy currently negotiates with.
+ */
+void Curl_conn_get_current_host(struct Curl_easy *data, int sockindex,
+                                const char **phost, int *pport);
 
 /**
  * Get the maximum number of parallel transfers the connection
