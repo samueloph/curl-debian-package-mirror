@@ -19,7 +19,7 @@ Last-Update: 2025-02-05
  1 file changed, 3 insertions(+), 13 deletions(-)
 
 diff --git a/curl-config.in b/curl-config.in
-index 5518416..2eba92e 100644
+index 31ea30b..6bb3da2 100644
 --- a/curl-config.in
 +++ b/curl-config.in
 @@ -29,8 +29,6 @@ prefix='@prefix@'
