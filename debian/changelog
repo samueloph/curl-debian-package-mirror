@@ -1,3 +1,12 @@
+curl (8.15.0~rc2-1~exp1) experimental; urgency=medium
+
+  * New upstream version 8.15.0~rc2.
+  * debian/libcurl4-doc.docs: remove docs/examples/README.md, it's in
+    debian/libcurl4-doc.examples glob (docs/examples/*) already.
+  * debian/patches/: refresh patches.
+
+ -- Carlos Henrique Lima Melara <charlesmelara@riseup.net>  Mon, 30 Jun 2025 21:43:30 -0300
+
 curl (8.15.0~rc1-1exp1) experimental; urgency=medium
 
   * New upstream version 8.15.0~rc1
