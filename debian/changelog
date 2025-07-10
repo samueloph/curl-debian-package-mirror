@@ -1,3 +1,10 @@
+curl (8.15.0~rc3-1~exp1) experimental; urgency=medium
+
+  * New upstream version 8.15.0~rc3
+  * d/patches: rebase patches against new upstream version
+
+ -- Carlos Henrique Lima Melara <charlesmelara@riseup.net>  Thu, 10 Jul 2025 11:08:40 -0300
+
 curl (8.15.0~rc2-1~exp1) experimental; urgency=medium
 
   * New upstream version 8.15.0~rc2.
