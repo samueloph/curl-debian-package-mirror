@@ -60,7 +60,6 @@
 #include "vtls_scache.h"
 #include "../vauth/vauth.h"
 #include "keylog.h"
-#include "../strcase.h"
 #include "hostcheck.h"
 #include "../multiif.h"
 #include "../curlx/strparse.h"
@@ -1058,15 +1057,15 @@ static int ossl_do_file_type(const char *type)
 {
   if(!type || !type[0])
     return SSL_FILETYPE_PEM;
-  if(strcasecompare(type, "PEM"))
+  if(curl_strequal(type, "PEM"))
     return SSL_FILETYPE_PEM;
-  if(strcasecompare(type, "DER"))
+  if(curl_strequal(type, "DER"))
     return SSL_FILETYPE_ASN1;
-  if(strcasecompare(type, "PROV"))
+  if(curl_strequal(type, "PROV"))
     return SSL_FILETYPE_PROVIDER;
-  if(strcasecompare(type, "ENG"))
+  if(curl_strequal(type, "ENG"))
     return SSL_FILETYPE_ENGINE;
-  if(strcasecompare(type, "P12"))
+  if(curl_strequal(type, "P12"))
     return SSL_FILETYPE_PKCS12;
   return -1;
 }
@@ -1119,7 +1118,7 @@ static int ssl_ui_writer(UI *ui, UI_STRING *uis)
  */
 static bool is_pkcs11_uri(const char *string)
 {
-  return string && strncasecompare(string, "pkcs11:", 7);
+  return string && curl_strnequal(string, "pkcs11:", 7);
 }
 
 #endif
@@ -1385,7 +1384,7 @@ int cert_stuff(struct Curl_easy *data,
     {
       /* Implicitly use pkcs11 provider if none was provided and the
        * cert_file is a PKCS#11 URI */
-      if(!data->state.provider) {
+      if(!data->state.provider_loaded) {
         if(is_pkcs11_uri(cert_file)) {
           if(ossl_set_provider(data, "pkcs11") != CURLE_OK) {
             return 0;
@@ -1393,7 +1392,7 @@ int cert_stuff(struct Curl_easy *data,
         }
       }
 
-      if(data->state.provider) {
+      if(data->state.provider_loaded) {
         /* Load the certificate from the provider */
         OSSL_STORE_INFO *info = NULL;
         X509 *cert = NULL;
@@ -1638,7 +1637,7 @@ fail:
     {
       /* Implicitly use pkcs11 provider if none was provided and the
        * key_file is a PKCS#11 URI */
-      if(!data->state.provider) {
+      if(!data->state.provider_loaded) {
         if(is_pkcs11_uri(key_file)) {
           if(ossl_set_provider(data, "pkcs11") != CURLE_OK) {
             return 0;
@@ -1646,7 +1645,7 @@ fail:
         }
       }
 
-      if(data->state.provider) {
+      if(data->state.provider_loaded) {
         /* Load the private key from the provider */
         EVP_PKEY *priv_key = NULL;
         OSSL_STORE_CTX *store = NULL;
@@ -2031,6 +2030,14 @@ static CURLcode ossl_set_provider(struct Curl_easy *data, const char *iname)
     }
     data->state.libctx = libctx;
   }
+
+#ifndef CURL_DISABLE_OPENSSL_AUTO_LOAD_CONFIG
+  /* load the configuration file into the library context before checking the
+   * provider availability */
+  if(!OSSL_LIB_CTX_load_config(data->state.libctx, NULL)) {
+    infof(data, "Failed to load default openssl config. Proceeding.");
+  }
+#endif
 
   if(OSSL_PROVIDER_available(data->state.libctx, name)) {
     /* already loaded through the configuration - no action needed */
@@ -5520,7 +5527,7 @@ size_t Curl_ossl_version(char *buffer, size_t size)
   size_t count;
   const char *ver = OpenSSL_version(OPENSSL_VERSION);
   const char expected[] = OSSL_PACKAGE " "; /* ie "LibreSSL " */
-  if(strncasecompare(ver, expected, sizeof(expected) - 1)) {
+  if(curl_strnequal(ver, expected, sizeof(expected) - 1)) {
     ver += sizeof(expected) - 1;
   }
   count = msnprintf(buffer, size, "%s/%s", OSSL_PACKAGE, ver);

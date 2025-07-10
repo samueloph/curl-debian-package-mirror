@@ -1596,6 +1596,9 @@ lib_LTLIBRARIES = libcurl.la
 @BUILD_UNITTESTS_FALSE@noinst_LTLIBRARIES = 
 @BUILD_UNITTESTS_TRUE@noinst_LTLIBRARIES = libcurlu.la
 
+# generate a file with "private" prototypes for unit testing
+@BUILD_UNITTESTS_TRUE@UNITPROTOS = unitprotos.h
+
 # Specify our include paths here, and do it relative to $(top_srcdir) and
 # $(top_builddir), to ensure that these paths which belong to the library
 # being currently built and tested are searched before the library which
@@ -1615,7 +1618,8 @@ AM_CFLAGS =
 @USE_UNITY_TRUE@nodist_libcurlu_la_SOURCES = libcurl_unity.c
 @USE_UNITY_FALSE@libcurlu_la_SOURCES = $(CSOURCES) $(HHEADERS)
 @USE_UNITY_TRUE@libcurlu_la_SOURCES = 
-@USE_UNITY_TRUE@CLEANFILES = libcurl_unity.c
+@USE_UNITY_FALSE@CLEANFILES = $(UNITPROTOS)
+@USE_UNITY_TRUE@CLEANFILES = libcurl_unity.c $(UNITPROTOS)
 libcurl_la_CPPFLAGS_EXTRA = $(am__append_9) $(am__append_11)
 libcurl_la_LDFLAGS_EXTRA = $(am__append_4) $(am__append_5) \
 	$(am__append_6) $(am__append_7) $(am__append_8)
@@ -1638,6 +1642,13 @@ CHECKSRC = $(CS_$(V))
 CS_0 = @echo "  RUN     " $@;
 CS_1 = 
 CS_ = $(CS_0)
+
+# for debug builds, we scan the sources on all regular make invokes
+@DEBUGBUILD_TRUE@@NOT_CURL_CI_TRUE@CHECKSOURCES = checksrc
+UNIT_V = $(UNITV_$(V))
+UNITV_0 = @echo "  UNITPR  " $@;
+UNITV_1 = 
+UNITV_ = $(UNITV_0)
 
 # disable the tests that are mostly causing false positives
 TIDYFLAGS := -checks=-clang-analyzer-security.insecureAPI.bzero,-clang-analyzer-security.insecureAPI.strcpy,-clang-analyzer-optin.performance.Padding,-clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling \
@@ -5006,8 +5017,6 @@ distdir-am: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-@DEBUGBUILD_FALSE@all-local:
-@NOT_CURL_CI_FALSE@all-local:
 all-am: Makefile $(LTLIBRARIES) curl_config.h all-local
 installdirs:
 	for dir in "$(DESTDIR)$(libdir)"; do \
@@ -5884,8 +5893,11 @@ checksrc:
 	$(CHECKSRC)(@PERL@ $(top_srcdir)/scripts/checksrc.pl -D$(srcdir) \
 	$(CSOURCES) $(HHEADERS))
 
-# for debug builds, we scan the sources on all regular make invokes
-@DEBUGBUILD_TRUE@@NOT_CURL_CI_TRUE@all-local: checksrc
+all-local: $(CHECKSOURCES) $(UNITPROTOS)
+
+# UNITPROTOS depends on every C file in the lib/ dir
+$(UNITPROTOS): $(CSOURCES)
+	$(UNIT_V)(cd $(srcdir) && @PERL@ ../scripts/extract-unit-protos $(CSOURCES) > $(top_builddir)/lib/$(UNITPROTOS))
 
 tidy:
 	(_csources=`echo ' $(CSOURCES)' | sed -E -e 's/ +$$//' -e 's/ +/ /g' -e 's| | $(srcdir)/|g'`; \

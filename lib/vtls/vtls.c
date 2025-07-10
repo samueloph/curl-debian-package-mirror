@@ -207,12 +207,12 @@ match_ssl_primary_config(struct Curl_easy *data,
      !Curl_timestrcmp(c1->username, c2->username) &&
      !Curl_timestrcmp(c1->password, c2->password) &&
 #endif
-     strcasecompare(c1->cipher_list, c2->cipher_list) &&
-     strcasecompare(c1->cipher_list13, c2->cipher_list13) &&
-     strcasecompare(c1->curves, c2->curves) &&
-     strcasecompare(c1->signature_algorithms, c2->signature_algorithms) &&
-     strcasecompare(c1->CRLfile, c2->CRLfile) &&
-     strcasecompare(c1->pinned_key, c2->pinned_key))
+     curl_strequal(c1->cipher_list, c2->cipher_list) &&
+     curl_strequal(c1->cipher_list13, c2->cipher_list13) &&
+     curl_strequal(c1->curves, c2->curves) &&
+     curl_strequal(c1->signature_algorithms, c2->signature_algorithms) &&
+     curl_strequal(c1->CRLfile, c2->CRLfile) &&
+     curl_strequal(c1->pinned_key, c2->pinned_key))
     return TRUE;
 
   return FALSE;
@@ -1073,7 +1073,7 @@ static int multissl_setup(const struct Curl_ssl *backend)
   env = curl_getenv("CURL_SSL_BACKEND");
   if(env) {
     for(i = 0; available_backends[i]; i++) {
-      if(strcasecompare(env, available_backends[i]->info.name)) {
+      if(curl_strequal(env, available_backends[i]->info.name)) {
         Curl_ssl = available_backends[i];
         free(env);
         return 0;
@@ -1083,8 +1083,8 @@ static int multissl_setup(const struct Curl_ssl *backend)
 
 #ifdef CURL_DEFAULT_SSL_BACKEND
   for(i = 0; available_backends[i]; i++) {
-    if(strcasecompare(CURL_DEFAULT_SSL_BACKEND,
-                      available_backends[i]->info.name)) {
+    if(curl_strequal(CURL_DEFAULT_SSL_BACKEND,
+                     available_backends[i]->info.name)) {
       Curl_ssl = available_backends[i];
       free(env);
       return 0;
@@ -1110,7 +1110,7 @@ CURLsslset Curl_init_sslset_nolock(curl_sslbackend id, const char *name,
 
   if(Curl_ssl != &Curl_ssl_multi)
     return id == Curl_ssl->info.id ||
-           (name && strcasecompare(name, Curl_ssl->info.name)) ?
+           (name && curl_strequal(name, Curl_ssl->info.name)) ?
            CURLSSLSET_OK :
 #if defined(CURL_WITH_MULTI_SSL)
            CURLSSLSET_TOO_LATE;
@@ -1120,7 +1120,7 @@ CURLsslset Curl_init_sslset_nolock(curl_sslbackend id, const char *name,
 
   for(i = 0; available_backends[i]; i++) {
     if(available_backends[i]->info.id == id ||
-       (name && strcasecompare(available_backends[i]->info.name, name))) {
+       (name && curl_strequal(available_backends[i]->info.name, name))) {
       multissl_setup(available_backends[i]);
       return CURLSSLSET_OK;
     }
@@ -1558,6 +1558,18 @@ static CURLcode ssl_cf_query(struct Curl_cfilter *cf,
       *when = connssl->handshake_done;
     return CURLE_OK;
   }
+  case CF_QUERY_SSL_INFO:
+  case CF_QUERY_SSL_CTX_INFO: {
+    struct curl_tlssessioninfo *info = pres2;
+    struct cf_call_data save;
+    CF_DATA_SAVE(save, cf, data);
+    info->backend = Curl_ssl_backend();
+    info->internals = connssl->ssl_impl->get_internals(
+      cf->ctx, (query == CF_QUERY_SSL_INFO) ?
+      CURLINFO_TLS_SSL_PTR : CURLINFO_TLS_SESSION);
+    CF_DATA_RESTORE(cf, save);
+    return CURLE_OK;
+  }
   default:
     break;
   }
@@ -1725,40 +1737,6 @@ bool Curl_ssl_supports(struct Curl_easy *data, unsigned int ssl_option)
 {
   (void)data;
   return (Curl_ssl->supports & ssl_option);
-}
-
-static struct Curl_cfilter *get_ssl_filter(struct Curl_cfilter *cf)
-{
-  for(; cf; cf = cf->next) {
-    if(cf->cft == &Curl_cft_ssl)
-      return cf;
-#ifndef CURL_DISABLE_PROXY
-    if(cf->cft == &Curl_cft_ssl_proxy)
-      return cf;
-#endif
-  }
-  return NULL;
-}
-
-
-void *Curl_ssl_get_internals(struct Curl_easy *data, int sockindex,
-                             CURLINFO info, int n)
-{
-  void *result = NULL;
-  (void)n;
-  if(data->conn) {
-    struct Curl_cfilter *cf;
-    /* get first SSL filter in chain, if any is present */
-    cf = get_ssl_filter(data->conn->cfilter[sockindex]);
-    if(cf) {
-      struct ssl_connect_data *connssl = cf->ctx;
-      struct cf_call_data save;
-      CF_DATA_SAVE(save, cf, data);
-      result = connssl->ssl_impl->get_internals(cf->ctx, info);
-      CF_DATA_RESTORE(cf, save);
-    }
-  }
-  return result;
 }
 
 static CURLcode vtls_shutdown_blocking(struct Curl_cfilter *cf,

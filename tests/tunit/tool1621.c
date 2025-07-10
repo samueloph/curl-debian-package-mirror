@@ -21,10 +21,7 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-#include "curlcheck.h"
-
-#include "urldata.h"
-#include "url.h"
+#include "unitcheck.h"
 
 #include "tool_xattr.h"
 

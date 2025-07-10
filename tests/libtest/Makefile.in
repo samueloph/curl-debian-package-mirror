@@ -39,7 +39,6 @@
 ###########################################################################
 # Shared between CMakeLists.txt and Makefile.am
 
-
 VPATH = @srcdir@
 am__is_gnu_make = { \
   if test -z '$(MAKELEVEL)'; then \
@@ -117,11 +116,6 @@ host_triplet = @host@
 @USE_CPPFLAG_CURL_STATICLIB_TRUE@am__append_1 = -DCURL_STATICLIB
 @DEBUGBUILD_TRUE@am__append_2 = -DDEBUGBUILD
 @CURLDEBUG_TRUE@am__append_3 = -DCURLDEBUG
-
-# Build a stub gssapi implementation for testing
-@BUILD_STUB_GSS_TRUE@am__append_4 = libstubgss.la
-@BUILD_STUB_GSS_TRUE@@CURL_LT_SHLIB_USE_NO_UNDEFINED_TRUE@am__append_5 = -no-undefined
-@BUILD_STUB_GSS_FALSE@libstubgss_la_DEPENDENCIES =
 noinst_PROGRAMS = $(am__EXEEXT_1)
 subdir = tests/libtest
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -157,25 +151,14 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__EXEEXT_1 = libtests$(EXEEXT)
 PROGRAMS = $(noinst_PROGRAMS)
-LTLIBRARIES = $(noinst_LTLIBRARIES)
-am__libstubgss_la_SOURCES_DIST = stub_gssapi.c stub_gssapi.h
-am__objects_1 = libstubgss_la-stub_gssapi.lo
-am__objects_2 =
-@BUILD_STUB_GSS_TRUE@am_libstubgss_la_OBJECTS = $(am__objects_1) \
-@BUILD_STUB_GSS_TRUE@	$(am__objects_2)
-libstubgss_la_OBJECTS = $(am_libstubgss_la_OBJECTS)
-AM_V_lt = $(am__v_lt_@AM_V@)
-am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
-am__v_lt_0 = --silent
-am__v_lt_1 = 
-libstubgss_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(libstubgss_la_CFLAGS) \
-	$(CFLAGS) $(libstubgss_la_LDFLAGS) $(LDFLAGS) -o $@
-@BUILD_STUB_GSS_TRUE@am_libstubgss_la_rpath =
 libtests_SOURCES = libtests.c
 libtests_OBJECTS = libtests.$(OBJEXT)
 libtests_LDADD = $(LDADD)
 libtests_DEPENDENCIES = $(top_builddir)/lib/libcurl.la
+AM_V_lt = $(am__v_lt_@AM_V@)
+am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
+am__v_lt_0 = --silent
+am__v_lt_1 = 
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -191,8 +174,7 @@ am__v_at_1 =
 DEFAULT_INCLUDES = 
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__maybe_remake_depfiles = depfiles
-am__depfiles_remade = ./$(DEPDIR)/libstubgss_la-stub_gssapi.Plo \
-	./$(DEPDIR)/libtests.Po
+am__depfiles_remade = ./$(DEPDIR)/libtests.Po
 am__mv = mv -f
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -212,8 +194,8 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(libstubgss_la_SOURCES) libtests.c
-DIST_SOURCES = $(am__libstubgss_la_SOURCES_DIST) libtests.c
+SOURCES = libtests.c
+DIST_SOURCES = libtests.c
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -440,9 +422,9 @@ AUTOMAKE_OPTIONS = foreign nostdinc
 # $(top_srcdir)/lib for libcurl's lib/curl_setup.h and other "borrowed" files
 # $(srcdir) for the generated bundle source to find included test sources
 AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_builddir)/lib \
-	-I$(top_srcdir)/lib -I$(srcdir) -I$(top_srcdir)/tests/unit \
-	$(am__append_1) $(am__append_2) $(am__append_3) \
-	-DCURL_NO_OLDIES -DCURL_DISABLE_DEPRECATION
+	-I$(top_srcdir)/lib -I$(srcdir) $(am__append_1) \
+	$(am__append_2) $(am__append_3) -DCURL_NO_OLDIES \
+	-DCURL_DISABLE_DEPRECATION
 BUNDLE = libtests
 
 # Files referenced from the bundle source
@@ -451,7 +433,7 @@ FIRST_H = first.h
 
 # Common files used by test programs
 UTILS_C = memptr.c testutil.c testtrace.c
-UTILS_H = test.h testutil.h testtrace.h
+UTILS_H = test.h testutil.h testtrace.h unitcheck.h
 CURLX_C = \
   ../../lib/curlx/warnless.c \
   ../../lib/curlx/multibyte.c \
@@ -517,24 +499,11 @@ TESTS_C = \
   lib3100.c lib3101.c lib3102.c lib3103.c lib3104.c lib3105.c \
   lib3207.c lib3208.c
 
-STUB_GSS_C = stub_gssapi.c
-STUB_GSS_H = stub_gssapi.h
 
-# Get BUNDLE, FIRST_C, FIRST_H, UTILS_C, UTILS_H, CURLX_C, TESTS_C, STUB_GSS_C, STUB_GSS_H variables
+# Get BUNDLE, FIRST_C, FIRST_H, UTILS_C, UTILS_H, CURLX_C, TESTS_C variables
 EXTRA_DIST = CMakeLists.txt $(FIRST_C) $(FIRST_H) $(UTILS_C) $(UTILS_H) $(TESTS_C) \
   test307.pl test610.pl test613.pl test1013.pl test1022.pl mk-lib1521.pl
 
-noinst_LTLIBRARIES = $(am__append_4)
-AM_LDFLAGS = 
-AM_CFLAGS = 
-@BUILD_STUB_GSS_TRUE@libstubgss_la_CPPFLAGS = 
-@BUILD_STUB_GSS_TRUE@libstubgss_la_LDFLAGS = $(AM_LDFLAGS) \
-@BUILD_STUB_GSS_TRUE@	-avoid-version -rpath /nowhere \
-@BUILD_STUB_GSS_TRUE@	$(am__append_5)
-@BUILD_STUB_GSS_TRUE@libstubgss_la_CFLAGS = $(AM_CFLAGS) -g
-@BUILD_STUB_GSS_TRUE@libstubgss_la_SOURCES = $(STUB_GSS_C) $(STUB_GSS_H)
-@BUILD_STUB_GSS_TRUE@libstubgss_la_LIBADD = 
-@BUILD_STUB_GSS_TRUE@libstubgss_la_DEPENDENCIES = 
 # These are part of the libcurl static lib. Add them here when linking shared.
 @USE_CPPFLAG_CURL_STATICLIB_FALSE@curlx_c_lib = $(CURLX_C)
 @USE_CPPFLAG_CURL_STATICLIB_TRUE@curlx_c_lib = 
@@ -588,20 +557,6 @@ clean-noinstPROGRAMS:
 	echo " rm -f" $$list; \
 	rm -f $$list
 
-clean-noinstLTLIBRARIES:
-	-test -z "$(noinst_LTLIBRARIES)" || rm -f $(noinst_LTLIBRARIES)
-	@list='$(noinst_LTLIBRARIES)'; \
-	locs=`for p in $$list; do echo $$p; done | \
-	      sed 's|^[^/]*$$|.|; s|/[^/]*$$||; s|$$|/so_locations|' | \
-	      sort -u`; \
-	test -z "$$locs" || { \
-	  echo rm -f $${locs}; \
-	  rm -f $${locs}; \
-	}
-
-libstubgss.la: $(libstubgss_la_OBJECTS) $(libstubgss_la_DEPENDENCIES) $(EXTRA_libstubgss_la_DEPENDENCIES) 
-	$(AM_V_CCLD)$(libstubgss_la_LINK) $(am_libstubgss_la_rpath) $(libstubgss_la_OBJECTS) $(libstubgss_la_LIBADD) $(LIBS)
-
 libtests$(EXEEXT): $(libtests_OBJECTS) $(libtests_DEPENDENCIES) $(EXTRA_libtests_DEPENDENCIES) 
 	@rm -f libtests$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(libtests_OBJECTS) $(libtests_LDADD) $(LIBS)
@@ -612,7 +567,6 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libstubgss_la-stub_gssapi.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libtests.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
@@ -644,13 +598,6 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
-
-libstubgss_la-stub_gssapi.lo: stub_gssapi.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libstubgss_la_CPPFLAGS) $(CPPFLAGS) $(libstubgss_la_CFLAGS) $(CFLAGS) -MT libstubgss_la-stub_gssapi.lo -MD -MP -MF $(DEPDIR)/libstubgss_la-stub_gssapi.Tpo -c -o libstubgss_la-stub_gssapi.lo `test -f 'stub_gssapi.c' || echo '$(srcdir)/'`stub_gssapi.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libstubgss_la-stub_gssapi.Tpo $(DEPDIR)/libstubgss_la-stub_gssapi.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='stub_gssapi.c' object='libstubgss_la-stub_gssapi.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libstubgss_la_CPPFLAGS) $(CPPFLAGS) $(libstubgss_la_CFLAGS) $(CFLAGS) -c -o libstubgss_la-stub_gssapi.lo `test -f 'stub_gssapi.c' || echo '$(srcdir)/'`stub_gssapi.c
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -745,7 +692,7 @@ distdir-am: $(DISTFILES)
 check-am: all-am
 check: check-am
 @NOT_CURL_CI_FALSE@all-local:
-all-am: Makefile $(PROGRAMS) $(LTLIBRARIES) all-local
+all-am: Makefile $(PROGRAMS) all-local
 installdirs:
 install: install-am
 install-exec: install-exec-am
@@ -780,12 +727,11 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-generic clean-libtool clean-local \
-	clean-noinstLTLIBRARIES clean-noinstPROGRAMS mostlyclean-am
+clean-am: clean-generic clean-libtool clean-local clean-noinstPROGRAMS \
+	mostlyclean-am
 
 distclean: distclean-am
-		-rm -f ./$(DEPDIR)/libstubgss_la-stub_gssapi.Plo
-	-rm -f ./$(DEPDIR)/libtests.Po
+		-rm -f ./$(DEPDIR)/libtests.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -831,8 +777,7 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-		-rm -f ./$(DEPDIR)/libstubgss_la-stub_gssapi.Plo
-	-rm -f ./$(DEPDIR)/libtests.Po
+		-rm -f ./$(DEPDIR)/libtests.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
@@ -855,18 +800,17 @@ uninstall-am:
 
 .PHONY: CTAGS GTAGS TAGS all all-am all-local am--depfiles check \
 	check-am clean clean-generic clean-libtool clean-local \
-	clean-noinstLTLIBRARIES clean-noinstPROGRAMS cscopelist-am \
-	ctags ctags-am distclean distclean-compile distclean-generic \
-	distclean-libtool distclean-tags distdir dvi dvi-am html \
-	html-am info info-am install install-am install-data \
-	install-data-am install-dvi install-dvi-am install-exec \
-	install-exec-am install-html install-html-am install-info \
-	install-info-am install-man install-pdf install-pdf-am \
-	install-ps install-ps-am install-strip installcheck \
-	installcheck-am installdirs maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-compile \
-	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
-	tags tags-am uninstall uninstall-am
+	clean-noinstPROGRAMS cscopelist-am ctags ctags-am distclean \
+	distclean-compile distclean-generic distclean-libtool \
+	distclean-tags distdir dvi dvi-am html html-am info info-am \
+	install install-am install-data install-data-am install-dvi \
+	install-dvi-am install-exec install-exec-am install-html \
+	install-html-am install-info install-info-am install-man \
+	install-pdf install-pdf-am install-ps install-ps-am \
+	install-strip installcheck installcheck-am installdirs \
+	maintainer-clean maintainer-clean-generic mostlyclean \
+	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
+	pdf pdf-am ps ps-am tags tags-am uninstall uninstall-am
 
 .PRECIOUS: Makefile
 

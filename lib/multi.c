@@ -370,8 +370,7 @@ static CURLMcode multi_xfers_add(struct Curl_multi *multi,
       else {
          /* make it a 64 multiple, since our bitsets frow by that and
           * small (easy_multi) grows to at least 64 on first resize. */
-        new_size = CURLMIN((((used + min_unused) + 63) / 64) * 64,
-                           max_capacity);
+        new_size = (((used + min_unused) + 63) / 64) * 64;
       }
     }
   }
@@ -622,7 +621,7 @@ static CURLcode multi_done(struct Curl_easy *data,
                                                 after an error was detected */
                            bool premature)
 {
-  CURLcode result, r2;
+  CURLcode result;
   struct connectdata *conn = data->conn;
   struct multi_done_ctx mdctx;
 
@@ -671,9 +670,7 @@ static CURLcode multi_done(struct Curl_easy *data,
   }
 
   /* Make sure that transfer client writes are really done now. */
-  r2 = Curl_xfer_write_done(data, premature);
-  if(r2 && !result)
-    result = r2;
+  result = Curl_1st_err(result, Curl_xfer_write_done(data, premature));
 
   /* Inform connection filters that this transfer is done */
   Curl_conn_ev_data_done(data, premature);

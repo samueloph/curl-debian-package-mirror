@@ -424,9 +424,9 @@ AUTOMAKE_OPTIONS = foreign nostdinc
 # $(srcdir) for the generated bundle source to find included test sources
 AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_builddir)/lib \
 	-I$(top_srcdir)/lib -I$(top_srcdir)/src \
-	-I$(top_srcdir)/tests/libtest -I$(top_srcdir)/tests/unit \
-	-I$(srcdir) -DCURL_STATICLIB -DUNITTESTS $(am__append_1) \
-	$(am__append_2) -DCURL_NO_OLDIES -DCURL_DISABLE_DEPRECATION
+	-I$(top_srcdir)/tests/libtest -I$(srcdir) -DCURL_STATICLIB \
+	-DUNITTESTS $(am__append_1) $(am__append_2) -DCURL_NO_OLDIES \
+	-DCURL_DISABLE_DEPRECATION
 BUNDLE = tunits
 
 # Files referenced from the bundle source

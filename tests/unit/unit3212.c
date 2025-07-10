@@ -21,13 +21,12 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-#include "curlcheck.h"
+#include "unitcheck.h"
 
 #include "urldata.h"
 #include "uint-table.h"
 #include "curl_trc.h"
-
-UNITTEST void Curl_uint_tbl_clear(struct uint_tbl *tbl);
+#include "unitprotos.h"
 
 #define TBL_SIZE    100
 

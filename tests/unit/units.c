@@ -57,6 +57,7 @@
 #include "unit3211.c"
 #include "unit3212.c"
 #include "unit3213.c"
+#include "unit3214.c"
 
 const struct entry_s s_entries[] = {
   {"unit1300", test_unit1300},
@@ -114,6 +115,7 @@ const struct entry_s s_entries[] = {
   {"unit3211", test_unit3211},
   {"unit3212", test_unit3212},
   {"unit3213", test_unit3213},
+  {"unit3214", test_unit3214},
   {NULL, NULL}
 };
 

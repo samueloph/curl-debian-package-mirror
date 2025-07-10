@@ -58,7 +58,6 @@
 #include "../speedcheck.h"
 #include "../getinfo.h"
 #include "../strdup.h"
-#include "../strcase.h"
 #include "../vtls/vtls.h"
 #include "../cfilters.h"
 #include "../connect.h"
@@ -363,7 +362,7 @@ static int myssh_is_known(struct Curl_easy *data, struct ssh_conn *sshc)
 
     infof(data, "SSH MD5 fingerprint: %s", md5buffer);
 
-    if(!strcasecompare(md5buffer, pubkey_md5)) {
+    if(!curl_strequal(md5buffer, pubkey_md5)) {
       failf(data,
             "Denied establishing ssh session: mismatch md5 fingerprint. "
             "Remote %s is not equal to %s", md5buffer, pubkey_md5);
@@ -649,7 +648,7 @@ static int myssh_in_SFTP_READDIR(struct Curl_easy *data,
     myssh_to(data, sshc, SSH_SFTP_READDIR_DONE);
   }
   else {
-    failf(data, "Could not open remote file for reading: %s",
+    failf(data, "Could not open remote directory for reading: %s",
           ssh_get_error(sshc->ssh_session));
     return myssh_to_SFTP_CLOSE(data, sshc);
   }
@@ -664,7 +663,7 @@ static int myssh_in_SFTP_READDIR_LINK(struct Curl_easy *data,
 
   sshc->readdir_link_attrs = sftp_lstat(sshc->sftp_session,
                                         sshc->readdir_linkPath);
-  if(sshc->readdir_link_attrs == 0) {
+  if(!sshc->readdir_link_attrs) {
     failf(data, "Could not read symlink for reading: %s",
           ssh_get_error(sshc->ssh_session));
     return myssh_to_SFTP_CLOSE(data, sshc);
@@ -673,7 +672,7 @@ static int myssh_in_SFTP_READDIR_LINK(struct Curl_easy *data,
   if(!sshc->readdir_link_attrs->name) {
     sshc->readdir_tmp = sftp_readlink(sshc->sftp_session,
                                       sshc->readdir_linkPath);
-    if(!sshc->readdir_filename)
+    if(!sshc->readdir_tmp)
       sshc->readdir_len = 0;
     else
       sshc->readdir_len = strlen(sshc->readdir_tmp);
@@ -690,6 +689,14 @@ static int myssh_in_SFTP_READDIR_LINK(struct Curl_easy *data,
 
   if(curlx_dyn_addf(&sshc->readdir_buf, " -> %s",
                     sshc->readdir_filename)) {
+    /* Not using:
+     * return myssh_to_SFTP_CLOSE(data, sshc);
+     *
+     * as that assumes an sftp related error while
+     * assigning sshc->actualcode whereas the current
+     * error is curlx_dyn_addf() related.
+     */
+    myssh_to(data, sshc, SSH_SFTP_CLOSE);
     sshc->actualcode = CURLE_OUT_OF_MEMORY;
     return SSH_ERROR;
   }
@@ -1584,7 +1591,7 @@ static int myssh_in_SFTP_QUOTE(struct Curl_easy *data,
     sshc->acceptfail = TRUE;
   }
 
-  if(strcasecompare("pwd", cmd)) {
+  if(curl_strequal("pwd", cmd)) {
     /* output debug output if that is requested */
     char *tmp = aprintf("257 \"%s\" is current directory.\n", sshp->path);
     if(!tmp) {
