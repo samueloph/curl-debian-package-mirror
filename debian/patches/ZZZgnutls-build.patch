@@ -8,12 +8,12 @@ Last-Update: 2024-11-06
 ---
  configure.ac              | 12 ++++++++-
  docs/examples/Makefile.am |  2 +-
- lib/Makefile.am           | 62 ++++++++++++++++++++++++++++++++++++++++++++++-
+ lib/Makefile.am           | 63 ++++++++++++++++++++++++++++++++++++++++++++++-
  src/Makefile.am           |  2 +-
  tests/client/Makefile.am  |  4 +--
- tests/libtest/Makefile.am |  4 ++-
+ tests/libtest/Makefile.am |  2 +-
  tests/tunit/Makefile.am   |  4 +--
- 7 files changed, 81 insertions(+), 9 deletions(-)
+ 7 files changed, 80 insertions(+), 9 deletions(-)
 
 diff --git a/configure.ac b/configure.ac
 index 30a4ed2..a0eb129 100644
@@ -59,7 +59,7 @@ index 27d4ce7..9624208 100644
  # This might hold -Werror
  CFLAGS += @CURL_CFLAG_EXTRAS@
 diff --git a/lib/Makefile.am b/lib/Makefile.am
-index d43d549..0bdff33 100644
+index 75fbbdf..718f061 100644
 --- a/lib/Makefile.am
 +++ b/lib/Makefile.am
 @@ -35,7 +35,11 @@ EXTRA_DIST = config-mac.h config-os400.h config-plan9.h config-riscos.h \
@@ -74,7 +74,7 @@ index d43d549..0bdff33 100644
  
  if BUILD_UNITTESTS
  noinst_LTLIBRARIES = libcurlu.la
-@@ -80,61 +84,117 @@ if USE_UNITY
+@@ -84,64 +88,121 @@ if USE_UNITY
  libcurl_unity.c: $(top_srcdir)/scripts/mk-unity.pl $(CSOURCES)
  	@PERL@ $(top_srcdir)/scripts/mk-unity.pl --include $(CSOURCES) > libcurl_unity.c
  
@@ -94,11 +94,15 @@ index d43d549..0bdff33 100644
 +if GNUTLSBUILD
 +libcurl_gnutls_la_SOURCES = $(CSOURCES) $(HHEADERS)
 +libcurlu_la_SOURCES = $(CSOURCES) $(HHEADERS)
++CLEANFILES=
 +else
  libcurl_la_SOURCES = $(CSOURCES) $(HHEADERS)
  libcurlu_la_SOURCES = $(CSOURCES) $(HHEADERS)
+ CLEANFILES =
  endif
 +endif
+ 
+ CLEANFILES += $(UNITPROTOS)
  
 +if GNUTLSBUILD
 +libcurl_gnutls_la_CPPFLAGS_EXTRA =
@@ -222,19 +226,10 @@ index 928ec5b..64a4b7b 100644
  CHECKSRC = $(CS_$(V))
  CS_0 = @echo "  RUN     " $@;
 diff --git a/tests/libtest/Makefile.am b/tests/libtest/Makefile.am
-index 5d1646b..15ce0a6 100644
+index ef95346..1054ccf 100644
 --- a/tests/libtest/Makefile.am
 +++ b/tests/libtest/Makefile.am
-@@ -50,6 +50,8 @@ CFLAGS += @CURL_CFLAG_EXTRAS@
- # Prevent LIBS from being used for all link targets
- LIBS = $(BLANK_AT_MAKETIME)
- 
-+SUPPORTFILES_LIBS = $(top_builddir)/lib/$(LIBCURL_FILESTUB).la @LIBCURL_PC_LIBS_PRIVATE@
-+TESTUTIL_LIBS = $(top_builddir)/lib/$(LIBCURL_FILESTUB).la @LIBCURL_PC_LIBS_PRIVATE@
- noinst_LTLIBRARIES =
- 
- if USE_CPPFLAG_CURL_STATICLIB
-@@ -91,7 +93,7 @@ $(BUNDLE).c: $(top_srcdir)/scripts/mk-unity.pl Makefile.inc $(FIRST_C) $(UTILS_C
+@@ -70,7 +70,7 @@ $(BUNDLE).c: $(top_srcdir)/scripts/mk-unity.pl Makefile.inc $(FIRST_C) $(UTILS_C
  	@PERL@ $(top_srcdir)/scripts/mk-unity.pl --include $(UTILS_C) $(curlx_c_lib) --test $(TESTS_C) lib1521.c > $(BUNDLE).c
  
  noinst_PROGRAMS = $(BUNDLE)
@@ -244,10 +239,10 @@ index 5d1646b..15ce0a6 100644
  
  lib1521.c: $(top_srcdir)/tests/libtest/mk-lib1521.pl $(top_srcdir)/include/curl/curl.h
 diff --git a/tests/tunit/Makefile.am b/tests/tunit/Makefile.am
-index 7434469..1572d4e 100644
+index 14a5baa..a982d76 100644
 --- a/tests/tunit/Makefile.am
 +++ b/tests/tunit/Makefile.am
-@@ -65,8 +65,8 @@ $(BUNDLE).c: $(top_srcdir)/scripts/mk-unity.pl Makefile.inc $(FIRST_C) $(TESTS_C
+@@ -64,8 +64,8 @@ $(BUNDLE).c: $(top_srcdir)/scripts/mk-unity.pl Makefile.inc $(FIRST_C) $(TESTS_C
  	@PERL@ $(top_srcdir)/scripts/mk-unity.pl --test $(TESTS_C) > $(BUNDLE).c
  
  noinst_PROGRAMS = $(BUNDLE)
