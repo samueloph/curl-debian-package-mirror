@@ -1,5 +1,5 @@
 ---
-c: Copyright (C) Daniel Stenberg, <daniel.se>, et al.
+c: Copyright (C) Daniel Stenberg, <daniel@haxx.se>, et al.
 SPDX-License-Identifier: curl
 Title: libcurl-symbols
 Section: 3
@@ -783,7 +783,7 @@ Introduced in 7.1. Deprecated since 7.17.0.
 Introduced in 7.1. Deprecated since 7.17.0.
 
 ## CURLE_FUNCTION_NOT_FOUND
-Introduced in 7.1. See libcurl-errors(3).
+Introduced in 7.1. Deprecated since 7.53.0.
 
 ## CURLE_GOT_NOTHING
 Introduced in 7.9.1. See libcurl-errors(3).
@@ -804,7 +804,7 @@ Introduced in 7.1. Deprecated since 7.10.3.
 Introduced in 7.3. Deprecated since 7.12.0.
 
 ## CURLE_HTTP_POST_ERROR
-Introduced in 7.1. See libcurl-errors(3).
+Introduced in 7.1. Deprecated since 7.56.0.
 
 ## CURLE_HTTP_RANGE_ERROR
 Introduced in 7.1. Deprecated since 7.17.0.
@@ -957,7 +957,7 @@ Introduced in 7.39.0. See libcurl-errors(3).
 Introduced in 7.16.1. See libcurl-errors(3).
 
 ## CURLE_TELNET_OPTION_SYNTAX
-Introduced in 7.7. See libcurl-errors(3).
+Introduced in 7.7. Deprecated since 7.78.0.
 
 ## CURLE_TFTP_DISKFULL
 Introduced in 7.15.0. Deprecated since 7.17.0.

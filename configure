@@ -1180,8 +1180,6 @@ enable_libgcc
 with_zlib
 with_brotli
 with_zstd
-with_ldap_lib
-with_lber_lib
 enable_ipv6
 with_gssapi_includes
 with_gssapi_libs
@@ -1200,6 +1198,9 @@ with_libmetalink
 with_libssh2
 with_libssh
 with_wolfssh
+with_ldap_lib
+with_lber_lib
+with_ldap
 with_librtmp
 enable_versioned_symbols
 enable_windows_unicode
@@ -2092,8 +2093,6 @@ Optional Packages:
                           PKG_CONFIG_PATH environment variable instead of
                           using this option
   --without-zstd          disable libzstd
-  --with-ldap-lib=libname Specify name of ldap lib file
-  --with-lber-lib=libname Specify name of lber lib file
   --with-gssapi-includes=DIR
                           Specify location of GSS-API headers
   --with-gssapi-libs=DIR  Specify location of GSS-API libs
@@ -2138,6 +2137,12 @@ Optional Packages:
                           PKG_CONFIG_PATH environment variable instead of
                           using this option
   --with-wolfssh          enable wolfssh
+  --with-ldap-lib=libname Specify name of ldap lib file
+  --with-lber-lib=libname Specify name of lber lib file
+  --with-ldap=PATH        Where to look for LDAP, PATH points to the LDAP
+                          installation; when possible, set the PKG_CONFIG_PATH
+                          environment variable instead of using this option
+  --without-ldap          disable LDAP
   --with-librtmp=PATH     Where to look for librtmp, PATH points to the
                           LIBRTMP installation; when possible, set the
                           PKG_CONFIG_PATH environment variable instead of
@@ -11991,7 +11996,7 @@ fi
 if test "x$xc_lt_want_enable_shared" = 'xyes' &&
   test "x$xc_lt_want_enable_static" = 'xyes'; then
   case $host_os in # (
-    pw32* | cegcc* | os2* | aix*)
+    cegcc* | os2* | aix*)
       xc_lt_want_enable_static='no'
       ;;
   esac
@@ -16800,7 +16805,7 @@ elif test "x$allow_undefined_flag" = 'xunsupported'; then
   xc_lt_shlib_use_no_undefined='yes'
 fi
 case $host_os in # (
-  cygwin* | mingw* | pw32* | cegcc* | os2* | aix*)
+  cygwin* | mingw* | cegcc* | os2* | aix*)
     xc_lt_shlib_use_no_undefined='yes'
     ;;
 esac
@@ -24327,577 +24332,6 @@ printf "%s\n" "$as_me: Added $DIR_ZSTD to CURL_LIBRARY_PATH" >&6;}
 fi
 
 
-LDAPLIBNAME=""
-
-# Check whether --with-ldap-lib was given.
-if test ${with_ldap_lib+y}
-then :
-  withval=$with_ldap_lib; LDAPLIBNAME="$withval"
-fi
-
-
-LBERLIBNAME=""
-
-# Check whether --with-lber-lib was given.
-if test ${with_lber_lib+y}
-then :
-  withval=$with_lber_lib; LBERLIBNAME="$withval"
-fi
-
-
-if test x$CURL_DISABLE_LDAP != x1; then
-
-
-    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for lber.h" >&5
-printf %s "checking for lber.h... " >&6; }
-if test ${curl_cv_header_lber_h+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-
-    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-
-        #undef inline
-        #ifdef _WIN32
-        #ifndef WIN32_LEAN_AND_MEAN
-        #define WIN32_LEAN_AND_MEAN
-        #endif
-        #include <windows.h>
-        #else
-        #ifdef HAVE_SYS_TYPES_H
-        #include <sys/types.h>
-        #endif
-        #endif
-        #ifndef NULL
-        #define NULL (void *)0
-        #endif
-        #include <lber.h>
-
-int main(void)
-{
-
-        BerValue *bvp = NULL;
-        BerElement *bep = ber_init(bvp);
-        ber_free(bep, 1);
-
-  return 0;
-}
-
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"
-then :
-
-      curl_cv_header_lber_h="yes"
-
-else $as_nop
-
-      curl_cv_header_lber_h="no"
-
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
-
-fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $curl_cv_header_lber_h" >&5
-printf "%s\n" "$curl_cv_header_lber_h" >&6; }
-  if test "$curl_cv_header_lber_h" = "yes"; then
-
-printf "%s\n" "#define HAVE_LBER_H 1" >>confdefs.h
-
-    #
-    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-
-        #undef inline
-        #ifdef _WIN32
-        #ifndef WIN32_LEAN_AND_MEAN
-        #define WIN32_LEAN_AND_MEAN
-        #endif
-        #include <windows.h>
-        #else
-        #ifdef HAVE_SYS_TYPES_H
-        #include <sys/types.h>
-        #endif
-        #endif
-        #ifndef NULL
-        #define NULL (void *)0
-        #endif
-        #ifndef LDAP_DEPRECATED
-        #define LDAP_DEPRECATED 1
-        #endif
-        #include <ldap.h>
-
-int main(void)
-{
-
-        BerValue *bvp = NULL;
-        BerElement *bep = ber_init(bvp);
-        ber_free(bep, 1);
-
-  return 0;
-}
-
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"
-then :
-
-      curl_cv_need_header_lber_h="no"
-
-else $as_nop
-
-      curl_cv_need_header_lber_h="yes"
-
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
-    #
-    case "$curl_cv_need_header_lber_h" in
-      yes)
-
-printf "%s\n" "#define NEED_LBER_H 1" >>confdefs.h
-
-        ;;
-    esac
-  fi
-
-
-    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for ldap.h" >&5
-printf %s "checking for ldap.h... " >&6; }
-if test ${curl_cv_header_ldap_h+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-
-    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-
-        #undef inline
-        #ifdef _WIN32
-        #ifndef WIN32_LEAN_AND_MEAN
-        #define WIN32_LEAN_AND_MEAN
-        #endif
-        #include <windows.h>
-        #else
-        #ifdef HAVE_SYS_TYPES_H
-        #include <sys/types.h>
-        #endif
-        #endif
-        #ifndef LDAP_DEPRECATED
-        #define LDAP_DEPRECATED 1
-        #endif
-        #ifdef NEED_LBER_H
-        #include <lber.h>
-        #endif
-        #include <ldap.h>
-
-int main(void)
-{
-
-        LDAP *ldp = ldap_init("0.0.0.0", LDAP_PORT);
-        int res = ldap_unbind(ldp);
-        (void)res;
-
-  return 0;
-}
-
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"
-then :
-
-      curl_cv_header_ldap_h="yes"
-
-else $as_nop
-
-      curl_cv_header_ldap_h="no"
-
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
-
-fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $curl_cv_header_ldap_h" >&5
-printf "%s\n" "$curl_cv_header_ldap_h" >&6; }
-  case "$curl_cv_header_ldap_h" in
-    yes)
-
-printf "%s\n" "#define HAVE_LDAP_H 1" >>confdefs.h
-
-      ;;
-  esac
-
-
-    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for ldap_ssl.h" >&5
-printf %s "checking for ldap_ssl.h... " >&6; }
-if test ${curl_cv_header_ldap_ssl_h+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-
-    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-
-        #undef inline
-        #ifdef _WIN32
-        #ifndef WIN32_LEAN_AND_MEAN
-        #define WIN32_LEAN_AND_MEAN
-        #endif
-        #include <windows.h>
-        #else
-        #ifdef HAVE_SYS_TYPES_H
-        #include <sys/types.h>
-        #endif
-        #endif
-        #ifndef LDAP_DEPRECATED
-        #define LDAP_DEPRECATED 1
-        #endif
-        #ifdef NEED_LBER_H
-        #include <lber.h>
-        #endif
-        #ifdef HAVE_LDAP_H
-        #include <ldap.h>
-        #endif
-        #include <ldap_ssl.h>
-
-int main(void)
-{
-
-        LDAP *ldp = ldapssl_init("0.0.0.0", LDAPS_PORT, 1);
-        (void)ldp;
-
-  return 0;
-}
-
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"
-then :
-
-      curl_cv_header_ldap_ssl_h="yes"
-
-else $as_nop
-
-      curl_cv_header_ldap_ssl_h="no"
-
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
-
-fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $curl_cv_header_ldap_ssl_h" >&5
-printf "%s\n" "$curl_cv_header_ldap_ssl_h" >&6; }
-  case "$curl_cv_header_ldap_ssl_h" in
-    yes)
-
-printf "%s\n" "#define HAVE_LDAP_SSL_H 1" >>confdefs.h
-
-      ;;
-  esac
-
-
-  if test -z "$LDAPLIBNAME"; then
-    if test "$curl_cv_native_windows" = "yes" -a "$curl_cv_winuwp" != "yes"; then
-            LDAPLIBNAME="wldap32"
-      LBERLIBNAME="no"
-    fi
-  fi
-
-  if test "$LDAPLIBNAME"; then
-    as_ac_Lib=`printf "%s\n" "ac_cv_lib_"$LDAPLIBNAME"""_ldap_init" | $as_tr_sh`
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for ldap_init in -l\"$LDAPLIBNAME\"" >&5
-printf %s "checking for ldap_init in -l\"$LDAPLIBNAME\"... " >&6; }
-if eval test \${$as_ac_Lib+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-l"$LDAPLIBNAME"  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-
-#ifdef __cplusplus
-extern "C"
-#endif
-char ldap_init ();
-int main(void)
-{
-return ldap_init ();
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"
-then :
-  eval "$as_ac_Lib=yes"
-else $as_nop
-  eval "$as_ac_Lib=no"
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-eval ac_res=\$$as_ac_Lib
-	       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-printf "%s\n" "$ac_res" >&6; }
-if eval test \"x\$"$as_ac_Lib"\" = x"yes"
-then :
-  cat >>confdefs.h <<_ACEOF
-#define `printf "%s\n" "HAVE_LIB"$LDAPLIBNAME"" | $as_tr_cpp` 1
-_ACEOF
-
-  LIBS="-l"$LDAPLIBNAME" $LIBS"
-
-else $as_nop
-
-      if test -n "$ldap_askedfor"; then
-        as_fn_error $? "couldn't detect the LDAP libraries" "$LINENO" 5
-      fi
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: \"$LDAPLIBNAME\" is not an LDAP library: LDAP disabled" >&5
-printf "%s\n" "$as_me: WARNING: \"$LDAPLIBNAME\" is not an LDAP library: LDAP disabled" >&2;}
-
-printf "%s\n" "#define CURL_DISABLE_LDAP 1" >>confdefs.h
-
-      CURL_DISABLE_LDAP=1
-
-printf "%s\n" "#define CURL_DISABLE_LDAPS 1" >>confdefs.h
-
-      CURL_DISABLE_LDAPS=1
-
-
-fi
-
-  else
-
-    #
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for LDAP libraries" >&5
-printf %s "checking for LDAP libraries... " >&6; }
-  #
-  u_libs=""
-  #
-
-  #
-  curl_cv_save_LIBS="$LIBS"
-  curl_cv_ldap_LIBS="unknown"
-  #
-  for x_nlibs in '' "$u_libs" \
-    '-lldap' \
-    '-lldap -llber' \
-    '-llber -lldap' \
-    '-lldapssl -lldapx -lldapsdk' \
-    '-lldapsdk -lldapx -lldapssl' \
-    '-lldap -llber -lssl -lcrypto'; do
-
-    if test "$curl_cv_ldap_LIBS" = "unknown"; then
-      if test -z "$x_nlibs"; then
-        LIBS="$curl_cv_save_LIBS"
-      else
-        LIBS="$x_nlibs $curl_cv_save_LIBS"
-      fi
-      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-
-          #undef inline
-          #ifdef _WIN32
-          #ifndef WIN32_LEAN_AND_MEAN
-          #define WIN32_LEAN_AND_MEAN
-          #endif
-          #include <windows.h>
-          #else
-          #ifdef HAVE_SYS_TYPES_H
-          #include <sys/types.h>
-          #endif
-          #endif
-          #ifndef NULL
-          #define NULL (void *)0
-          #endif
-          #ifndef LDAP_DEPRECATED
-          #define LDAP_DEPRECATED 1
-          #endif
-          #ifdef NEED_LBER_H
-          #include <lber.h>
-          #endif
-          #ifdef HAVE_LDAP_H
-          #include <ldap.h>
-          #endif
-
-int main(void)
-{
-
-          BerValue *bvp = NULL;
-          BerElement *bep = ber_init(bvp);
-          LDAP *ldp = ldap_init("0.0.0.0", LDAP_PORT);
-          int res = ldap_unbind(ldp);
-          ber_free(bep, 1);
-          (void)res;
-
-  return 0;
-}
-
-_ACEOF
-if ac_fn_c_try_link "$LINENO"
-then :
-
-        curl_cv_ldap_LIBS="$x_nlibs"
-
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam \
-    conftest$ac_exeext conftest.$ac_ext
-    fi
-  done
-  #
-  LIBS="$curl_cv_save_LIBS"
-  #
-  case X-"$curl_cv_ldap_LIBS" in
-    X-unknown)
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: cannot find LDAP libraries" >&5
-printf "%s\n" "cannot find LDAP libraries" >&6; }
-      ;;
-    X-)
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no additional lib required" >&5
-printf "%s\n" "no additional lib required" >&6; }
-      ;;
-    *)
-      if test -z "$curl_cv_save_LIBS"; then
-        LIBS="$curl_cv_ldap_LIBS"
-      else
-        LIBS="$curl_cv_ldap_LIBS $curl_cv_save_LIBS"
-      fi
-      # FIXME: Enable when ldap was detected via pkg-config
-      if false; then
-        LIBCURL_PC_REQUIRES_PRIVATE="ldap $LIBCURL_PC_REQUIRES_PRIVATE"
-      fi
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $curl_cv_ldap_LIBS" >&5
-printf "%s\n" "$curl_cv_ldap_LIBS" >&6; }
-      ;;
-  esac
-  #
-
-    case X-"$curl_cv_ldap_LIBS" in
-      X-unknown)
-        if test -n "$ldap_askedfor"; then
-          as_fn_error $? "couldn't detect the LDAP libraries" "$LINENO" 5
-        fi
-        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: Cannot find libraries for LDAP support: LDAP disabled" >&5
-printf "%s\n" "$as_me: WARNING: Cannot find libraries for LDAP support: LDAP disabled" >&2;}
-
-printf "%s\n" "#define CURL_DISABLE_LDAP 1" >>confdefs.h
-
-        CURL_DISABLE_LDAP=1
-
-printf "%s\n" "#define CURL_DISABLE_LDAPS 1" >>confdefs.h
-
-        CURL_DISABLE_LDAPS=1
-        ;;
-    esac
-  fi
-fi
-
-if test x$CURL_DISABLE_LDAP != x1; then
-
-  if test "$LBERLIBNAME"; then
-            if test "$LBERLIBNAME" != "no"; then
-      as_ac_Lib=`printf "%s\n" "ac_cv_lib_"$LBERLIBNAME"""_ber_free" | $as_tr_sh`
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for ber_free in -l\"$LBERLIBNAME\"" >&5
-printf %s "checking for ber_free in -l\"$LBERLIBNAME\"... " >&6; }
-if eval test \${$as_ac_Lib+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-l"$LBERLIBNAME"  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-
-#ifdef __cplusplus
-extern "C"
-#endif
-char ber_free ();
-int main(void)
-{
-return ber_free ();
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"
-then :
-  eval "$as_ac_Lib=yes"
-else $as_nop
-  eval "$as_ac_Lib=no"
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-eval ac_res=\$$as_ac_Lib
-	       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-printf "%s\n" "$ac_res" >&6; }
-if eval test \"x\$"$as_ac_Lib"\" = x"yes"
-then :
-  cat >>confdefs.h <<_ACEOF
-#define `printf "%s\n" "HAVE_LIB"$LBERLIBNAME"" | $as_tr_cpp` 1
-_ACEOF
-
-  LIBS="-l"$LBERLIBNAME" $LIBS"
-
-else $as_nop
-
-        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: \"$LBERLIBNAME\" is not an LBER library: LDAP disabled" >&5
-printf "%s\n" "$as_me: WARNING: \"$LBERLIBNAME\" is not an LBER library: LDAP disabled" >&2;}
-
-printf "%s\n" "#define CURL_DISABLE_LDAP 1" >>confdefs.h
-
-        CURL_DISABLE_LDAP=1
-
-printf "%s\n" "#define CURL_DISABLE_LDAPS 1" >>confdefs.h
-
-        CURL_DISABLE_LDAPS=1
-
-
-fi
-
-    fi
-  fi
-fi
-
-if test x$CURL_DISABLE_LDAP != x1; then
-  ac_fn_c_check_func "$LINENO" "ldap_url_parse" "ac_cv_func_ldap_url_parse"
-if test "x$ac_cv_func_ldap_url_parse" = xyes
-then :
-  printf "%s\n" "#define HAVE_LDAP_URL_PARSE 1" >>confdefs.h
-
-fi
-ac_fn_c_check_func "$LINENO" "ldap_init_fd" "ac_cv_func_ldap_init_fd"
-if test "x$ac_cv_func_ldap_init_fd" = xyes
-then :
-  printf "%s\n" "#define HAVE_LDAP_INIT_FD 1" >>confdefs.h
-
-fi
-
-
-  if test "$LDAPLIBNAME" = "wldap32"; then
-    curl_ldap_msg="enabled (winldap)"
-
-printf "%s\n" "#define USE_WIN32_LDAP 1" >>confdefs.h
-
-  else
-    if test "x$ac_cv_func_ldap_init_fd" = "xyes"; then
-      curl_ldap_msg="enabled (OpenLDAP)"
-
-printf "%s\n" "#define USE_OPENLDAP 1" >>confdefs.h
-
-      USE_OPENLDAP=1
-    else
-      curl_ldap_msg="enabled (ancient OpenLDAP)"
-    fi
-  fi
-fi
-
-if test x$CURL_DISABLE_LDAPS != x1; then
-  curl_ldaps_msg="enabled"
-fi
-
-
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether to enable IPv6" >&5
 printf %s "checking whether to enable IPv6... " >&6; }
 # Check whether --enable-ipv6 was given.
@@ -26007,7 +25441,7 @@ esac
 printf %s "checking whether to enable Windows native SSL/TLS... " >&6; }
 if test "x$OPT_SCHANNEL" != xno; then
   ssl_msg=
-  if test "x$OPT_SCHANNEL" != "xno"  &&
+  if test "x$OPT_SCHANNEL" != "xno" &&
      test "x$curl_cv_native_windows" = "xyes"; then
     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
@@ -29605,6 +29039,725 @@ printf "%s\n" "#define USE_WOLFSSH 1" >>confdefs.h
 fi
 
 done
+fi
+
+
+LDAPLIBNAME=""
+
+# Check whether --with-ldap-lib was given.
+if test ${with_ldap_lib+y}
+then :
+  withval=$with_ldap_lib; LDAPLIBNAME="$withval"
+fi
+
+
+LBERLIBNAME=""
+
+# Check whether --with-lber-lib was given.
+if test ${with_lber_lib+y}
+then :
+  withval=$with_lber_lib; LBERLIBNAME="$withval"
+fi
+
+
+clean_LDAP_CPPFLAGS=$CPPFLAGS
+clean_LDAP_LDFLAGS=$LDFLAGS
+clean_LDAP_LIBS=$LIBS
+OPT_LDAP=off
+
+# Check whether --with-ldap was given.
+if test ${with_ldap+y}
+then :
+  withval=$with_ldap; OPT_LDAP=$withval
+fi
+
+
+case "$OPT_LDAP" in
+  no)
+        want_ldap="no"
+    ;;
+  yes)
+        want_ldap="yes"
+    ;;
+  off)
+        want_ldap="default"
+    ;;
+  *)
+        want_ldap="yes"
+    if test -d "$OPT_LDAP/lib$libsuff"; then
+      LDFLAGS="$LDFLAGS -L$OPT_LDAP/lib$libsuff"
+      DIR_LDAP="$OPT_LDAP/lib$libsuff"
+    elif test -d "$OPT_LDAP/lib"; then
+      LDFLAGS="$LDFLAGS -L$OPT_LDAP/lib"
+      DIR_LDAP="$OPT_LDAP/lib"
+    fi
+    if test -d "$OPT_LDAP/include"; then
+      CPPFLAGS="$CPPFLAGS -I$OPT_LDAP/include"
+    fi
+    ldap_askedfor="yes"
+    ;;
+esac
+
+if test x$CURL_DISABLE_LDAP != x1 && test "$want_ldap" != "no"; then
+
+
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for lber.h" >&5
+printf %s "checking for lber.h... " >&6; }
+if test ${curl_cv_header_lber_h+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+
+        #undef inline
+        #ifdef _WIN32
+        #ifndef WIN32_LEAN_AND_MEAN
+        #define WIN32_LEAN_AND_MEAN
+        #endif
+        #include <windows.h>
+        #else
+        #ifdef HAVE_SYS_TYPES_H
+        #include <sys/types.h>
+        #endif
+        #endif
+        #ifndef NULL
+        #define NULL (void *)0
+        #endif
+        #include <lber.h>
+
+int main(void)
+{
+
+        BerValue *bvp = NULL;
+        BerElement *bep = ber_init(bvp);
+        ber_free(bep, 1);
+
+  return 0;
+}
+
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"
+then :
+
+      curl_cv_header_lber_h="yes"
+
+else $as_nop
+
+      curl_cv_header_lber_h="no"
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
+
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $curl_cv_header_lber_h" >&5
+printf "%s\n" "$curl_cv_header_lber_h" >&6; }
+  if test "$curl_cv_header_lber_h" = "yes"; then
+
+printf "%s\n" "#define HAVE_LBER_H 1" >>confdefs.h
+
+    #
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+
+        #undef inline
+        #ifdef _WIN32
+        #ifndef WIN32_LEAN_AND_MEAN
+        #define WIN32_LEAN_AND_MEAN
+        #endif
+        #include <windows.h>
+        #else
+        #ifdef HAVE_SYS_TYPES_H
+        #include <sys/types.h>
+        #endif
+        #endif
+        #ifndef NULL
+        #define NULL (void *)0
+        #endif
+        #ifndef LDAP_DEPRECATED
+        #define LDAP_DEPRECATED 1
+        #endif
+        #include <ldap.h>
+
+int main(void)
+{
+
+        BerValue *bvp = NULL;
+        BerElement *bep = ber_init(bvp);
+        ber_free(bep, 1);
+
+  return 0;
+}
+
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"
+then :
+
+      curl_cv_need_header_lber_h="no"
+
+else $as_nop
+
+      curl_cv_need_header_lber_h="yes"
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
+    #
+    case "$curl_cv_need_header_lber_h" in
+      yes)
+
+printf "%s\n" "#define NEED_LBER_H 1" >>confdefs.h
+
+        ;;
+    esac
+  fi
+
+
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for ldap.h" >&5
+printf %s "checking for ldap.h... " >&6; }
+if test ${curl_cv_header_ldap_h+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+
+        #undef inline
+        #ifdef _WIN32
+        #ifndef WIN32_LEAN_AND_MEAN
+        #define WIN32_LEAN_AND_MEAN
+        #endif
+        #include <windows.h>
+        #else
+        #ifdef HAVE_SYS_TYPES_H
+        #include <sys/types.h>
+        #endif
+        #endif
+        #ifndef LDAP_DEPRECATED
+        #define LDAP_DEPRECATED 1
+        #endif
+        #ifdef NEED_LBER_H
+        #include <lber.h>
+        #endif
+        #include <ldap.h>
+
+int main(void)
+{
+
+        LDAP *ldp = ldap_init("0.0.0.0", LDAP_PORT);
+        int res = ldap_unbind(ldp);
+        (void)res;
+
+  return 0;
+}
+
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"
+then :
+
+      curl_cv_header_ldap_h="yes"
+
+else $as_nop
+
+      curl_cv_header_ldap_h="no"
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
+
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $curl_cv_header_ldap_h" >&5
+printf "%s\n" "$curl_cv_header_ldap_h" >&6; }
+  case "$curl_cv_header_ldap_h" in
+    yes)
+
+printf "%s\n" "#define HAVE_LDAP_H 1" >>confdefs.h
+
+      ;;
+  esac
+
+
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for ldap_ssl.h" >&5
+printf %s "checking for ldap_ssl.h... " >&6; }
+if test ${curl_cv_header_ldap_ssl_h+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+
+        #undef inline
+        #ifdef _WIN32
+        #ifndef WIN32_LEAN_AND_MEAN
+        #define WIN32_LEAN_AND_MEAN
+        #endif
+        #include <windows.h>
+        #else
+        #ifdef HAVE_SYS_TYPES_H
+        #include <sys/types.h>
+        #endif
+        #endif
+        #ifndef LDAP_DEPRECATED
+        #define LDAP_DEPRECATED 1
+        #endif
+        #ifdef NEED_LBER_H
+        #include <lber.h>
+        #endif
+        #ifdef HAVE_LDAP_H
+        #include <ldap.h>
+        #endif
+        #include <ldap_ssl.h>
+
+int main(void)
+{
+
+        LDAP *ldp = ldapssl_init("0.0.0.0", LDAPS_PORT, 1);
+        (void)ldp;
+
+  return 0;
+}
+
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"
+then :
+
+      curl_cv_header_ldap_ssl_h="yes"
+
+else $as_nop
+
+      curl_cv_header_ldap_ssl_h="no"
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
+
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $curl_cv_header_ldap_ssl_h" >&5
+printf "%s\n" "$curl_cv_header_ldap_ssl_h" >&6; }
+  case "$curl_cv_header_ldap_ssl_h" in
+    yes)
+
+printf "%s\n" "#define HAVE_LDAP_SSL_H 1" >>confdefs.h
+
+      ;;
+  esac
+
+
+  if test -z "$LDAPLIBNAME"; then
+    if test "$curl_cv_native_windows" = "yes" -a "$curl_cv_winuwp" != "yes"; then
+            LDAPLIBNAME="wldap32"
+      LBERLIBNAME="no"
+    fi
+  fi
+
+  if test "$LDAPLIBNAME"; then
+        if test "$LBERLIBNAME" -a "$LBERLIBNAME" != "no"; then
+            as_ac_Lib=`printf "%s\n" "ac_cv_lib_"$LDAPLIBNAME"""_ldap_init" | $as_tr_sh`
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for ldap_init in -l\"$LDAPLIBNAME\"" >&5
+printf %s "checking for ldap_init in -l\"$LDAPLIBNAME\"... " >&6; }
+if eval test \${$as_ac_Lib+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-l"$LDAPLIBNAME"  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+
+#ifdef __cplusplus
+extern "C"
+#endif
+char ldap_init ();
+int main(void)
+{
+return ldap_init ();
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  eval "$as_ac_Lib=yes"
+else $as_nop
+  eval "$as_ac_Lib=no"
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+eval ac_res=\$$as_ac_Lib
+	       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+printf "%s\n" "$ac_res" >&6; }
+if eval test \"x\$"$as_ac_Lib"\" = x"yes"
+then :
+  ldap_lib_ok=yes
+else $as_nop
+  ldap_lib_ok=no
+fi
+
+      if test "$ldap_lib_ok" = "no"; then
+                as_ac_Lib=`printf "%s\n" "ac_cv_lib_"$LDAPLIBNAME"""_ldap_unbind" | $as_tr_sh`
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for ldap_unbind in -l\"$LDAPLIBNAME\"" >&5
+printf %s "checking for ldap_unbind in -l\"$LDAPLIBNAME\"... " >&6; }
+if eval test \${$as_ac_Lib+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-l"$LDAPLIBNAME" -l$LBERLIBNAME $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+
+#ifdef __cplusplus
+extern "C"
+#endif
+char ldap_unbind ();
+int main(void)
+{
+return ldap_unbind ();
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  eval "$as_ac_Lib=yes"
+else $as_nop
+  eval "$as_ac_Lib=no"
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+eval ac_res=\$$as_ac_Lib
+	       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+printf "%s\n" "$ac_res" >&6; }
+if eval test \"x\$"$as_ac_Lib"\" = x"yes"
+then :
+  ldap_lib_ok=yes
+else $as_nop
+  ldap_lib_ok=no
+fi
+
+        if test "$ldap_lib_ok" = "yes"; then
+                    LIBS="-l$LDAPLIBNAME -l$LBERLIBNAME $LIBS"
+        fi
+      else
+                LIBS="-l$LDAPLIBNAME $LIBS"
+      fi
+    else
+            as_ac_Lib=`printf "%s\n" "ac_cv_lib_"$LDAPLIBNAME"""_ldap_init" | $as_tr_sh`
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for ldap_init in -l\"$LDAPLIBNAME\"" >&5
+printf %s "checking for ldap_init in -l\"$LDAPLIBNAME\"... " >&6; }
+if eval test \${$as_ac_Lib+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-l"$LDAPLIBNAME"  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+
+#ifdef __cplusplus
+extern "C"
+#endif
+char ldap_init ();
+int main(void)
+{
+return ldap_init ();
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  eval "$as_ac_Lib=yes"
+else $as_nop
+  eval "$as_ac_Lib=no"
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+eval ac_res=\$$as_ac_Lib
+	       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+printf "%s\n" "$ac_res" >&6; }
+if eval test \"x\$"$as_ac_Lib"\" = x"yes"
+then :
+  ldap_lib_ok=yes; LIBS="-l$LDAPLIBNAME $LIBS"
+else $as_nop
+  ldap_lib_ok=no
+fi
+
+    fi
+
+    if test "$ldap_lib_ok" = "no"; then
+      if test -n "$ldap_askedfor"; then
+        as_fn_error $? "couldn't detect the LDAP libraries" "$LINENO" 5
+      fi
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: \"$LDAPLIBNAME\" is not an LDAP library: LDAP disabled" >&5
+printf "%s\n" "$as_me: WARNING: \"$LDAPLIBNAME\" is not an LDAP library: LDAP disabled" >&2;}
+
+printf "%s\n" "#define CURL_DISABLE_LDAP 1" >>confdefs.h
+
+      CURL_DISABLE_LDAP=1
+
+printf "%s\n" "#define CURL_DISABLE_LDAPS 1" >>confdefs.h
+
+      CURL_DISABLE_LDAPS=1
+            CPPFLAGS=$clean_LDAP_CPPFLAGS
+      LDFLAGS=$clean_LDAP_LDFLAGS
+      LIBS=$clean_LDAP_LIBS
+    fi
+  else
+
+    #
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for LDAP libraries" >&5
+printf %s "checking for LDAP libraries... " >&6; }
+  #
+  u_libs=""
+  #
+
+  #
+  curl_cv_save_LIBS="$LIBS"
+  curl_cv_ldap_LIBS="unknown"
+  #
+  for x_nlibs in '' "$u_libs" \
+    '-lldap' \
+    '-lldap -llber' \
+    '-llber -lldap' \
+    '-lldapssl -lldapx -lldapsdk' \
+    '-lldapsdk -lldapx -lldapssl' \
+    '-lldap -llber -lssl -lcrypto'; do
+
+    if test "$curl_cv_ldap_LIBS" = "unknown"; then
+      if test -z "$x_nlibs"; then
+        LIBS="$curl_cv_save_LIBS"
+      else
+        LIBS="$x_nlibs $curl_cv_save_LIBS"
+      fi
+      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+
+          #undef inline
+          #ifdef _WIN32
+          #ifndef WIN32_LEAN_AND_MEAN
+          #define WIN32_LEAN_AND_MEAN
+          #endif
+          #include <windows.h>
+          #else
+          #ifdef HAVE_SYS_TYPES_H
+          #include <sys/types.h>
+          #endif
+          #endif
+          #ifndef NULL
+          #define NULL (void *)0
+          #endif
+          #ifndef LDAP_DEPRECATED
+          #define LDAP_DEPRECATED 1
+          #endif
+          #ifdef NEED_LBER_H
+          #include <lber.h>
+          #endif
+          #ifdef HAVE_LDAP_H
+          #include <ldap.h>
+          #endif
+
+int main(void)
+{
+
+          BerValue *bvp = NULL;
+          BerElement *bep = ber_init(bvp);
+          LDAP *ldp = ldap_init("0.0.0.0", LDAP_PORT);
+          int res = ldap_unbind(ldp);
+          ber_free(bep, 1);
+          (void)res;
+
+  return 0;
+}
+
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+
+        curl_cv_ldap_LIBS="$x_nlibs"
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+    fi
+  done
+  #
+  LIBS="$curl_cv_save_LIBS"
+  #
+  case X-"$curl_cv_ldap_LIBS" in
+    X-unknown)
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: cannot find LDAP libraries" >&5
+printf "%s\n" "cannot find LDAP libraries" >&6; }
+      ;;
+    X-)
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no additional lib required" >&5
+printf "%s\n" "no additional lib required" >&6; }
+      ;;
+    *)
+      if test -z "$curl_cv_save_LIBS"; then
+        LIBS="$curl_cv_ldap_LIBS"
+      else
+        LIBS="$curl_cv_ldap_LIBS $curl_cv_save_LIBS"
+      fi
+      # FIXME: Enable when ldap was detected via pkg-config
+      if false; then
+        LIBCURL_PC_REQUIRES_PRIVATE="ldap $LIBCURL_PC_REQUIRES_PRIVATE"
+      fi
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $curl_cv_ldap_LIBS" >&5
+printf "%s\n" "$curl_cv_ldap_LIBS" >&6; }
+      ;;
+  esac
+  #
+
+    case X-"$curl_cv_ldap_LIBS" in
+      X-unknown)
+        if test -n "$ldap_askedfor"; then
+          as_fn_error $? "couldn't detect the LDAP libraries" "$LINENO" 5
+        fi
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: Cannot find libraries for LDAP support: LDAP disabled" >&5
+printf "%s\n" "$as_me: WARNING: Cannot find libraries for LDAP support: LDAP disabled" >&2;}
+
+printf "%s\n" "#define CURL_DISABLE_LDAP 1" >>confdefs.h
+
+        CURL_DISABLE_LDAP=1
+
+printf "%s\n" "#define CURL_DISABLE_LDAPS 1" >>confdefs.h
+
+        CURL_DISABLE_LDAPS=1
+                CPPFLAGS=$clean_LDAP_CPPFLAGS
+        LDFLAGS=$clean_LDAP_LDFLAGS
+        LIBS=$clean_LDAP_LIBS
+        ;;
+    esac
+  fi
+fi
+
+if test x$CURL_DISABLE_LDAP != x1; then
+    if test -n "$DIR_LDAP"; then
+
+    if test "x$cross_compiling" != "xyes"; then
+      CURL_LIBRARY_PATH="$CURL_LIBRARY_PATH:$DIR_LDAP"
+      export CURL_LIBRARY_PATH
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Added $DIR_LDAP to CURL_LIBRARY_PATH" >&5
+printf "%s\n" "$as_me: Added $DIR_LDAP to CURL_LIBRARY_PATH" >&6;}
+    fi
+  fi
+
+  if test "$LBERLIBNAME"; then
+                if test "$LBERLIBNAME" != "no" -a "$ldap_lib_ok" != "yes"; then
+      as_ac_Lib=`printf "%s\n" "ac_cv_lib_"$LBERLIBNAME"""_ber_free" | $as_tr_sh`
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for ber_free in -l\"$LBERLIBNAME\"" >&5
+printf %s "checking for ber_free in -l\"$LBERLIBNAME\"... " >&6; }
+if eval test \${$as_ac_Lib+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-l"$LBERLIBNAME"  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+
+#ifdef __cplusplus
+extern "C"
+#endif
+char ber_free ();
+int main(void)
+{
+return ber_free ();
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  eval "$as_ac_Lib=yes"
+else $as_nop
+  eval "$as_ac_Lib=no"
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+eval ac_res=\$$as_ac_Lib
+	       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+printf "%s\n" "$ac_res" >&6; }
+if eval test \"x\$"$as_ac_Lib"\" = x"yes"
+then :
+  cat >>confdefs.h <<_ACEOF
+#define `printf "%s\n" "HAVE_LIB"$LBERLIBNAME"" | $as_tr_cpp` 1
+_ACEOF
+
+  LIBS="-l"$LBERLIBNAME" $LIBS"
+
+else $as_nop
+
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: \"$LBERLIBNAME\" is not an LBER library: LDAP disabled" >&5
+printf "%s\n" "$as_me: WARNING: \"$LBERLIBNAME\" is not an LBER library: LDAP disabled" >&2;}
+
+printf "%s\n" "#define CURL_DISABLE_LDAP 1" >>confdefs.h
+
+        CURL_DISABLE_LDAP=1
+
+printf "%s\n" "#define CURL_DISABLE_LDAPS 1" >>confdefs.h
+
+        CURL_DISABLE_LDAPS=1
+                CPPFLAGS=$clean_LDAP_CPPFLAGS
+        LDFLAGS=$clean_LDAP_LDFLAGS
+        LIBS=$clean_LDAP_LIBS
+
+
+fi
+
+    fi
+  fi
+fi
+
+if test x$CURL_DISABLE_LDAP != x1; then
+  ac_fn_c_check_func "$LINENO" "ldap_url_parse" "ac_cv_func_ldap_url_parse"
+if test "x$ac_cv_func_ldap_url_parse" = xyes
+then :
+  printf "%s\n" "#define HAVE_LDAP_URL_PARSE 1" >>confdefs.h
+
+fi
+ac_fn_c_check_func "$LINENO" "ldap_init_fd" "ac_cv_func_ldap_init_fd"
+if test "x$ac_cv_func_ldap_init_fd" = xyes
+then :
+  printf "%s\n" "#define HAVE_LDAP_INIT_FD 1" >>confdefs.h
+
+fi
+
+
+  if test "$LDAPLIBNAME" = "wldap32"; then
+    curl_ldap_msg="enabled (winldap)"
+
+printf "%s\n" "#define USE_WIN32_LDAP 1" >>confdefs.h
+
+  else
+    if test "x$ac_cv_func_ldap_init_fd" = "xyes"; then
+      curl_ldap_msg="enabled (OpenLDAP)"
+
+printf "%s\n" "#define USE_OPENLDAP 1" >>confdefs.h
+
+      USE_OPENLDAP=1
+    else
+      curl_ldap_msg="enabled (ancient OpenLDAP)"
+    fi
+  fi
+fi
+
+if test x$CURL_DISABLE_LDAPS != x1; then
+  curl_ldaps_msg="enabled"
 fi
 
 
@@ -45125,7 +45278,7 @@ if test "x$CURL_DISABLE_LDAP" != "x1"; then
   SUPPORT_PROTOCOLS="$SUPPORT_PROTOCOLS LDAP"
   if test "x$CURL_DISABLE_LDAPS" != "x1"; then
     if (test "x$USE_OPENLDAP" = "x1" && test "x$SSL_ENABLED" = "x1") ||
-      (test "x$USE_OPENLDAP" != "x1"  && test "x$HAVE_LDAP_SSL" = "x1"); then
+      (test "x$USE_OPENLDAP" != "x1" && test "x$HAVE_LDAP_SSL" = "x1"); then
       SUPPORT_PROTOCOLS="$SUPPORT_PROTOCOLS LDAPS"
     fi
   fi
