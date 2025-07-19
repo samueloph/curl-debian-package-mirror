@@ -68,6 +68,10 @@ runtests.pl-Increase-variance-of-random-seed-used-for-tes.patch
 fix-CVE-2023-27534-regression-1.patch
 fix-CVE-2023-27534-regression-2.patch
 
+# Fix memory leak reported at https://github.com/curl/curl/issues/17749 and
+# https://curl.se/mail/distros-2025-07/0001.html
+0001-http_chunks-reset-the-trailer-to-avoid-memory-leak.patch
+
 # Do not add patches below.
 # Used to generate packages for the other crypto libraries.
 90_gnutls.patch

@@ -1,0 +1,31 @@
+From 18426669b329f63ff4798275a427f605e42576a6 Mon Sep 17 00:00:00 2001
+From: Daniel Stenberg <daniel@haxx.se>
+Date: Tue, 15 Jul 2025 08:37:03 +0200
+Subject: [PATCH] http_chunks: reset the trailer to avoid memory leak
+
+Brought-by: dheerajsangamkar on github
+URL: https://github.com/curl/curl/issues/17749
+---
+ lib/http_chunks.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/http_chunks.c b/lib/http_chunks.c
+index bda00d3833..867a8b4fbf 100644
+--- a/lib/http_chunks.c
++++ b/lib/http_chunks.c
+@@ -228,11 +228,11 @@ CHUNKcode Curl_httpchunk_read(struct Curl_easy *data,
+             if(result) {
+               *extrap = result;
+               return CHUNKE_PASSTHRU_ERROR;
+             }
+           }
+-          Curl_dyn_reset(&conn->trailer);
++          Curl_dyn_free(&conn->trailer);
+           ch->state = CHUNK_TRAILER_CR;
+           if(*datap == 0x0a)
+             /* already on the LF */
+             break;
+         }
+-- 
+2.50.0
+
