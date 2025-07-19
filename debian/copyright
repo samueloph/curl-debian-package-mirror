@@ -71,8 +71,6 @@ Files: lib/curl_des.c
  lib/vauth/vauth.h
  lib/curlx/version_win32.c
  lib/curlx/version_win32.h
- projects/build-openssl.bat
- projects/checksrc.bat
  projects/generate.bat
  tests/libtest/lib1520.c
 Copyright: 2012-2022, Steve Holme, <steve_holme@hotmail.com>
