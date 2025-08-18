@@ -10,13 +10,12 @@ Last-Update: 2024-11-06
  docs/examples/Makefile.am |  2 +-
  lib/Makefile.am           | 63 ++++++++++++++++++++++++++++++++++++++++++++++-
  src/Makefile.am           |  2 +-
- tests/client/Makefile.am  |  4 +--
  tests/libtest/Makefile.am |  2 +-
  tests/tunit/Makefile.am   |  4 +--
- 7 files changed, 80 insertions(+), 9 deletions(-)
+ 6 files changed, 78 insertions(+), 7 deletions(-)
 
 diff --git a/configure.ac b/configure.ac
-index 30a4ed2..a0eb129 100644
+index 5348261..f263e4d 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -252,6 +252,16 @@ AS_HELP_STRING([--with-gnutls=PATH],[where to look for GnuTLS, PATH points to th
@@ -36,7 +35,7 @@ index 30a4ed2..a0eb129 100644
  OPT_MBEDTLS=no
  AC_ARG_WITH(mbedtls,dnl
  AS_HELP_STRING([--with-mbedtls=PATH],[where to look for mbedTLS, PATH points to the installation root]),[
-@@ -2620,7 +2630,7 @@ AS_HELP_STRING([--disable-versioned-symbols], [Disable versioned symbols in shar
+@@ -2745,7 +2755,7 @@ AS_HELP_STRING([--disable-versioned-symbols], [Disable versioned symbols in shar
  )
  
  AC_SUBST([CURL_LIBCURL_VERSIONED_SYMBOLS_PREFIX], ["$versioned_symbols_flavour"])
@@ -59,7 +58,7 @@ index 27d4ce7..9624208 100644
  # This might hold -Werror
  CFLAGS += @CURL_CFLAG_EXTRAS@
 diff --git a/lib/Makefile.am b/lib/Makefile.am
-index 75fbbdf..718f061 100644
+index f6ea580..2a72b8d 100644
 --- a/lib/Makefile.am
 +++ b/lib/Makefile.am
 @@ -35,7 +35,11 @@ EXTRA_DIST = config-mac.h config-os400.h config-plan9.h config-riscos.h \
@@ -198,7 +197,7 @@ index 75fbbdf..718f061 100644
  libcurlu_la_LDFLAGS = $(AM_LDFLAGS) -static $(LIBCURL_PC_LIBS_PRIVATE)
  libcurlu_la_CFLAGS = $(AM_CFLAGS)
 diff --git a/src/Makefile.am b/src/Makefile.am
-index 78e2f81..31b3a6a 100644
+index a25e844..a777b48 100644
 --- a/src/Makefile.am
 +++ b/src/Makefile.am
 @@ -102,7 +102,7 @@ CFLAGS += @CURL_CFLAG_EXTRAS@
@@ -210,39 +209,24 @@ index 78e2f81..31b3a6a 100644
  
  # if unit tests are enabled, build a static library to link them with
  if BUILD_UNITTESTS
-diff --git a/tests/client/Makefile.am b/tests/client/Makefile.am
-index 928ec5b..64a4b7b 100644
---- a/tests/client/Makefile.am
-+++ b/tests/client/Makefile.am
-@@ -63,8 +63,8 @@ $(BUNDLE).c: $(top_srcdir)/scripts/mk-unity.pl Makefile.inc $(FIRST_C) $(curlx_c
- 	@PERL@ $(top_srcdir)/scripts/mk-unity.pl --include $(curlx_c_lib) --test $(TESTS_C) > $(BUNDLE).c
- 
- noinst_PROGRAMS = $(BUNDLE)
--LDADD = $(top_builddir)/lib/libcurl.la
--CLEANFILES = $(BUNDLE).c
-+LDADD = $(top_builddir)/lib/$(LIBCURL_FILESTUB).la
-+CLEANFILES = ${BUNDLE}.c
- 
- CHECKSRC = $(CS_$(V))
- CS_0 = @echo "  RUN     " $@;
 diff --git a/tests/libtest/Makefile.am b/tests/libtest/Makefile.am
-index ef95346..1054ccf 100644
+index b62a359..cba61f4 100644
 --- a/tests/libtest/Makefile.am
 +++ b/tests/libtest/Makefile.am
-@@ -70,7 +70,7 @@ $(BUNDLE).c: $(top_srcdir)/scripts/mk-unity.pl Makefile.inc $(FIRST_C) $(UTILS_C
+@@ -69,7 +69,7 @@ $(BUNDLE).c: $(top_srcdir)/scripts/mk-unity.pl Makefile.inc $(FIRST_C) $(UTILS_C
  	@PERL@ $(top_srcdir)/scripts/mk-unity.pl --include $(UTILS_C) $(curlx_c_lib) --test $(TESTS_C) lib1521.c > $(BUNDLE).c
  
  noinst_PROGRAMS = $(BUNDLE)
--LDADD = $(top_builddir)/lib/libcurl.la
-+LDADD = $(top_builddir)/lib/$(LIBCURL_FILESTUB).la
+-LDADD = $(top_builddir)/lib/libcurl.la @LIBCURL_PC_LIBS_PRIVATE@
++LDADD = $(top_builddir)/lib/$(LIBCURL_FILESTUB).la @LIBCURL_PC_LIBS_PRIVATE@
  CLEANFILES = $(BUNDLE).c lib1521.c
  
  lib1521.c: $(top_srcdir)/tests/libtest/mk-lib1521.pl $(top_srcdir)/include/curl/curl.h
 diff --git a/tests/tunit/Makefile.am b/tests/tunit/Makefile.am
-index 14a5baa..a982d76 100644
+index 219b7a1..79acb86 100644
 --- a/tests/tunit/Makefile.am
 +++ b/tests/tunit/Makefile.am
-@@ -64,8 +64,8 @@ $(BUNDLE).c: $(top_srcdir)/scripts/mk-unity.pl Makefile.inc $(FIRST_C) $(TESTS_C
+@@ -63,8 +63,8 @@ $(BUNDLE).c: $(top_srcdir)/scripts/mk-unity.pl Makefile.inc $(FIRST_C) $(TESTS_C
  	@PERL@ $(top_srcdir)/scripts/mk-unity.pl --test $(TESTS_C) > $(BUNDLE).c
  
  noinst_PROGRAMS = $(BUNDLE)

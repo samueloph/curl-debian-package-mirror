@@ -19,7 +19,7 @@ Last-Update: 2025-02-05
  1 file changed, 3 insertions(+), 13 deletions(-)
 
 diff --git a/curl-config.in b/curl-config.in
-index 31ea30b..6bb3da2 100644
+index ce23519..b2ae7dc 100644
 --- a/curl-config.in
 +++ b/curl-config.in
 @@ -29,8 +29,6 @@ prefix='@prefix@'
@@ -35,7 +35,7 @@ index 31ea30b..6bb3da2 100644
      ;;
  
    --cflags)
--    if test "X@includedir@" = 'X/usr/include'; then
+-    if test "@includedir@" = '/usr/include'; then
 -      echo '@LIBCURL_PC_CFLAGS@'
 -    else
 -      echo "@LIBCURL_PC_CFLAGS@ -I@includedir@"
@@ -44,19 +44,19 @@ index 31ea30b..6bb3da2 100644
      ;;
  
    --libs)
--    if test "X@libdir@" != 'X/usr/lib' -a "X@libdir@" != 'X/usr/lib64'; then
+-    if test "@libdir@" != '/usr/lib' -a "@libdir@" != '/usr/lib64'; then
 -      curllibdir="-L@libdir@ "
 -    else
 -      curllibdir=''
 -    fi
 +    curllibdir=''
-     if test 'X@ENABLE_SHARED@' = 'Xno'; then
+     if test '@ENABLE_SHARED@' = 'no'; then
        echo "${curllibdir}-lcurl @LIBCURL_PC_LIBS_PRIVATE@"
      else
 @@ -167,7 +157,7 @@ while test "$#" -gt 0; do
  
    --static-libs)
-     if test 'X@ENABLE_STATIC@' != 'Xno'; then
+     if test '@ENABLE_STATIC@' != 'no'; then
 -      echo "@libdir@/libcurl.@libext@ @LIBCURL_PC_LDFLAGS_PRIVATE@ @LIBCURL_PC_LIBS_PRIVATE@"
 +      echo -Wl,-Bstatic -lcurl -Wl,-Bdynamic @LIBCURL_PC_LIBS_PRIVATE@
      else
