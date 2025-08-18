@@ -1,9 +1,12 @@
-curl (8.16.0~rc1-1~exp1) UNRELEASED; urgency=medium
+curl (8.16.0~rc1-1~exp1) experimental; urgency=medium
 
   * New upstream version 8.16.0~rc1
   * Revert "d/watch: Point to GitHub for GA releases"
+  * Update patches for 8.16.0~rc1
+  * d/libcurl*.symbols: New symbols "curl_multi_get_offt" and
+    "curl_ws_start_frame"
 
- -- Samuel Henrique <samueloph@debian.org>  Mon, 18 Aug 2025 19:47:31 +0100
+ -- Samuel Henrique <samueloph@debian.org>  Mon, 18 Aug 2025 20:42:40 +0100
 
 curl (8.15.0-1~exp1) experimental; urgency=medium
 
