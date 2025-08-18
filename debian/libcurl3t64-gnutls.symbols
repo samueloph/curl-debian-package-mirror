@@ -56,6 +56,7 @@ libcurl-gnutls.so.4 libcurl3t64-gnutls #MINVER#
  curl_multi_cleanup@CURL_GNUTLS_3 7.16.2
  curl_multi_fdset@CURL_GNUTLS_3 7.16.2
  curl_multi_get_handles@CURL_GNUTLS_3 8.4.0
+ curl_multi_get_offt@CURL_GNUTLS_3 8.16.0~rc1
  curl_multi_info_read@CURL_GNUTLS_3 7.16.2
  curl_multi_init@CURL_GNUTLS_3 7.16.2
  curl_multi_perform@CURL_GNUTLS_3 7.16.2
@@ -97,3 +98,4 @@ libcurl-gnutls.so.4 libcurl3t64-gnutls #MINVER#
  curl_ws_meta@CURL_GNUTLS_3 7.86.0
  curl_ws_recv@CURL_GNUTLS_3 7.86.0
  curl_ws_send@CURL_GNUTLS_3 7.86.0
+ curl_ws_start_frame@CURL_GNUTLS_3 8.16.0~rc1
