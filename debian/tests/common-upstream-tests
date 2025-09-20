@@ -2,7 +2,7 @@
 
 set -eux
 
-debian/rules override_dh_auto_clean > "${AUTOPKGTEST_ARTIFACTS}/${SUFFIX}_auto_clean.log"
+debian/rules clean > "${AUTOPKGTEST_ARTIFACTS}/${SUFFIX}_auto_clean.log"
 dh_update_autotools_config > "${AUTOPKGTEST_ARTIFACTS}/${SUFFIX}_autotools_config.log"
 dh_autoreconf > "${AUTOPKGTEST_ARTIFACTS}/${SUFFIX}_autorefconf.log"
 debian/rules override_dh_auto_configure > "${AUTOPKGTEST_ARTIFACTS}/${SUFFIX}_auto_configure.log"

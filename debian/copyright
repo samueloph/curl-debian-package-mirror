@@ -27,6 +27,7 @@ Copyright: 1999, Leon Breedt <ljb@debian.org>
  2023-2025, Carlos Henrique Lima Melara <charlesmelara@riseup.net>
  2022-2024, Sergio Durigan Junior <sergiodj@debian.org>
  2021-2024, Samuel Henrique <samueloph@debian.org>
+ 2025, Aquila Macedo Costa <aquilamacedo@riseup.net>
 License: curl
 
 Files: debian/tests/LDAP-bindata.c
@@ -62,6 +63,11 @@ Files: packages/vms/backup_gnv_curl_src.com
 Copyright: 2009-2022, John Malmberg
 License: ISC
 
+Files: packages/vms/curl_crtl_init.c
+Copyright: Daniel Stenberg <daniel@haxx.se>, et al.
+           John Malmberg
+License: curl or ISC
+
 Files: lib/curl_des.c
  lib/curl_des.h
  lib/system_win32.c
@@ -91,6 +97,11 @@ Files: compile
  missing
 Copyright: 1996-2021, Free Software Foundation, Inc.
 License: GPL-2+ with Autoconf-data exception
+
+Files: configure
+Copyright: 1992-1996, 1998-2017, 2020-2021 Free Software Foundation, Inc.
+           Daniel Stenberg <daniel@haxx.se>
+License: FSFUL or curl
 
 Files: lib/vtls/mbedtls.c
  lib/vtls/mbedtls.h
@@ -181,8 +192,13 @@ Copyright: 1998-2022, Vijay Panghal, <vpanghal@maginatics.com>, et al.
 License: curl
 
 Files: m4/libtool.m4
- ltmain.sh
 Copyright: 1996-2022, Free Software Foundation, Inc.
+           Gordon Matzigkeit
+License: FSFULLR or GPL-2+ with Libtool exception
+
+Files: ltmain.sh
+Copyright: 1996-2022, Free Software Foundation, Inc.
+           Gordon Matzigkeit
 License: GPL-2+ with Libtool exception
 
 Files: lib/krb5.c
@@ -506,6 +522,10 @@ License: FSFULLR
  This file is free software; the Free Software Foundation
  gives unlimited permission to copy and/or distribute it,
  with or without modifications, as long as this notice is preserved.
+
+License: FSFUL
+ This configure script is free software; the Free Software Foundation gives
+ unlimited permission to copy, distribute and modify it.
 
 License: OLDAP-2.8
  The OpenLDAP Public License
