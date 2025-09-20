@@ -1,3 +1,9 @@
+curl (8.16.0-1~bpo13+1) trixie-backports; urgency=medium
+
+  * Rebuild for trixie-backports.
+
+ -- Samuel Henrique <samueloph@debian.org>  Sat, 20 Sep 2025 22:45:49 +0200
+
 curl (8.16.0-1) unstable; urgency=medium
 
   * d/watch: Point to GitHub for GA releases
