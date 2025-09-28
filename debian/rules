@@ -13,6 +13,7 @@ CONFIGURE_ARGS = -- --disable-dependency-tracking		\
 	--enable-symbol-hiding --enable-versioned-symbols	\
 	--enable-threaded-resolver --with-lber-lib=lber		\
 	--with-gssapi=/usr --with-nghttp2	\
+	--with-ngtcp2 --with-nghttp3	\
 	--includedir=/usr/include/$(DEB_HOST_MULTIARCH)		\
 	--with-zsh-functions-dir=/usr/share/zsh/vendor-completions \
 	--with-fish-functions-dir=/usr/share/fish/vendor_completions.d \
@@ -69,16 +70,15 @@ cp ../../ltmain.sh . && \
 dh_auto_configure \
   $(CONFIGURE_ARGS) \
   --with-$(1) \
-  --with-nghttp3 \
   $(2)
 endef
 
 override_dh_auto_configure:
 ifeq ($(with_openssl),yes)
-	$(call configure-curl,openssl,--with-openssl-quic)
+	$(call configure-curl,openssl)
 endif
 ifeq ($(with_gnutls),yes)
-	$(call configure-curl,gnutls,--with-ngtcp2)
+	$(call configure-curl,gnutls)
 endif
 
 # Invoke dh_auto_build for a specific curl flavour.
