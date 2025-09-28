@@ -1,3 +1,22 @@
+curl (8.16.0-1+exp1) experimental; urgency=medium
+
+  [ Samuel Henrique ]
+  * Build OpenSSL HTTP/3 support with ngtcp2:
+    - Add B-D on libngtcp2-crypto-ossl-dev (>= 1.16.0)
+    - Add Depends on libngtcp2-crypto-ossl-dev (>= 1.16.0) and
+      libngtcp2-dev (>= 1.16.0) in the OpenSSL -dev package
+    - Bump libngtcp2-dev and libngtcp2-crypto-gnutls-dev Depends in the
+      GnuTLS -dev package to >= 1.16.0
+    - Drop --with-openssl-quic configure flag in OpenSSL build
+    - Set --with-ngtcp2 and --with-nghttp3 configure flag for both builds
+      (OpenSSL and GnuTLS)
+
+  [ Carlos Henrique Lima Melara ]
+  * d/rules: use DEB_DISTRIBUTION to add configure flags for experimental
+  * d/watch-rc: keep a watch file for curl RC releases
+
+ -- Samuel Henrique <samueloph@debian.org>  Sun, 28 Sep 2025 13:12:40 +0100
+
 curl (8.16.0-1) unstable; urgency=medium
 
   * d/watch: Point to GitHub for GA releases
