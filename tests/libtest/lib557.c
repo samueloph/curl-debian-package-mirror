@@ -1222,7 +1222,6 @@ static int test_width_precision(void)
 }
 
 
-
 static int test_weird_arguments(void)
 {
   int errors = 0;
@@ -1535,7 +1534,7 @@ static int test_return_codes(void)
 static CURLcode test_lib557(const char *URL)
 {
   int errors = 0;
-  (void)URL; /* not used */
+  (void)URL;
 
 #ifdef HAVE_SETLOCALE
   /*

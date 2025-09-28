@@ -609,11 +609,7 @@ sub singletest_startservers {
     my $error;
     if(!$listonly) {
         my @what = getpart("client", "server");
-        if(!$what[0]) {
-            warn "Test case $testnum has no server(s) specified";
-            $why = "no server specified";
-            $error = -1;
-        } else {
+        if($what[0]) {
             my $err;
             ($why, $err) = serverfortest(@what);
             if($err == 1) {
@@ -866,7 +862,6 @@ sub singletest_run {
         else {
             $cmdargs .= "--trace-ascii $LOGDIR/trace$testnum ";
         }
-        $cmdargs .= "--trace-config all ";
         $cmdargs .= "--trace-time ";
         if($run_event_based) {
             $cmdargs .= "--test-event ";
@@ -1143,7 +1138,6 @@ sub singletest_postcheck {
     }
     return 0;
 }
-
 
 
 ###################################################################

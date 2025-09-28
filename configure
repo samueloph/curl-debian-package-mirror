@@ -2116,8 +2116,8 @@ Optional Packages:
                           backends. Refer to OpenSSL c_rehash for details.
                           (example: /etc/certificates)
   --without-ca-path       Don't use a default CA path
-  --with-ca-fallback      Use the built-in CA store of the SSL library
-  --without-ca-fallback   Don't use the built-in CA store of the SSL library
+  --with-ca-fallback      Use OpenSSL's built-in CA store
+  --without-ca-fallback   Don't use OpenSSL's built-in CA store
   --with-ca-embed=FILE    Absolute path to a file containing CA certificates
                           to embed in the curl tool (example:
                           /etc/ca-bundle.crt)
@@ -26428,6 +26428,7 @@ then :
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
       ssl_msg="LibreSSL"
+      HAVE_LIBRESSL=1
 
 else $as_nop
 
@@ -28149,8 +28150,8 @@ printf "%s\n" "$capath (capath)" >&6; }
 printf "%s\n" "no" >&6; }
   fi
 
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether to use built-in CA store of SSL library" >&5
-printf %s "checking whether to use built-in CA store of SSL library... " >&6; }
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether to use OpenSSL's built-in CA store" >&5
+printf %s "checking whether to use OpenSSL's built-in CA store... " >&6; }
 
 # Check whether --with-ca-fallback was given.
 if test ${with_ca_fallback+y}
@@ -28167,8 +28168,8 @@ fi
   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $with_ca_fallback" >&5
 printf "%s\n" "$with_ca_fallback" >&6; }
   if test "x$with_ca_fallback" = "xyes"; then
-    if test "x$OPENSSL_ENABLED" != "x1" -a "x$GNUTLS_ENABLED" != "x1"; then
-      as_fn_error $? "--with-ca-fallback only works with OpenSSL or GnuTLS" "$LINENO" 5
+    if test "x$OPENSSL_ENABLED" != "x1"; then
+      as_fn_error $? "--with-ca-fallback only works with OpenSSL" "$LINENO" 5
     fi
 
 printf "%s\n" "#define CURL_CA_FALLBACK 1" >>confdefs.h
@@ -31581,7 +31582,260 @@ fi
   fi
 fi
 
-if test "x$USE_NGTCP2" = "x1" -a "x$OPENSSL_ENABLED" = "x1" -a \
+if test "x$USE_NGTCP2" = "x1" -a "x$OPENSSL_ENABLED" = "x1" -a "$HAVE_LIBRESSL" = "1"; then
+    CLEANLDFLAGS="$LDFLAGS"
+  CLEANLDFLAGSPC="$LDFLAGSPC"
+  CLEANCPPFLAGS="$CPPFLAGS"
+  CLEANLIBS="$LIBS"
+
+
+  if test -n "$PKG_CONFIG"; then
+    PKGCONFIG="$PKG_CONFIG"
+  else
+    if test -n "$ac_tool_prefix"; then
+  # Extract the first word of "${ac_tool_prefix}pkg-config", so it can be a program name with args.
+set dummy ${ac_tool_prefix}pkg-config; ac_word=$2
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+printf %s "checking for $ac_word... " >&6; }
+if test ${ac_cv_path_PKGCONFIG+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  case $PKGCONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_PKGCONFIG="$PKGCONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+as_dummy="$PATH:/usr/bin:/usr/local/bin"
+for as_dir in $as_dummy
+do
+  IFS=$as_save_IFS
+  case $as_dir in #(((
+    '') as_dir=./ ;;
+    */) ;;
+    *) as_dir=$as_dir/ ;;
+  esac
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir$ac_word$ac_exec_ext"; then
+    ac_cv_path_PKGCONFIG="$as_dir$ac_word$ac_exec_ext"
+    printf "%s\n" "$as_me:${as_lineno-$LINENO}: found $as_dir$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+PKGCONFIG=$ac_cv_path_PKGCONFIG
+if test -n "$PKGCONFIG"; then
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $PKGCONFIG" >&5
+printf "%s\n" "$PKGCONFIG" >&6; }
+else
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
+fi
+
+
+fi
+if test -z "$ac_cv_path_PKGCONFIG"; then
+  ac_pt_PKGCONFIG=$PKGCONFIG
+  # Extract the first word of "pkg-config", so it can be a program name with args.
+set dummy pkg-config; ac_word=$2
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+printf %s "checking for $ac_word... " >&6; }
+if test ${ac_cv_path_ac_pt_PKGCONFIG+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  case $ac_pt_PKGCONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_ac_pt_PKGCONFIG="$ac_pt_PKGCONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+as_dummy="$PATH:/usr/bin:/usr/local/bin"
+for as_dir in $as_dummy
+do
+  IFS=$as_save_IFS
+  case $as_dir in #(((
+    '') as_dir=./ ;;
+    */) ;;
+    *) as_dir=$as_dir/ ;;
+  esac
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir$ac_word$ac_exec_ext"; then
+    ac_cv_path_ac_pt_PKGCONFIG="$as_dir$ac_word$ac_exec_ext"
+    printf "%s\n" "$as_me:${as_lineno-$LINENO}: found $as_dir$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+ac_pt_PKGCONFIG=$ac_cv_path_ac_pt_PKGCONFIG
+if test -n "$ac_pt_PKGCONFIG"; then
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_pt_PKGCONFIG" >&5
+printf "%s\n" "$ac_pt_PKGCONFIG" >&6; }
+else
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
+fi
+
+  if test "x$ac_pt_PKGCONFIG" = x; then
+    PKGCONFIG="no"
+  else
+    case $cross_compiling:$ac_tool_warned in
+yes:)
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: using cross tools not prefixed with host triplet" >&5
+printf "%s\n" "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
+ac_tool_warned=yes ;;
+esac
+    PKGCONFIG=$ac_pt_PKGCONFIG
+  fi
+else
+  PKGCONFIG="$ac_cv_path_PKGCONFIG"
+fi
+
+  fi
+
+  if test "x$PKGCONFIG" != "xno"; then
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for libngtcp2_crypto_libressl options with pkg-config" >&5
+printf %s "checking for libngtcp2_crypto_libressl options with pkg-config... " >&6; }
+        itexists=`
+  if test -n "$want_tcp2_path"; then
+    PKG_CONFIG_LIBDIR="$want_tcp2_path"
+    export PKG_CONFIG_LIBDIR
+  fi
+       $PKGCONFIG --exists libngtcp2_crypto_libressl >/dev/null 2>&1 && echo 1`
+
+    if test -z "$itexists"; then
+                  PKGCONFIG="no"
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
+    else
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: found" >&5
+printf "%s\n" "found" >&6; }
+    fi
+  fi
+
+
+  if test "$PKGCONFIG" != "no"; then
+    LIB_NGTCP2_CRYPTO_LIBRESSL=`
+  if test -n "$want_tcp2_path"; then
+    PKG_CONFIG_LIBDIR="$want_tcp2_path"
+    export PKG_CONFIG_LIBDIR
+  fi
+
+      $PKGCONFIG --libs-only-l libngtcp2_crypto_libressl`
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: -l is $LIB_NGTCP2_CRYPTO_LIBRESSL" >&5
+printf "%s\n" "$as_me: -l is $LIB_NGTCP2_CRYPTO_LIBRESSL" >&6;}
+
+    CPP_NGTCP2_CRYPTO_LIBRESSL=`
+  if test -n "$want_tcp2_path"; then
+    PKG_CONFIG_LIBDIR="$want_tcp2_path"
+    export PKG_CONFIG_LIBDIR
+  fi
+       $PKGCONFIG --cflags-only-I libngtcp2_crypto_libressl`
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: -I is $CPP_NGTCP2_CRYPTO_LIBRESSL" >&5
+printf "%s\n" "$as_me: -I is $CPP_NGTCP2_CRYPTO_LIBRESSL" >&6;}
+
+    LD_NGTCP2_CRYPTO_LIBRESSL=`
+  if test -n "$want_tcp2_path"; then
+    PKG_CONFIG_LIBDIR="$want_tcp2_path"
+    export PKG_CONFIG_LIBDIR
+  fi
+
+      $PKGCONFIG --libs-only-L libngtcp2_crypto_libressl`
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: -L is $LD_NGTCP2_CRYPTO_LIBRESSL" >&5
+printf "%s\n" "$as_me: -L is $LD_NGTCP2_CRYPTO_LIBRESSL" >&6;}
+
+    LDFLAGS="$LDFLAGS $LD_NGTCP2_CRYPTO_LIBRESSL"
+    LDFLAGSPC="$LDFLAGSPC $LD_NGTCP2_CRYPTO_LIBRESSL"
+    CPPFLAGS="$CPPFLAGS $CPP_NGTCP2_CRYPTO_LIBRESSL"
+    LIBS="$LIB_NGTCP2_CRYPTO_LIBRESSL $LIBS"
+
+    if test "x$cross_compiling" != "xyes"; then
+      DIR_NGTCP2_CRYPTO_LIBRESSL=`echo $LD_NGTCP2_CRYPTO_LIBRESSL | $SED -e 's/^-L//'`
+    fi
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for ngtcp2_crypto_recv_client_initial_cb in -lngtcp2_crypto_libressl" >&5
+printf %s "checking for ngtcp2_crypto_recv_client_initial_cb in -lngtcp2_crypto_libressl... " >&6; }
+if test ${ac_cv_lib_ngtcp2_crypto_libressl_ngtcp2_crypto_recv_client_initial_cb+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lngtcp2_crypto_libressl  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+
+#ifdef __cplusplus
+extern "C"
+#endif
+char ngtcp2_crypto_recv_client_initial_cb ();
+int main(void)
+{
+return ngtcp2_crypto_recv_client_initial_cb ();
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  ac_cv_lib_ngtcp2_crypto_libressl_ngtcp2_crypto_recv_client_initial_cb=yes
+else $as_nop
+  ac_cv_lib_ngtcp2_crypto_libressl_ngtcp2_crypto_recv_client_initial_cb=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_ngtcp2_crypto_libressl_ngtcp2_crypto_recv_client_initial_cb" >&5
+printf "%s\n" "$ac_cv_lib_ngtcp2_crypto_libressl_ngtcp2_crypto_recv_client_initial_cb" >&6; }
+if test "x$ac_cv_lib_ngtcp2_crypto_libressl_ngtcp2_crypto_recv_client_initial_cb" = xyes
+then :
+
+               for ac_header in ngtcp2/ngtcp2_crypto.h
+do :
+  ac_fn_c_check_header_compile "$LINENO" "ngtcp2/ngtcp2_crypto.h" "ac_cv_header_ngtcp2_ngtcp2_crypto_h" "$ac_includes_default"
+if test "x$ac_cv_header_ngtcp2_ngtcp2_crypto_h" = xyes
+then :
+  printf "%s\n" "#define HAVE_NGTCP2_NGTCP2_CRYPTO_H 1" >>confdefs.h
+ USE_NGTCP2=1
+          CURL_LIBRARY_PATH="$CURL_LIBRARY_PATH:$DIR_NGTCP2_CRYPTO_LIBRESSL"
+          export CURL_LIBRARY_PATH
+          { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Added $DIR_NGTCP2_CRYPTO_LIBRESSL to CURL_LIBRARY_PATH" >&5
+printf "%s\n" "$as_me: Added $DIR_NGTCP2_CRYPTO_LIBRESSL to CURL_LIBRARY_PATH" >&6;}
+          LIBCURL_PC_REQUIRES_PRIVATE="$LIBCURL_PC_REQUIRES_PRIVATE libngtcp2_crypto_libressl"
+
+fi
+
+done
+
+else $as_nop
+          LDFLAGS=$CLEANLDFLAGS
+        LDFLAGSPC=$CLEANLDFLAGSPC
+        CPPFLAGS=$CLEANCPPFLAGS
+        LIBS=$CLEANLIBS
+
+fi
+
+
+  else
+        if test X"$want_tcp2" != Xdefault; then
+                  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: --with-ngtcp2 was specified but could not find ngtcp2_crypto_libressl pkg-config file." >&5
+printf "%s\n" "$as_me: WARNING: --with-ngtcp2 was specified but could not find ngtcp2_crypto_libressl pkg-config file." >&2;}
+          fi
+    HAVE_LIBRESSL=0
+  fi
+fi
+
+if test "x$USE_NGTCP2" = "x1" -a "x$OPENSSL_ENABLED" = "x1" -a "$HAVE_LIBRESSL" != "1" -a \
    "x$OPENSSL_IS_BORINGSSL" != "x1" -a "x$OPENSSL_QUIC_API2" != "x1"; then
     CLEANLDFLAGS="$LDFLAGS"
   CLEANLDFLAGSPC="$LDFLAGSPC"
@@ -31978,42 +32232,42 @@ printf "%s\n" "found" >&6; }
 
 
   if test "$PKGCONFIG" != "no"; then
-    LIB_NGTCP2_CRYPTO_QUICTLS=`
+    LIB_NGTCP2_CRYPTO_OSSL=`
   if test -n "$want_tcp2_path"; then
     PKG_CONFIG_LIBDIR="$want_tcp2_path"
     export PKG_CONFIG_LIBDIR
   fi
 
       $PKGCONFIG --libs-only-l libngtcp2_crypto_ossl`
-    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: -l is $LIB_NGTCP2_CRYPTO_QUICTLS" >&5
-printf "%s\n" "$as_me: -l is $LIB_NGTCP2_CRYPTO_QUICTLS" >&6;}
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: -l is $LIB_NGTCP2_CRYPTO_OSSL" >&5
+printf "%s\n" "$as_me: -l is $LIB_NGTCP2_CRYPTO_OSSL" >&6;}
 
-    CPP_NGTCP2_CRYPTO_QUICTLS=`
+    CPP_NGTCP2_CRYPTO_OSSL=`
   if test -n "$want_tcp2_path"; then
     PKG_CONFIG_LIBDIR="$want_tcp2_path"
     export PKG_CONFIG_LIBDIR
   fi
        $PKGCONFIG --cflags-only-I libngtcp2_crypto_ossl`
-    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: -I is $CPP_NGTCP2_CRYPTO_QUICTLS" >&5
-printf "%s\n" "$as_me: -I is $CPP_NGTCP2_CRYPTO_QUICTLS" >&6;}
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: -I is $CPP_NGTCP2_CRYPTO_OSSL" >&5
+printf "%s\n" "$as_me: -I is $CPP_NGTCP2_CRYPTO_OSSL" >&6;}
 
-    LD_NGTCP2_CRYPTO_QUICTLS=`
+    LD_NGTCP2_CRYPTO_OSSL=`
   if test -n "$want_tcp2_path"; then
     PKG_CONFIG_LIBDIR="$want_tcp2_path"
     export PKG_CONFIG_LIBDIR
   fi
 
       $PKGCONFIG --libs-only-L libngtcp2_crypto_ossl`
-    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: -L is $LD_NGTCP2_CRYPTO_QUICTLS" >&5
-printf "%s\n" "$as_me: -L is $LD_NGTCP2_CRYPTO_QUICTLS" >&6;}
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: -L is $LD_NGTCP2_CRYPTO_OSSL" >&5
+printf "%s\n" "$as_me: -L is $LD_NGTCP2_CRYPTO_OSSL" >&6;}
 
-    LDFLAGS="$LDFLAGS $LD_NGTCP2_CRYPTO_QUICTLS"
-    LDFLAGSPC="$LDFLAGSPC $LD_NGTCP2_CRYPTO_QUICTLS"
-    CPPFLAGS="$CPPFLAGS $CPP_NGTCP2_CRYPTO_QUICTLS"
-    LIBS="$LIB_NGTCP2_CRYPTO_QUICTLS $LIBS"
+    LDFLAGS="$LDFLAGS $LD_NGTCP2_CRYPTO_OSSL"
+    LDFLAGSPC="$LDFLAGSPC $LD_NGTCP2_CRYPTO_OSSL"
+    CPPFLAGS="$CPPFLAGS $CPP_NGTCP2_CRYPTO_OSSL"
+    LIBS="$LIB_NGTCP2_CRYPTO_OSSL $LIBS"
 
     if test "x$cross_compiling" != "xyes"; then
-      DIR_NGTCP2_CRYPTO_QUICTLS=`echo $LD_NGTCP2_CRYPTO_QUICTLS | $SED -e 's/^-L//'`
+      DIR_NGTCP2_CRYPTO_OSSL=`echo $LD_NGTCP2_CRYPTO_OSSL | $SED -e 's/^-L//'`
     fi
     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for ngtcp2_crypto_recv_client_initial_cb in -lngtcp2_crypto_ossl" >&5
 printf %s "checking for ngtcp2_crypto_recv_client_initial_cb in -lngtcp2_crypto_ossl... " >&6; }
@@ -32059,10 +32313,10 @@ if test "x$ac_cv_header_ngtcp2_ngtcp2_crypto_h" = xyes
 then :
   printf "%s\n" "#define HAVE_NGTCP2_NGTCP2_CRYPTO_H 1" >>confdefs.h
  USE_NGTCP2=1
-          CURL_LIBRARY_PATH="$CURL_LIBRARY_PATH:$DIR_NGTCP2_CRYPTO_QUICTLS"
+          CURL_LIBRARY_PATH="$CURL_LIBRARY_PATH:$DIR_NGTCP2_CRYPTO_OSSL"
           export CURL_LIBRARY_PATH
-          { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Added $DIR_NGTCP2_CRYPTO_QUICTLS to CURL_LIBRARY_PATH" >&5
-printf "%s\n" "$as_me: Added $DIR_NGTCP2_CRYPTO_QUICTLS to CURL_LIBRARY_PATH" >&6;}
+          { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Added $DIR_NGTCP2_CRYPTO_OSSL to CURL_LIBRARY_PATH" >&5
+printf "%s\n" "$as_me: Added $DIR_NGTCP2_CRYPTO_OSSL to CURL_LIBRARY_PATH" >&6;}
           LIBCURL_PC_REQUIRES_PRIVATE="$LIBCURL_PC_REQUIRES_PRIVATE libngtcp2_crypto_ossl"
 
 printf "%s\n" "#define OPENSSL_QUIC_API2 1" >>confdefs.h
@@ -45603,7 +45857,9 @@ fi
 
 
 
-ac_config_files="$ac_config_files Makefile docs/Makefile docs/examples/Makefile docs/libcurl/Makefile docs/libcurl/opts/Makefile docs/cmdline-opts/Makefile include/Makefile include/curl/Makefile src/Makefile lib/Makefile scripts/Makefile lib/libcurl.vers tests/Makefile tests/config tests/configurehelp.pm tests/certs/Makefile tests/data/Makefile tests/server/Makefile tests/libtest/Makefile tests/unit/Makefile tests/tunit/Makefile tests/http/config.ini tests/http/Makefile packages/Makefile packages/vms/Makefile curl-config libcurl.pc"
+ac_config_files="$ac_config_files Makefile docs/Makefile docs/examples/Makefile docs/libcurl/Makefile docs/libcurl/opts/Makefile docs/cmdline-opts/Makefile include/Makefile include/curl/Makefile src/Makefile lib/Makefile scripts/Makefile lib/libcurl.vers tests/Makefile tests/config tests/configurehelp.pm tests/certs/Makefile tests/data/Makefile tests/server/Makefile tests/libtest/Makefile tests/unit/Makefile tests/tunit/Makefile tests/http/config.ini tests/http/Makefile packages/Makefile packages/vms/Makefile libcurl.pc"
+
+ac_config_files="$ac_config_files curl-config"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -46822,8 +47078,8 @@ do
     "tests/http/Makefile") CONFIG_FILES="$CONFIG_FILES tests/http/Makefile" ;;
     "packages/Makefile") CONFIG_FILES="$CONFIG_FILES packages/Makefile" ;;
     "packages/vms/Makefile") CONFIG_FILES="$CONFIG_FILES packages/vms/Makefile" ;;
-    "curl-config") CONFIG_FILES="$CONFIG_FILES curl-config" ;;
     "libcurl.pc") CONFIG_FILES="$CONFIG_FILES libcurl.pc" ;;
+    "curl-config") CONFIG_FILES="$CONFIG_FILES curl-config" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac
@@ -48206,6 +48462,7 @@ hardcode_action=$hardcode_action_RC
 _LT_EOF
 
  ;;
+    "curl-config":F) chmod +x curl-config ;;
 
   esac
 done # for ac_tag

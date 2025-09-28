@@ -25,20 +25,7 @@ export TESTS_FAILS_ON_IPV6_ONLY_MACHINES=""
 # helps prevent exceeding the byte limit for logs in salsa ci autopkgtest jobs.
 export MAKE_EXTRA_FLAGS="V=0"
 
-echo "debian/rules override_dh_auto_clean"
-debian/rules override_dh_auto_clean > "${AUTOPKGTEST_ARTIFACTS}/event_based_gnutls_auto_clean.log"
+# Suffix used to name build log files for this specific test scenario
+export SUFFIX="event_based_gnutls"
 
-echo "dh_update_autotools_config"
-dh_update_autotools_config > "${AUTOPKGTEST_ARTIFACTS}/event_based_gnutls_autotools_config.log"
-
-echo "dh_autoreconf"
-dh_autoreconf > "${AUTOPKGTEST_ARTIFACTS}/event_based_gnutls_autorefconf.log"
-
-echo "debian/rules override_dh_auto_configure"
-debian/rules override_dh_auto_configure > "${AUTOPKGTEST_ARTIFACTS}/event_based_gnutls_auto_configure.log"
-
-echo "debian/rules override_dh_auto_build"
-debian/rules override_dh_auto_build > "${AUTOPKGTEST_ARTIFACTS}/event_based_gnutls_auto_build.log"
-
-echo "debian/rules override_dh_auto_test"
-debian/rules override_dh_auto_test
+. debian/tests/common-upstream-tests

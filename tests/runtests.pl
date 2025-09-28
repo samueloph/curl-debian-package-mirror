@@ -568,6 +568,9 @@ sub checksystemfeatures {
                 $pwd = sys_native_current_path();
                 $feature{"win32"} = 1;
             }
+            if($curl =~ /cygwin|msys/i) {
+                $feature{"cygwin"} = 1;
+            }
             if($libcurl =~ /\sschannel\b/i) {
                 $feature{"Schannel"} = 1;
                 $feature{"SSLpinning"} = 1;
@@ -853,14 +856,6 @@ sub checksystemfeatures {
     chomp $hosttype;
     my $hostos=$^O;
 
-    my $havediff;
-    if(system("diff $TESTDIR/DISABLED $TESTDIR/DISABLED 2>$dev_null") == 0) {
-      $havediff = 'available';
-    }
-    else {
-      $havediff = 'missing';
-    }
-
     # display summary information about curl and the test host
     logmsg("********* System characteristics ******** \n",
            "* $curl\n",
@@ -869,14 +864,10 @@ sub checksystemfeatures {
            "* Features: $feat\n",
            "* Disabled: $dis\n",
            "* Host: $hostname\n",
-           "* System: $hosttype\n");
-    if($ci) {
-        logmsg("* OS: $hostos\n",
-               "* Perl: $^V ($^X)\n",
-               "* diff: $havediff\n");
-    }
-    logmsg("* Args: $args\n");
-
+           "* System: $hosttype\n",
+           "* OS: $hostos\n",
+           "* Perl: $^V ($^X)\n",
+           "* Args: $args\n");
     if($jobs) {
         # Only show if not the default for now
         logmsg "* Jobs: $jobs\n";
@@ -899,6 +890,9 @@ sub checksystemfeatures {
         logmsg "* Env: $env\n";
     }
     logmsg "* Seed: $randseed\n";
+    if(system("diff $TESTDIR/DISABLED $TESTDIR/DISABLED 2>$dev_null") != 0) {
+        logmsg "* diff: missing\n";
+    }
 }
 
 #######################################################################
@@ -1927,7 +1921,7 @@ sub singletest {
         my $logdir = getrunnerlogdir($runnerid);
         # first, remove all lingering log & lock files
         if(!cleardir($logdir)) {
-            logmsg "Warning: $runnerid: cleardir($logdir) failed\n";
+            #logmsg "Warning: $runnerid: cleardir($logdir) failed\n";
         }
         if(!cleardir("$logdir/$LOCKDIR")) {
             logmsg "Warning: $runnerid: cleardir($logdir/$LOCKDIR) failed\n";
@@ -2449,8 +2443,8 @@ while(@ARGV) {
         # lists the test case names only
         $listonly=1;
     }
-    elsif($ARGV[0] eq "--ci") {
-        $ci=1;
+    elsif($ARGV[0] eq "--buildinfo") {
+        $buildinfo=1;
     }
     elsif($ARGV[0] =~ /^-j(.*)/) {
         # parallel jobs
@@ -2505,8 +2499,8 @@ Usage: runtests.pl [options] [test selection(s)]
   -a       continue even if a test fails
   -ac path use this curl only to talk to APIs (currently only CI test APIs)
   -am      automake style output PASS/FAIL: [number] [name]
+  --buildinfo dump buildinfo.txt
   -c path  use this curl executable
-  --ci     show extra info useful in for CI runs (e.g. buildinfo.txt dump)
   -d       display server debug info
   -e, --test-event  event-based execution
   --test-duphandle  duplicate handles before use
@@ -2694,7 +2688,7 @@ if(!$listonly) {
 #######################################################################
 # Output information about the curl build
 #
-if(!$listonly && $ci) {
+if(!$listonly && $buildinfo) {
     if(open(my $fd, "<", "../buildinfo.txt")) {
         while(my $line = <$fd>) {
             chomp $line;
@@ -3054,7 +3048,7 @@ while() {
     # If we could be running more tests, don't wait so we can schedule a new
     # one immediately. If all runners are busy, wait a fraction of a second
     # for one to finish so we can still loop around to check the abort flag.
-    my $runnerwait = scalar(@runnersidle) && scalar(@runtests) ? 0 : 1.0;
+    my $runnerwait = scalar(@runnersidle) && scalar(@runtests) ? 0.1 : 1.0;
     my (@ridsready, $riderror) = runnerar_ready($runnerwait);
     if(@ridsready) {
         for my $ridready (@ridsready) {
@@ -3067,6 +3061,7 @@ while() {
                 undef $ridready;
             }
             if($ridready) {
+                $endwaitcnt = 0;
                 # This runner is ready to be serviced
                 my $testnum = $runnersrunning{$ridready};
                 defined $testnum ||  die "Internal error: test for runner $ridready unknown";
@@ -3151,7 +3146,8 @@ while() {
         delete $runnersrunning{$riderror} if(defined $runnersrunning{$riderror});
         $globalabort = 1;
     }
-    if(!scalar(@runtests) && ++$endwaitcnt == (240 + $jobs)) {
+    $endwaitcnt += $runnerwait;
+    if($endwaitcnt >= 10) {
         # Once all tests have been scheduled on a runner at the end of a test
         # run, we just wait for their results to come in. If we're still
         # waiting after a couple of minutes ($endwaitcnt multiplied by
@@ -3160,6 +3156,7 @@ while() {
         # likely point to a single test that has hung.
         logmsg "Hmmm, the tests are taking a while to finish. Here is the status:\n";
         catch_usr1();
+        $endwaitcnt = 0;
     }
 }
 

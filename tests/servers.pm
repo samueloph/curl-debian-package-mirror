@@ -2244,8 +2244,6 @@ sub runnegtelnetserver {
 }
 
 
-
-
 #######################################################################
 # Single shot http and gopher server responsiveness test. This should only
 # be used to verify that a server present in %run hash is still functional
@@ -3027,9 +3025,6 @@ sub startservers {
                     if($verbose);
                 $run{'telnet'}="$pid $pid2";
             }
-        }
-        elsif($what eq "none") {
-            logmsg "* starts no server\n" if($verbose);
         }
         else {
             warn "we don't support a server for $what";

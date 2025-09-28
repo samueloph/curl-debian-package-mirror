@@ -22,20 +22,7 @@ export VERBOSE=1
 # https://github.com/curl/curl/issues/10682
 export TESTS_FAILS_ON_IPV6_ONLY_MACHINES=""
 
-echo "debian/rules override_dh_auto_clean"
-debian/rules override_dh_auto_clean > "${AUTOPKGTEST_ARTIFACTS}/gnutls_auto_clean.log"
+# Suffix used to name build log files for this specific test scenario
+export SUFFIX="gnutls"
 
-echo "dh_update_autotools_config"
-dh_update_autotools_config > "${AUTOPKGTEST_ARTIFACTS}/gnutls_autotools_config.log"
-
-echo "dh_autoreconf"
-dh_autoreconf > "${AUTOPKGTEST_ARTIFACTS}/gnutls_autorefconf.log"
-
-echo "debian/rules override_dh_auto_configure"
-debian/rules override_dh_auto_configure > "${AUTOPKGTEST_ARTIFACTS}/gnutls_auto_configure.log"
-
-echo "debian/rules override_dh_auto_build"
-debian/rules override_dh_auto_build > "${AUTOPKGTEST_ARTIFACTS}/gnutls_auto_build.log"
-
-echo "debian/rules override_dh_auto_test"
-debian/rules override_dh_auto_test
+. debian/tests/common-upstream-tests

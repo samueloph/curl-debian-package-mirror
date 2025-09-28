@@ -513,7 +513,7 @@ TESTS_C = \
 
 # Get BUNDLE, FIRST_C, FIRST_H, UTILS_C, UTILS_H, CURLX_C, TESTS_C variables
 EXTRA_DIST = CMakeLists.txt $(FIRST_C) $(FIRST_H) $(UTILS_C) $(UTILS_H) $(TESTS_C) \
-  test307.pl test610.pl test613.pl test1013.pl test1022.pl mk-lib1521.pl
+  test307.pl test610.pl test613.pl test795.pl test1013.pl test1022.pl mk-lib1521.pl
 
 # These are part of the libcurl static lib. Add them here when linking shared.
 @USE_CPPFLAG_CURL_STATICLIB_FALSE@curlx_c_lib = $(CURLX_C)

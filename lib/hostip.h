@@ -201,7 +201,7 @@ CURLcode Curl_resolv_check(struct Curl_easy *data,
 CURLcode Curl_resolv_pollset(struct Curl_easy *data,
                              struct easy_pollset *ps);
 
-CURLcode Curl_resolver_error(struct Curl_easy *data);
+CURLcode Curl_resolver_error(struct Curl_easy *data, const char *detail);
 
 #ifdef CURLRES_SYNCH
 /*
@@ -214,6 +214,10 @@ struct Curl_addrinfo *Curl_sync_getaddrinfo(struct Curl_easy *data,
                                             int port,
                                             int ip_version);
 
+#endif
+
+#ifdef DEBUGBUILD
+void Curl_resolve_test_delay(void);
 #endif
 
 #endif /* HEADER_CURL_HOSTIP_H */

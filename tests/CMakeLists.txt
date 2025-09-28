@@ -74,8 +74,8 @@ function(curl_add_runtests _targetname _test_flags)
     COMMAND
       ${_setenv}
       "${PERL_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/runtests.pl"
-      ${_test_flags_list}
-      "\$TFLAGS"
+        ${_test_flags_list}
+        "\$TFLAGS"
     DEPENDS "${_depends}"
     VERBATIM USES_TERMINAL
   )
@@ -104,6 +104,7 @@ if(MSVC OR CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID MATCHES "Cl
   if(APPLE AND CMAKE_OSX_SYSROOT)
     string(APPEND CURL_CPP " -isysroot ${CMAKE_OSX_SYSROOT}")
   endif()
+  string(APPEND CURL_CPP " ${CMAKE_C_FLAGS}")
   # Add header directories, like autotools builds do.
   get_property(_include_dirs TARGET ${LIB_SELECTED} PROPERTY INCLUDE_DIRECTORIES)
   foreach(_include_dir IN LISTS _include_dirs)
@@ -125,7 +126,7 @@ curl_add_runtests(test-am        "-a -am")
 curl_add_runtests(test-full      "-a -p -r")
 # ~flaky means that it ignores results of tests using the flaky keyword
 curl_add_runtests(test-nonflaky  "-a -p ~flaky ~timing-dependent")
-curl_add_runtests(test-ci        "-a -p ~flaky ~timing-dependent -r --retry=5 -j20 --ci")
+curl_add_runtests(test-ci        "-a -p ~flaky ~timing-dependent -r --retry=5 -j20 --buildinfo")
 curl_add_runtests(test-torture   "-a -t -j20")
 curl_add_runtests(test-event     "-a -e")
 

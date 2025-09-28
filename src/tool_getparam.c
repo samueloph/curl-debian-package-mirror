@@ -1477,7 +1477,7 @@ static ParameterError parse_verbose(bool toggle)
   else if(!verbose_nopts) {
     /* fist `-v` in an argument resets to base verbosity */
     global->verbosity = 0;
-    if(set_trace_config("-all"))
+    if(!global->trace_set && set_trace_config("-all"))
       return PARAM_NO_MEM;
   }
   /* the '%' thing here will cause the trace get sent to stderr */
@@ -2443,6 +2443,7 @@ static ParameterError opt_filestring(struct OperationConfig *config,
     /* 0 is a valid value for this timeout */
     break;
   case C_TRACE_CONFIG: /* --trace-config */
+    global->trace_set = TRUE;
     if(set_trace_config(nextarg))
       err = PARAM_NO_MEM;
     break;
@@ -2807,6 +2808,12 @@ static ParameterError opt_filestring(struct OperationConfig *config,
   return err;
 }
 
+/* detect e2 80 80 - e2 80 ff */
+static bool has_leading_unicode(const unsigned char *arg)
+{
+  return ((arg[0] == 0xe2) && (arg[1] == 0x80) && (arg[2] & 0x80));
+}
+
 /* the longest command line option, excluding the leading -- */
 #define MAX_OPTION_LEN 26
 
@@ -2946,10 +2953,9 @@ ParameterError getparameter(const char *flag, /* f or -long-flag */
         warnf("The filename argument '%s' looks like a flag.",
               nextarg);
       }
-      else if(!strncmp("\xe2\x80\x9c", nextarg, 3)) {
-        warnf("The argument '%s' starts with a Unicode quote where "
-              "maybe an ASCII \" was intended?",
-              nextarg);
+      else if(has_leading_unicode((const unsigned char *)nextarg)) {
+        warnf("The argument '%s' starts with a Unicode character. "
+              "Maybe ASCII was intended?", nextarg);
       }
       /* ARG_FILE | ARG_STRG */
       err = opt_filestring(config, a, nextarg);

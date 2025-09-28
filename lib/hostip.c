@@ -1132,14 +1132,18 @@ CURLcode Curl_resolv_timeout(struct Curl_easy *data,
     prev_alarm = alarm(curlx_sltoui(timeout/1000L));
   }
 
-#else /* USE_ALARM_TIMEOUT */
+#ifdef DEBUGBUILD
+  Curl_resolve_test_delay();
+#endif
+
+#else /* !USE_ALARM_TIMEOUT */
 #ifndef CURLRES_ASYNCH
   if(timeoutms)
     infof(data, "timeout on name lookup is not supported");
 #else
-  (void)timeoutms; /* timeoutms not used with an async resolver */
+  (void)timeoutms;
 #endif
-#endif /* else USE_ALARM_TIMEOUT */
+#endif /* USE_ALARM_TIMEOUT */
 
   /* Perform the actual name resolution. This might be interrupted by an
    * alarm if it takes too long.
@@ -1548,7 +1552,7 @@ CURLcode Curl_resolv_check(struct Curl_easy *data,
   if(data->conn->bits.doh) {
     result = Curl_doh_is_resolved(data, dns);
     if(result)
-      Curl_resolver_error(data);
+      Curl_resolver_error(data, NULL);
   }
   else
 #endif
@@ -1614,7 +1618,7 @@ CURLcode Curl_once_resolved(struct Curl_easy *data,
  */
 
 #ifdef USE_CURL_ASYNC
-CURLcode Curl_resolver_error(struct Curl_easy *data)
+CURLcode Curl_resolver_error(struct Curl_easy *data, const char *detail)
 {
   struct connectdata *conn = data->conn;
   const char *host_or_proxy = "host";
@@ -1630,7 +1634,23 @@ CURLcode Curl_resolver_error(struct Curl_easy *data)
   }
 #endif
 
-  failf(data, "Could not resolve %s: %s", host_or_proxy, name);
+  failf(data, "Could not resolve %s: %s%s%s%s", host_or_proxy, name,
+        detail ? " (" : "", detail ? detail : "", detail ? ")" : "");
   return result;
 }
 #endif /* USE_CURL_ASYNC */
+
+#ifdef DEBUGBUILD
+#include "curlx/wait.h"
+
+void Curl_resolve_test_delay(void)
+{
+  const char *p = getenv("CURL_DNS_DELAY_MS");
+  if(p) {
+    curl_off_t l;
+    if(!curlx_str_number(&p, &l, TIME_T_MAX) && l) {
+      curlx_wait_ms((timediff_t)l);
+    }
+  }
+}
+#endif

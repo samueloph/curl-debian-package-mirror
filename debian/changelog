@@ -1,56 +1,78 @@
-curl (8.16.0~rc1-1~exp1) experimental; urgency=medium
+curl (8.16.0-1) unstable; urgency=medium
 
-  * New upstream version 8.16.0~rc1
-  * Revert "d/watch: Point to GitHub for GA releases"
-  * Update patches for 8.16.0~rc1
+  * d/watch: Point to GitHub for GA releases
+  * New upstream version 8.16.0
+
+ -- Samuel Henrique <samueloph@debian.org>  Wed, 10 Sep 2025 08:40:58 +0100
+
+curl (8.16.0~rc3-1) unstable; urgency=medium
+
+  * New upstream version 8.16.0~rc3.
+
+ -- Carlos Henrique Lima Melara <charlesmelara@riseup.net>  Thu, 04 Sep 2025 21:26:46 -0300
+
+curl (8.16.0~rc2-2) unstable; urgency=medium
+
+  * d/t/common-upstream-tests: Invoke dh clean, not override_dh_auto_clean.
+
+ -- Sergio Durigan Junior <sergiodj@debian.org>  Fri, 29 Aug 2025 23:37:58 -0400
+
+curl (8.16.0~rc2-1) unstable; urgency=medium
+
+  [ Samuel Henrique ]
+  * New upstream version 8.16.0~rc2
+  * d/watch: Point to rc releases and pick tar.xz tarballs
+  * Update patches:
+    - 11_omit-directories-from-config.patch: Upstream changes in Makefile
+    - ZZZgnutls-build.patch: Upstream changes in Makefile
+    - build-Divide-mit-krb5-gssapi-link-flags-between-LDFLAGS-a.patch: Update
+      context
   * d/libcurl*.symbols: New symbols "curl_multi_get_offt" and
     "curl_ws_start_frame"
+  * d/rules: Add missing backslash to escape newline
+  * d/rules: Remove "--cache-files" from curl-config
 
- -- Samuel Henrique <samueloph@debian.org>  Mon, 18 Aug 2025 20:42:40 +0100
+  [ Sergio Durigan Junior ]
+  * Use d/clean instead of overriding dh_auto_clean
+  * d/rules:
+    - Enable symbol hiding when compiling curl.
+    - New variables with_{openssl,gnutls}.
+    - Specify --cache-file when invoking configure.
+    - Expand removal of aclocal to debian/tmp*/ directories.
+    - Use "define" to create a template of the configure step.
+    - Use "define" to create a template of the build step.
+    - Use "define" to create a template of the test step.
+    - Use "define" to create a template of the install step.
 
-curl (8.15.0-1~exp1) experimental; urgency=medium
+  [ Aquila Macedo ]
+  * d/copyright: sync licenses
+  * d/copyright: add myself
+  * d/lrc.config: add initial exclusions to suppress false positives
 
+ -- Samuel Henrique <samueloph@debian.org>  Mon, 25 Aug 2025 23:21:04 +0100
+
+curl (8.15.0-1) unstable; urgency=medium
+
+  [ Samuel Henrique ]
   * New upstream version 8.15.0
-  * d/copyright: Remove dropped files build-openssl.bat and checksrc.bat
-
- -- Samuel Henrique <samueloph@debian.org>  Sat, 19 Jul 2025 22:11:41 +0200
-
-curl (8.15.0~rc3-1~exp1) experimental; urgency=medium
-
-  * New upstream version 8.15.0~rc3
-  * d/patches: rebase patches against new upstream version
-
- -- Carlos Henrique Lima Melara <charlesmelara@riseup.net>  Thu, 10 Jul 2025 11:08:40 -0300
-
-curl (8.15.0~rc2-1~exp1) experimental; urgency=medium
-
-  * New upstream version 8.15.0~rc2.
-  * debian/libcurl4-doc.docs: remove docs/examples/README.md, it's in
-    debian/libcurl4-doc.examples glob (docs/examples/*) already.
-  * debian/patches/: refresh patches.
-
- -- Carlos Henrique Lima Melara <charlesmelara@riseup.net>  Mon, 30 Jun 2025 21:43:30 -0300
-
-curl (8.15.0~rc1-1exp1) experimental; urgency=medium
-
-  * New upstream version 8.15.0~rc1
   * d/patches:
-    - Drop patches merged upstream:
-      ~ curl_path_make_SFTP_handle_a_path.patch
-      ~ tool_getparam_fix_ftp_pasv.patch
-      ~ tool_operate_fix_return_code_when_retry_is_used_but_not_triggered.patch
+    - Drop patches merged upstream
     - build-Divide-mit-krb5-gssapi...: Refresh patch
     - ZZZgnutls-build.patch: Update patch
-  * d/copyright: Update with renamed and removed files
-  * d/watch: Switch to RC releases (rc1, rc2...) for Debian Experimental
+  * d/copyright:
+    - Update with renamed and removed files
+    - Remove dropped files build-openssl.bat and checksrc.bat
 
- -- Samuel Henrique <samueloph@debian.org>  Sat, 21 Jun 2025 14:02:14 +0100
+  [ Carlos Henrique Lima Melara ]
+  * d/patches/:
+    - Refresh patches
+    - Rebase patches against new upstream version
+  * d/libcurl4-doc.docs: remove docs/examples/README.md, it's in .examples *
 
-curl (8.14.1-2+exp1) experimental; urgency=medium
+  [ Aquila Macedo ]
+  * d/tests/common-upstream-tests: centralize common build steps
 
-  * Enable experimental features: HTTPS RR and SSL session import/export
-
- -- Samuel Henrique <samueloph@debian.org>  Fri, 20 Jun 2025 00:34:40 +0100
+ -- Samuel Henrique <samueloph@debian.org>  Sun, 10 Aug 2025 16:38:32 +0100
 
 curl (8.14.1-2) unstable; urgency=medium
 

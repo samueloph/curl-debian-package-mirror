@@ -129,7 +129,6 @@ static const char aschex[] =
   "\x30\x31\x32\x33\x34\x35\x36\x37\x38\x39\x41\x42\x43\x44\x45\x46";
 
 
-
 #ifndef __VMS
 #define filesize(name, stat_data) (stat_data.st_size)
 #define fopen_read fopen
@@ -661,7 +660,7 @@ static size_t mime_mem_read(char *buffer, size_t size, size_t nitems,
 {
   curl_mimepart *part = (curl_mimepart *) instream;
   size_t sz = curlx_sotouz(part->datasize - part->state.offset);
-  (void)size;   /* Always 1.*/
+  (void)size;  /* Always 1 */
 
   if(!nitems)
     return STOP_FILLING;
@@ -1000,7 +999,7 @@ static size_t mime_subparts_read(char *buffer, size_t size, size_t nitems,
 {
   curl_mime *mime = (curl_mime *) instream;
   size_t cursize = 0;
-  (void)size;   /* Always 1. */
+  (void)size;  /* Always 1 */
 
   while(nitems) {
     size_t sz = 0;
@@ -1593,7 +1592,7 @@ size_t Curl_mime_read(char *buffer, size_t size, size_t nitems, void *instream)
   size_t ret;
   bool hasread;
 
-  (void)size;   /* Always 1. */
+  (void)size;  /* Always 1 */
 
   /* If `nitems` is <= 4, some encoders will return STOP_FILLING without
    * adding any data and this loops infinitely. */
@@ -2150,22 +2149,27 @@ static CURLcode cr_mime_resume_from(struct Curl_easy *data,
   return CURLE_OK;
 }
 
-static CURLcode cr_mime_rewind(struct Curl_easy *data,
-                               struct Curl_creader *reader)
+static CURLcode cr_mime_cntrl(struct Curl_easy *data,
+                              struct Curl_creader *reader,
+                              Curl_creader_cntrl opcode)
 {
   struct cr_mime_ctx *ctx = reader->ctx;
-  CURLcode result = mime_rewind(ctx->part);
-  if(result)
-    failf(data, "Cannot rewind mime/post data");
-  return result;
-}
-
-static CURLcode cr_mime_unpause(struct Curl_easy *data,
-                                struct Curl_creader *reader)
-{
-  struct cr_mime_ctx *ctx = reader->ctx;
-  (void)data;
-  mime_unpause(ctx->part);
+  switch(opcode) {
+  case CURL_CRCNTRL_REWIND: {
+    CURLcode result = mime_rewind(ctx->part);
+    if(result)
+      failf(data, "Cannot rewind mime/post data");
+    return result;
+  }
+  case CURL_CRCNTRL_UNPAUSE:
+    mime_unpause(ctx->part);
+    break;
+  case CURL_CRCNTRL_CLEAR_EOS:
+    ctx->seen_eos = FALSE;
+    break;
+  default:
+    break;
+  }
   return CURLE_OK;
 }
 
@@ -2185,8 +2189,7 @@ static const struct Curl_crtype cr_mime = {
   cr_mime_needs_rewind,
   cr_mime_total_length,
   cr_mime_resume_from,
-  cr_mime_rewind,
-  cr_mime_unpause,
+  cr_mime_cntrl,
   cr_mime_is_paused,
   Curl_creader_def_done,
   sizeof(struct cr_mime_ctx)

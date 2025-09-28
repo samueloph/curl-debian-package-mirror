@@ -276,19 +276,19 @@ static CURLcode libssh2_session_error_to_CURLE(int err)
 
 static LIBSSH2_ALLOC_FUNC(my_libssh2_malloc)
 {
-  (void)abstract; /* arg not used */
+  (void)abstract;
   return Curl_cmalloc(count);
 }
 
 static LIBSSH2_REALLOC_FUNC(my_libssh2_realloc)
 {
-  (void)abstract; /* arg not used */
+  (void)abstract;
   return Curl_crealloc(ptr, count);
 }
 
 static LIBSSH2_FREE_FUNC(my_libssh2_free)
 {
-  (void)abstract; /* arg not used */
+  (void)abstract;
   if(ptr) /* ssh2 agent sometimes call free with null ptr */
     Curl_cfree(ptr);
 }
@@ -1390,16 +1390,16 @@ sftp_quote_stat(struct Curl_easy *data,
   }
   else if(!strncmp(cmd, "atime", 5) ||
           !strncmp(cmd, "mtime", 5)) {
-    time_t date = Curl_getdate_capped(sshc->quote_path1);
+    time_t date;
     bool fail = FALSE;
 
-    if(date == -1) {
+    if(Curl_getdate_capped(sshc->quote_path1, &date)) {
       failf(data, "incorrect date format for %.*s", 5, cmd);
       fail = TRUE;
     }
 #if SIZEOF_TIME_T > SIZEOF_LONG
     if(date > 0xffffffff) {
-      /* if 'long' cannot old >32-bit, this date cannot be sent */
+      /* if 'long' cannot hold >32-bit, this date cannot be sent */
       failf(data, "date overflow");
       fail = TRUE;
     }
@@ -3073,7 +3073,7 @@ static CURLcode ssh_statemachine(struct Curl_easy *data,
       break;
     }
 
-  } while(!result && (sshc->state != SSH_STOP));
+  } while(!result && (sshc->state != SSH_STOP) && !*block);
 
   if(result == CURLE_AGAIN) {
     /* we would block, we need to wait for the socket to be ready (in the
@@ -3732,7 +3732,7 @@ static CURLcode scp_done(struct Curl_easy *data, CURLcode status,
                          bool premature)
 {
   struct ssh_conn *sshc = Curl_conn_meta_get(data->conn, CURL_META_SSH_CONN);
-  (void)premature; /* not used */
+  (void)premature;
 
   if(sshc && !status)
     myssh_state(data, sshc, SSH_SCP_DONE);

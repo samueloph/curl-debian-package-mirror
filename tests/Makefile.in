@@ -479,7 +479,7 @@ TEST_COMMON = $(am__append_1)
 @CROSSCOMPILING_FALSE@TEST_NF = -a -p ~flaky ~timing-dependent
 
 # special CI target derived from nonflaky with CI-specific flags
-@CROSSCOMPILING_FALSE@TEST_CI = $(TEST_NF) -r --retry=5 -j20 --ci
+@CROSSCOMPILING_FALSE@TEST_CI = $(TEST_NF) -r --retry=5 -j20 --buildinfo
 all: all-recursive
 
 .SUFFIXES:

@@ -1444,7 +1444,7 @@ static CURLcode cf_socket_send(struct Curl_cfilter *cf, struct Curl_easy *data,
   size_t orig_len = len;
   CURLcode result = CURLE_OK;
 
-  (void)eos; /* unused */
+  (void)eos;
   *pnwritten = 0;
   fdsave = cf->conn->sock[cf->sockindex];
   cf->conn->sock[cf->sockindex] = ctx->sock;
@@ -2116,7 +2116,7 @@ static CURLcode cf_tcp_accept_connect(struct Curl_cfilter *cf,
     s_accepted = accept4(ctx->sock, (struct sockaddr *) &add, &size,
                          SOCK_NONBLOCK | SOCK_CLOEXEC);
 #else
-    s_accepted = accept(ctx->sock, (struct sockaddr *) &add, &size);
+    s_accepted = CURL_ACCEPT(ctx->sock, (struct sockaddr *) &add, &size);
 #endif
   }
 
