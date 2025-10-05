@@ -3,8 +3,9 @@ curl (8.14.1-2+deb13u1) UNRELEASED; urgency=medium
   * Team upload.
   * d/p/cookie-don-t-treat-the-leading-slash-as-trailing: import upstream
     patch to fix CVE-2025-9086
+  * d/p: backport upstream patch for CVE-2025-10148
 
- -- Alex <alex@puer-robustus.eu>  Sat, 27 Sep 2025 16:52:13 +0200
+ -- Alex <alex@puer-robustus.eu>  Sun, 05 Oct 2025 23:03:32 +0200
 
 curl (8.14.1-2) unstable; urgency=medium
 
