@@ -57,7 +57,6 @@
 #include "../cf-socket.h"
 #include "../connect.h"
 #include "../progress.h"
-#include "../strerror.h"
 #include "../curlx/dynbuf.h"
 #include "../http1.h"
 #include "../select.h"
@@ -73,14 +72,12 @@
 
 #include "../curlx/warnless.h"
 
-/* The last 3 #include files should be in this order */
-#include "../curl_printf.h"
+/* The last 2 #include files should be in this order */
 #include "../curl_memory.h"
 #include "../memdebug.h"
 
 
 #define QUIC_MAX_STREAMS (256*1024)
-#define QUIC_MAX_DATA (1*1024*1024)
 #define QUIC_HANDSHAKE_TIMEOUT (10*NGTCP2_SECONDS)
 
 /* A stream window is the maximum amount we need to buffer for
@@ -102,8 +99,6 @@
           (H3_STREAM_WINDOW_SIZE / H3_STREAM_CHUNK_SIZE ) / 2
 /* Receive and Send max number of chunks just follows from the
  * chunk size and window size */
-#define H3_STREAM_RECV_CHUNKS \
-          (H3_STREAM_WINDOW_SIZE / H3_STREAM_CHUNK_SIZE)
 #define H3_STREAM_SEND_CHUNKS \
           (H3_STREAM_WINDOW_SIZE / H3_STREAM_CHUNK_SIZE)
 
@@ -115,8 +110,8 @@ void Curl_ngtcp2_ver(char *p, size_t len)
 {
   const ngtcp2_info *ng2 = ngtcp2_version(0);
   const nghttp3_info *ht3 = nghttp3_version(0);
-  (void)msnprintf(p, len, "ngtcp2/%s nghttp3/%s",
-                  ng2->version_str, ht3->version_str);
+  (void)curl_msnprintf(p, len, "ngtcp2/%s nghttp3/%s",
+                       ng2->version_str, ht3->version_str);
 }
 
 struct cf_ngtcp2_ctx {
@@ -148,8 +143,8 @@ struct cf_ngtcp2_ctx {
   uint64_t max_bidi_streams;         /* max bidi streams we can open */
   size_t earlydata_max;              /* max amount of early data supported by
                                         server on session reuse */
-  size_t earlydata_skip;            /* sending bytes to skip when earlydata
-                                     * is accepted by peer */
+  size_t earlydata_skip;             /* sending bytes to skip when earlydata
+                                        is accepted by peer */
   CURLcode tls_vrfy_result;          /* result of TLS peer verification */
   int qlogfd;
   BIT(initialized);
@@ -305,6 +300,35 @@ static CURLcode h3_data_setup(struct Curl_cfilter *cf,
   return CURLE_OK;
 }
 
+struct cf_ngtcp2_sfind_ctx {
+  curl_int64_t stream_id;
+  struct h3_stream_ctx *stream;
+  unsigned int mid;
+};
+
+static bool cf_ngtcp2_sfind(unsigned int mid, void *value, void *user_data)
+{
+  struct cf_ngtcp2_sfind_ctx *fctx = user_data;
+  struct h3_stream_ctx *stream = value;
+
+  if(fctx->stream_id == stream->id) {
+    fctx->mid = mid;
+    fctx->stream = stream;
+    return FALSE;
+  }
+  return TRUE; /* continue */
+}
+
+static struct h3_stream_ctx *
+cf_ngtcp2_get_stream(struct cf_ngtcp2_ctx *ctx, curl_int64_t stream_id)
+{
+  struct cf_ngtcp2_sfind_ctx fctx;
+  fctx.stream_id = stream_id;
+  fctx.stream = NULL;
+  Curl_uint_hash_visit(&ctx->streams, cf_ngtcp2_sfind, &fctx);
+  return fctx.stream;
+}
+
 static void cf_ngtcp2_stream_close(struct Curl_cfilter *cf,
                                    struct Curl_easy *data,
                                    struct h3_stream_ctx *stream)
@@ -393,9 +417,9 @@ static void quic_printf(void *user_data, const char *fmt, ...)
   (void)ctx;  /* need an easy handle to infof() message */
   va_list ap;
   va_start(ap, fmt);
-  vfprintf(stderr, fmt, ap);
+  curl_mvfprintf(stderr, fmt, ap);
   va_end(ap);
-  fprintf(stderr, "\n");
+  curl_mfprintf(stderr, "\n");
 }
 #endif
 
@@ -413,13 +437,23 @@ static void qlog_callback(void *user_data, uint32_t flags,
       ctx->qlogfd = -1;
     }
   }
-
 }
 
 static void quic_settings(struct cf_ngtcp2_ctx *ctx,
                           struct Curl_easy *data,
                           struct pkt_io_ctx *pktx)
 {
+#ifdef NGTCP2_SETTINGS_V2x
+static uint16_t mtu_probes[] = {
+  1472, /* what h2o offers */
+  1452, /* what Caddy offers */
+  1454 - 48, /* The well known MTU used by a domestic optic fiber
+                service in Japan. */
+  1390 - 48, /* Typical Tunneled MTU */
+  1280 - 48, /* IPv6 minimum MTU */
+  1492 - 48, /* PPPoE */
+};
+#endif
   ngtcp2_settings *s = &ctx->settings;
   ngtcp2_transport_params *t = &ctx->transport_params;
 
@@ -436,6 +470,12 @@ static void quic_settings(struct cf_ngtcp2_ctx *ctx,
     data->set.connecttimeout * NGTCP2_MILLISECONDS : QUIC_HANDSHAKE_TIMEOUT;
   s->max_window = 100 * ctx->max_stream_window;
   s->max_stream_window = 10 * ctx->max_stream_window;
+  s->no_pmtud = FALSE;
+#ifdef NGTCP2_SETTINGS_V2x
+  s->pmtud_probes = mtu_probes;
+  s->pmtud_probeslen = CURL_ARRAYSIZE(mtu_probes);
+  s->max_tx_udp_payload_size = 64 * 1024; /* mtu_probes[0]; */
+#endif
 
   t->initial_max_data = 10 * ctx->max_stream_window;
   t->initial_max_stream_data_bidi_local = ctx->max_stream_window;
@@ -467,13 +507,22 @@ static int cf_ngtcp2_handshake_completed(ngtcp2_conn *tconn, void *user_data)
 
   ctx->handshake_at = curlx_now();
   ctx->tls_handshake_complete = TRUE;
-  cf->conn->bits.multiplex = TRUE; /* at least potentially multiplexed */
   Curl_vquic_report_handshake(&ctx->tls, cf, data);
 
   ctx->tls_vrfy_result = Curl_vquic_tls_verify_peer(&ctx->tls, cf,
                                                     data, &ctx->peer);
-  CURL_TRC_CF(data, cf, "handshake complete after %dms",
-             (int)curlx_timediff(ctx->handshake_at, ctx->started_at));
+  if(Curl_trc_is_verbose(data)) {
+    const ngtcp2_transport_params *rp;
+    rp = ngtcp2_conn_get_remote_transport_params(ctx->qconn);
+    CURL_TRC_CF(data, cf, "handshake complete after %dms, remote transport["
+                "max_udp_payload=%" FMT_PRIu64
+                ", initial_max_data=%" FMT_PRIu64
+                "]",
+               (int)curlx_timediff(ctx->handshake_at, ctx->started_at),
+               (curl_uint64_t)rp->max_udp_payload_size,
+               (curl_uint64_t)rp->initial_max_data);
+  }
+
   /* In case of earlydata, where we simulate being connected, update
    * the handshake time when we really did connect */
   if(ctx->use_earlydata)
@@ -1093,7 +1142,7 @@ static int cb_h3_recv_header(nghttp3_conn *conn, int64_t sid,
     result = Curl_http_decode_status(&stream->status_code,
                                      (const char *)h3val.base, h3val.len);
     if(result)
-      return -1;
+      return NGHTTP3_ERR_CALLBACK_FAILURE;
     curlx_dyn_reset(&ctx->scratch);
     result = curlx_dyn_addn(&ctx->scratch, STRCONST("HTTP/3 "));
     if(!result)
@@ -1107,7 +1156,7 @@ static int cb_h3_recv_header(nghttp3_conn *conn, int64_t sid,
     CURL_TRC_CF(data, cf, "[%" FMT_PRId64 "] status: %s",
                 stream_id, curlx_dyn_ptr(&ctx->scratch));
     if(result) {
-      return -1;
+      return NGHTTP3_ERR_CALLBACK_FAILURE;
     }
   }
   else {
@@ -1307,8 +1356,10 @@ static CURLcode cf_ngtcp2_recv(struct Curl_cfilter *cf, struct Curl_easy *data,
   *pnread = 0;
 
   /* handshake verification failed in callback, do not recv anything */
-  if(ctx->tls_vrfy_result)
-    return ctx->tls_vrfy_result;
+  if(ctx->tls_vrfy_result) {
+    result = ctx->tls_vrfy_result;
+    goto denied;
+  }
 
   pktx_init(&pktx, cf, data);
 
@@ -1339,8 +1390,8 @@ static CURLcode cf_ngtcp2_recv(struct Curl_cfilter *cf, struct Curl_easy *data,
 out:
   result = Curl_1st_err(result, cf_progress_egress(cf, data, &pktx));
   result = Curl_1st_err(result, check_and_set_expiry(cf, data, &pktx));
-
-  CURL_TRC_CF(data, cf, "[%" FMT_PRId64 "] cf_recv(blen=%zu) -> %dm, %zu",
+denied:
+  CURL_TRC_CF(data, cf, "[%" FMT_PRId64 "] cf_recv(blen=%zu) -> %d, %zu",
               stream ? stream->id : -1, blen, result, *pnread);
   CF_DATA_RESTORE(cf, save);
   return result;
@@ -1444,10 +1495,6 @@ cb_h3_read_req_body(nghttp3_conn *conn, int64_t stream_id,
               stream->upload_left);
   return (nghttp3_ssize)nvecs;
 }
-
-/* Index where :authority header field will appear in request header
-   field list. */
-#define AUTHORITY_DST_IDX 3
 
 static CURLcode h3_stream_open(struct Curl_cfilter *cf,
                                struct Curl_easy *data,
@@ -1560,6 +1607,7 @@ static CURLcode h3_stream_open(struct Curl_cfilter *cf,
                   "%d (%s)", stream->id, rc, nghttp3_strerror(rc));
       break;
     }
+    cf_ngtcp2_stream_close(cf, data, stream);
     result = CURLE_SEND_ERROR;
     goto out;
   }
@@ -1598,8 +1646,10 @@ static CURLcode cf_ngtcp2_send(struct Curl_cfilter *cf, struct Curl_easy *data,
   *pnwritten = 0;
 
   /* handshake verification failed in callback, do not send anything */
-  if(ctx->tls_vrfy_result)
-    return ctx->tls_vrfy_result;
+  if(ctx->tls_vrfy_result) {
+    result = ctx->tls_vrfy_result;
+    goto denied;
+  }
 
   (void)eos; /* use for stream EOF and block handling */
   result = cf_progress_ingress(cf, data, &pktx);
@@ -1666,7 +1716,7 @@ static CURLcode cf_ngtcp2_send(struct Curl_cfilter *cf, struct Curl_easy *data,
 
 out:
   result = Curl_1st_err(result, check_and_set_expiry(cf, data, &pktx));
-
+denied:
   CURL_TRC_CF(data, cf, "[%" FMT_PRId64 "] cf_send(len=%zu) -> %d, %zu",
               stream ? stream->id : -1, len, result, *pnwritten);
   CF_DATA_RESTORE(cf, save);
@@ -1684,6 +1734,9 @@ static CURLcode recv_pkt(const unsigned char *pkt, size_t pktlen,
   ngtcp2_path path;
   int rv;
 
+  if(ecn)
+    CURL_TRC_CF(pktx->data, pktx->cf, "vquic_recv(len=%zu, ecn=%x)",
+                pktlen, ecn);
   ngtcp2_addr_init(&path.local, (struct sockaddr *)&ctx->q.local_addr,
                    (socklen_t)ctx->q.local_addrlen);
   ngtcp2_addr_init(&path.remote, (struct sockaddr *)remote_addr,
@@ -1702,7 +1755,6 @@ static CURLcode recv_pkt(const unsigned char *pkt, size_t pktlen,
       return CURLE_PEER_FAILED_VERIFICATION;
     return CURLE_RECV_ERROR;
   }
-
   return CURLE_OK;
 }
 
@@ -1717,6 +1769,10 @@ static CURLcode cf_progress_ingress(struct Curl_cfilter *cf,
   if(!pktx) {
     pktx_init(&local_pktx, cf, data);
     pktx = &local_pktx;
+  }
+  else {
+    pktx_update_time(pktx, cf);
+    ngtcp2_path_storage_zero(&pktx->ps);
   }
 
   result = Curl_vquic_tls_before_recv(&ctx->tls, cf, data);
@@ -1782,13 +1838,13 @@ static CURLcode read_pkt_to_send(void *userp,
     else if(n < 0) {
       switch(n) {
       case NGTCP2_ERR_STREAM_DATA_BLOCKED: {
-        struct h3_stream_ctx *stream = H3_STREAM_CTX(ctx, x->data);
+        struct h3_stream_ctx *stream;
         DEBUGASSERT(ndatalen == -1);
         nghttp3_conn_block_stream(ctx->h3conn, stream_id);
         CURL_TRC_CF(x->data, x->cf, "[%" FMT_PRId64 "] block quic flow",
                     (curl_int64_t)stream_id);
-        DEBUGASSERT(stream);
-        if(stream)
+        stream = cf_ngtcp2_get_stream(ctx, stream_id);
+        if(stream) /* it might be not one of our h3 streams? */
           stream->quic_flow_blocked = TRUE;
         n = 0;
         break;
@@ -1837,9 +1893,10 @@ static CURLcode cf_progress_egress(struct Curl_cfilter *cf,
 {
   struct cf_ngtcp2_ctx *ctx = cf->ctx;
   size_t nread;
-  size_t max_payload_size, path_max_payload_size, max_pktcnt;
+  size_t max_payload_size, path_max_payload_size;
   size_t pktcnt = 0;
   size_t gsolen = 0;  /* this disables gso until we have a clue */
+  size_t send_quantum;
   CURLcode curlcode;
   struct pkt_io_ctx local_pktx;
 
@@ -1875,71 +1932,69 @@ static CURLcode cf_progress_egress(struct Curl_cfilter *cf,
   max_payload_size = ngtcp2_conn_get_max_tx_udp_payload_size(ctx->qconn);
   path_max_payload_size =
       ngtcp2_conn_get_path_max_tx_udp_payload_size(ctx->qconn);
-  /* maximum number of packets buffered before we flush to the socket */
-  max_pktcnt = CURLMIN(MAX_PKT_BURST,
-                       ctx->q.sendbuf.chunk_size / max_payload_size);
-
+  send_quantum = ngtcp2_conn_get_send_quantum(ctx->qconn);
+  CURL_TRC_CF(data, cf, "egress, collect and send packets, quantum=%zu",
+              send_quantum);
   for(;;) {
     /* add the next packet to send, if any, to our buffer */
     curlcode = Curl_bufq_sipn(&ctx->q.sendbuf, max_payload_size,
                               read_pkt_to_send, pktx, &nread);
-    if(curlcode) {
-      if(curlcode != CURLE_AGAIN)
-        return curlcode;
-      /* Nothing more to add, flush and leave */
-      curlcode = vquic_send(cf, data, &ctx->q, gsolen);
-      if(curlcode) {
-        if(curlcode == CURLE_AGAIN) {
-          Curl_expire(data, 1, EXPIRE_QUIC);
-          return CURLE_OK;
-        }
-        return curlcode;
+    if(curlcode == CURLE_AGAIN)
+      break;
+    else if(curlcode)
+      return curlcode;
+    else {
+      size_t buflen = Curl_bufq_len(&ctx->q.sendbuf);
+      if((buflen >= send_quantum) ||
+         ((buflen + gsolen) >= ctx->q.sendbuf.chunk_size))
+         break;
+      DEBUGASSERT(nread > 0);
+      ++pktcnt;
+      if(pktcnt == 1) {
+        /* first packet in buffer. This is either of a known, "good"
+         * payload size or it is a PMTUD. We will see. */
+        gsolen = nread;
       }
-      goto out;
-    }
-
-    DEBUGASSERT(nread > 0);
-    if(pktcnt == 0) {
-      /* first packet in buffer. This is either of a known, "good"
-       * payload size or it is a PMTUD. We will see. */
-      gsolen = nread;
-    }
-    else if(nread > gsolen ||
-            (gsolen > path_max_payload_size && nread != gsolen)) {
-      /* The just added packet is a PMTUD *or* the one(s) before the
-       * just added were PMTUD and the last one is smaller.
-       * Flush the buffer before the last add. */
-      curlcode = vquic_send_tail_split(cf, data, &ctx->q,
-                                       gsolen, nread, nread);
-      if(curlcode) {
-        if(curlcode == CURLE_AGAIN) {
-          Curl_expire(data, 1, EXPIRE_QUIC);
-          return CURLE_OK;
+      else if(nread > gsolen ||
+              (gsolen > path_max_payload_size && nread != gsolen)) {
+        /* The just added packet is a PMTUD *or* the one(s) before the
+         * just added were PMTUD and the last one is smaller.
+         * Flush the buffer before the last add. */
+        curlcode = vquic_send_tail_split(cf, data, &ctx->q,
+                                         gsolen, nread, nread);
+        if(curlcode) {
+          if(curlcode == CURLE_AGAIN) {
+            Curl_expire(data, 1, EXPIRE_QUIC);
+            return CURLE_OK;
+          }
+          return curlcode;
         }
-        return curlcode;
+        pktcnt = 0;
       }
-      pktcnt = 0;
-      continue;
-    }
-
-    if(++pktcnt >= max_pktcnt || nread < gsolen) {
-      /* Reached MAX_PKT_BURST *or*
-       * the capacity of our buffer *or*
-       * last add was shorter than the previous ones, flush */
-      curlcode = vquic_send(cf, data, &ctx->q, gsolen);
-      if(curlcode) {
-        if(curlcode == CURLE_AGAIN) {
-          Curl_expire(data, 1, EXPIRE_QUIC);
-          return CURLE_OK;
-        }
-        return curlcode;
+      else if(nread < gsolen) {
+        /* Reached MAX_PKT_BURST *or*
+         * the capacity of our buffer *or*
+         * last add was shorter than the previous ones, flush */
+        break;
       }
-      /* pktbuf has been completely sent */
-      pktcnt = 0;
     }
   }
 
-out:
+  if(!Curl_bufq_is_empty(&ctx->q.sendbuf)) {
+    /* time to send */
+    CURL_TRC_CF(data, cf, "egress, send collected %zu packets in %zu bytes",
+                pktcnt, Curl_bufq_len(&ctx->q.sendbuf));
+    curlcode = vquic_send(cf, data, &ctx->q, gsolen);
+    if(curlcode) {
+      if(curlcode == CURLE_AGAIN) {
+        Curl_expire(data, 1, EXPIRE_QUIC);
+        return CURLE_OK;
+      }
+      return curlcode;
+    }
+    pktx_update_time(pktx, cf);
+    ngtcp2_conn_update_pkt_tx_time(ctx->qconn, pktx->ts);
+  }
   return CURLE_OK;
 }
 
@@ -1996,8 +2051,10 @@ static CURLcode cf_ngtcp2_cntrl(struct Curl_cfilter *cf,
     break;
   }
   case CF_CTRL_CONN_INFO_UPDATE:
-    if(!cf->sockindex && cf->connected)
+    if(!cf->sockindex && cf->connected) {
       cf->conn->httpversion_seen = 30;
+      Curl_conn_set_multiplex(cf->conn);
+    }
     break;
   default:
     break;
@@ -2433,9 +2490,7 @@ static CURLcode cf_connect_start(struct Curl_cfilter *cf,
   CURLcode result;
   const struct Curl_sockaddr_ex *sockaddr = NULL;
   int qfd;
-static const struct alpn_spec ALPN_SPEC_H3 = {
-  { "h3", "h3-29" }, 2
-};
+  static const struct alpn_spec ALPN_SPEC_H3 = {{ "h3", "h3-29" }, 2};
 
   DEBUGASSERT(ctx->initialized);
   ctx->dcid.datalen = NGTCP2_MAX_CIDLEN;
@@ -2456,8 +2511,7 @@ static const struct alpn_spec ALPN_SPEC_H3 = {
   if(result)
     return result;
 
-  Curl_cf_socket_peek(cf->next, data, &ctx->q.sockfd, &sockaddr, NULL);
-  if(!sockaddr)
+  if(Curl_cf_socket_peek(cf->next, data, &ctx->q.sockfd, &sockaddr, NULL))
     return CURLE_QUIC_CONNECT_ERROR;
   ctx->q.local_addrlen = sizeof(ctx->q.local_addr);
   rv = getsockname(ctx->q.sockfd, (struct sockaddr *)&ctx->q.local_addr,
@@ -2578,20 +2632,40 @@ static CURLcode cf_ngtcp2_connect(struct Curl_cfilter *cf,
 out:
   if(result == CURLE_RECV_ERROR && ctx->qconn &&
      ngtcp2_conn_in_draining_period(ctx->qconn)) {
-    /* When a QUIC server instance is shutting down, it may send us a
-     * CONNECTION_CLOSE right away. Our connection then enters the DRAINING
-     * state. The CONNECT may work in the near future again. Indicate
-     * that as a "weird" reply. */
-    result = CURLE_WEIRD_SERVER_REPLY;
+    const ngtcp2_ccerr *cerr = ngtcp2_conn_get_ccerr(ctx->qconn);
+
+    result = CURLE_COULDNT_CONNECT;
+    if(cerr) {
+      CURL_TRC_CF(data, cf, "connect error, type=%d, code=%"
+                  FMT_PRIu64,
+                  cerr->type, (curl_uint64_t)cerr->error_code);
+      switch(cerr->type) {
+      case NGTCP2_CCERR_TYPE_VERSION_NEGOTIATION:
+        CURL_TRC_CF(data, cf, "error in version negotiation");
+        break;
+      default:
+        if(cerr->error_code >= NGTCP2_CRYPTO_ERROR) {
+          CURL_TRC_CF(data, cf, "crypto error, tls alert=%u",
+                      (unsigned int)(cerr->error_code & 0xffu));
+        }
+        else if(cerr->error_code == NGTCP2_CONNECTION_REFUSED) {
+          CURL_TRC_CF(data, cf, "connection refused by server");
+          /* When a QUIC server instance is shutting down, it may send us a
+           * CONNECTION_CLOSE with this code right away. We want
+            * to keep on trying in this case. */
+          result = CURLE_WEIRD_SERVER_REPLY;
+        }
+      }
+    }
   }
 
 #ifndef CURL_DISABLE_VERBOSE_STRINGS
   if(result) {
     struct ip_quadruple ip;
 
-    Curl_cf_socket_peek(cf->next, data, NULL, NULL, &ip);
-    infof(data, "QUIC connect to %s port %u failed: %s",
-          ip.remote_ip, ip.remote_port, curl_easy_strerror(result));
+    if(!Curl_cf_socket_peek(cf->next, data, NULL, NULL, &ip))
+      infof(data, "QUIC connect to %s port %u failed: %s",
+            ip.remote_ip, ip.remote_port, curl_easy_strerror(result));
   }
 #endif
   if(!result && ctx->qconn) {
@@ -2700,9 +2774,13 @@ static bool cf_ngtcp2_conn_is_alive(struct Curl_cfilter *cf,
    * it will close the connection when it expires. */
   rp = ngtcp2_conn_get_remote_transport_params(ctx->qconn);
   if(rp && rp->max_idle_timeout) {
-    timediff_t idletime = curlx_timediff(curlx_now(), ctx->q.last_io);
-    if(idletime > 0 && (uint64_t)idletime > rp->max_idle_timeout)
-      goto out;
+    timediff_t idletime_ms = curlx_timediff(curlx_now(), ctx->q.last_io);
+    if(idletime_ms > 0) {
+      uint64_t max_idle_ms =
+        (uint64_t)(rp->max_idle_timeout / NGTCP2_MILLISECONDS);
+      if((uint64_t)idletime_ms > max_idle_ms)
+        goto out;
+    }
   }
 
   if(!cf->next || !cf->next->cft->is_alive(cf->next, data, input_pending))
@@ -2749,7 +2827,7 @@ CURLcode Curl_cf_ngtcp2_create(struct Curl_cfilter **pcf,
                                const struct Curl_addrinfo *ai)
 {
   struct cf_ngtcp2_ctx *ctx = NULL;
-  struct Curl_cfilter *cf = NULL, *udp_cf = NULL;
+  struct Curl_cfilter *cf = NULL;
   CURLcode result;
 
   (void)data;
@@ -2763,23 +2841,21 @@ CURLcode Curl_cf_ngtcp2_create(struct Curl_cfilter **pcf,
   result = Curl_cf_create(&cf, &Curl_cft_http3, ctx);
   if(result)
     goto out;
+  cf->conn = conn;
 
-  result = Curl_cf_udp_create(&udp_cf, data, conn, ai, TRNSPRT_QUIC);
+  result = Curl_cf_udp_create(&cf->next, data, conn, ai, TRNSPRT_QUIC);
   if(result)
     goto out;
-
-  cf->conn = conn;
-  udp_cf->conn = cf->conn;
-  udp_cf->sockindex = cf->sockindex;
-  cf->next = udp_cf;
+  cf->next->conn = cf->conn;
+  cf->next->sockindex = cf->sockindex;
 
 out:
   *pcf = (!result) ? cf : NULL;
   if(result) {
-    if(udp_cf)
-      Curl_conn_cf_discard_sub(cf, udp_cf, data, TRUE);
-    Curl_safefree(cf);
-    cf_ngtcp2_ctx_free(ctx);
+    if(cf)
+      Curl_conn_cf_discard_chain(&cf, data);
+    else if(ctx)
+      cf_ngtcp2_ctx_free(ctx);
   }
   return result;
 }

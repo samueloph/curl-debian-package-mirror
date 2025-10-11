@@ -41,9 +41,6 @@
 #ifdef HAVE_NETDB_H
 #include <netdb.h>
 #endif
-#ifdef HAVE_FCNTL_H
-#include <fcntl.h>
-#endif
 #ifdef HAVE_ARPA_INET_H
 #include <arpa/inet.h>
 #endif
@@ -78,8 +75,7 @@
 #include "http_proxy.h"
 #include "socks.h"
 
-/* The last 3 #include files should be in this order */
-#include "curl_printf.h"
+/* The last 2 #include files should be in this order */
 #include "curl_memory.h"
 #include "memdebug.h"
 
@@ -270,7 +266,7 @@ bool Curl_addr2string(struct sockaddr *sa, curl_socklen_t salen,
     case AF_UNIX:
       if(salen > (curl_socklen_t)sizeof(CURL_SA_FAMILY_T)) {
         su = (struct sockaddr_un*)sa;
-        msnprintf(addr, MAX_IPADR_LEN, "%s", su->sun_path);
+        curl_msnprintf(addr, MAX_IPADR_LEN, "%s", su->sun_path);
       }
       else
         addr[0] = 0; /* socket with no name */
@@ -620,4 +616,14 @@ out:
   if(result)
     Curl_resolv_unlink(data, &data->state.dns[sockindex]);
   return result;
+}
+
+void Curl_conn_set_multiplex(struct connectdata *conn)
+{
+  if(!conn->bits.multiplex) {
+    conn->bits.multiplex = TRUE;
+    if(conn->attached_multi) {
+      Curl_multi_connchanged(conn->attached_multi);
+    }
+  }
 }
