@@ -15,10 +15,10 @@ Last-Update: 2024-11-06
  6 files changed, 78 insertions(+), 7 deletions(-)
 
 diff --git a/configure.ac b/configure.ac
-index 5348261..f263e4d 100644
+index 0880552..7b5c387 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -252,6 +252,16 @@ AS_HELP_STRING([--with-gnutls=PATH],[where to look for GnuTLS, PATH points to th
+@@ -249,6 +249,16 @@ AS_HELP_STRING([--with-gnutls=PATH],[where to look for GnuTLS, PATH points to th
    fi
  ])
  
@@ -35,7 +35,7 @@ index 5348261..f263e4d 100644
  OPT_MBEDTLS=no
  AC_ARG_WITH(mbedtls,dnl
  AS_HELP_STRING([--with-mbedtls=PATH],[where to look for mbedTLS, PATH points to the installation root]),[
-@@ -2745,7 +2755,7 @@ AS_HELP_STRING([--disable-versioned-symbols], [Disable versioned symbols in shar
+@@ -2731,7 +2741,7 @@ AS_HELP_STRING([--disable-versioned-symbols], [Disable versioned symbols in shar
  )
  
  AC_SUBST([CURL_LIBCURL_VERSIONED_SYMBOLS_PREFIX], ["$versioned_symbols_flavour"])
@@ -45,10 +45,10 @@ index 5348261..f263e4d 100644
    [test "x$versioned_symbols" = 'xyes'])
  
 diff --git a/docs/examples/Makefile.am b/docs/examples/Makefile.am
-index 27d4ce7..9624208 100644
+index 0885b92..d1a54ce 100644
 --- a/docs/examples/Makefile.am
 +++ b/docs/examples/Makefile.am
-@@ -48,7 +48,7 @@ AM_CPPFLAGS += -DCURL_NO_OLDIES
+@@ -49,7 +49,7 @@ AM_CPPFLAGS += -DCURL_NO_OLDIES
  LIBS = $(BLANK_AT_MAKETIME)
  
  # Dependencies
@@ -58,12 +58,12 @@ index 27d4ce7..9624208 100644
  # This might hold -Werror
  CFLAGS += @CURL_CFLAG_EXTRAS@
 diff --git a/lib/Makefile.am b/lib/Makefile.am
-index f6ea580..2a72b8d 100644
+index 784b7f3..5b92b72 100644
 --- a/lib/Makefile.am
 +++ b/lib/Makefile.am
-@@ -35,7 +35,11 @@ EXTRA_DIST = config-mac.h config-os400.h config-plan9.h config-riscos.h \
+@@ -32,7 +32,11 @@ EXTRA_DIST = config-mac.h config-os400.h config-plan9.h config-riscos.h \
    config-win32.h curl_config.h.in $(LIB_RCFILES) libcurl.def            \
-   $(CMAKE_DIST) Makefile.soname optiontable.pl $(CHECKSRC_DIST)
+   $(CMAKE_DIST) Makefile.soname optiontable.pl
  
 +if GNUTLSBUILD
 +lib_LTLIBRARIES = libcurl-gnutls.la
@@ -73,7 +73,7 @@ index f6ea580..2a72b8d 100644
  
  if BUILD_UNITTESTS
  noinst_LTLIBRARIES = libcurlu.la
-@@ -84,64 +88,121 @@ if USE_UNITY
+@@ -81,64 +85,121 @@ if USE_UNITY
  libcurl_unity.c: $(top_srcdir)/scripts/mk-unity.pl $(CSOURCES)
  	@PERL@ $(top_srcdir)/scripts/mk-unity.pl --include $(CSOURCES) > libcurl_unity.c
  
@@ -197,7 +197,7 @@ index f6ea580..2a72b8d 100644
  libcurlu_la_LDFLAGS = $(AM_LDFLAGS) -static $(LIBCURL_PC_LIBS_PRIVATE)
  libcurlu_la_CFLAGS = $(AM_CFLAGS)
 diff --git a/src/Makefile.am b/src/Makefile.am
-index a25e844..a777b48 100644
+index c1bcf27..9bcd034 100644
 --- a/src/Makefile.am
 +++ b/src/Makefile.am
 @@ -102,7 +102,7 @@ CFLAGS += @CURL_CFLAG_EXTRAS@
