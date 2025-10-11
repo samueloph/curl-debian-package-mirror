@@ -1,3 +1,46 @@
+curl (8.16.0-4) unstable; urgency=medium
+
+  * debian/patches/setopt-make-CURLOPT_MAXREDIRS-accept-1-again.patch: import
+    from upstream. (Closes: #1117593)
+
+ -- Carlos Henrique Lima Melara <charlesmelara@riseup.net>  Wed, 08 Oct 2025 13:05:07 -0300
+
+curl (8.16.0-3) unstable; urgency=medium
+
+  * d/control: Fix required versions of libnghttp3 and libngtcp2 packages.
+     - Append "~" to the end of the version, for a backports-friendly package.
+     - Add an explicit dependency on libnghttp3-9 and libngtcp2-16, as
+       otherwise dpkg picks a lower version as a dependency, but we need
+       newer versions for HTTP/3.
+     - Bump the version requirement for libnghttp3-dev to 1.11.0.
+  * d/control: wrap-and-sort -taf
+
+ -- Samuel Henrique <samueloph@debian.org>  Tue, 07 Oct 2025 20:47:19 +0100
+
+curl (8.16.0-2) unstable; urgency=medium
+
+  [ Carlos Henrique Lima Melara ]
+  * d/rules: use DEB_DISTRIBUTION to add configure flags for experimental
+  * d/watch-rc: keep a watch file for curl RC releases
+
+  [ Marcos Felipe de Almeida Souza ]
+  * d/patches: Add upstream commits to fix regressions
+    - async-thrdd-drop-pthread_cancel.patch: Upstream changes
+    - setopt-accept-_SSL_VERIFYHOST-set-to-2L.patch: Upstream changes
+
+  [ Samuel Henrique ]
+  * Build OpenSSL HTTP/3 support with ngtcp2
+    - Add B-D on libngtcp2-crypto-ossl-dev (>= 1.16.0)
+    - Add Depends on libngtcp2-crypto-ossl-dev (>= 1.16.0) and
+      libngtcp2-dev (>= 1.16.0) in the OpenSSL -dev package
+    - Bump libngtcp2-dev and libngtcp2-crypto-gnutls-dev Depends in the
+      GnuTLS -dev package to >= 1.16.0
+    - Drop --with-openssl-quic configure flag in OpenSSL build
+    - Set --with-ngtcp2 and --with-nghttp3 configure flag for both builds
+      (OpenSSL and GnuTLS)
+
+ -- Samuel Henrique <samueloph@debian.org>  Thu, 02 Oct 2025 22:29:47 +0100
+
 curl (8.16.0-1~bpo13+1) trixie-backports; urgency=medium
 
   * Rebuild for trixie-backports.
