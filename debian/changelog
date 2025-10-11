@@ -1,3 +1,9 @@
+curl (8.16.0-4~bpo13+1) trixie-backports; urgency=medium
+
+  * Rebuild for trixie-backports.
+
+ -- Samuel Henrique <samueloph@debian.org>  Sat, 11 Oct 2025 09:01:14 +0100
+
 curl (8.16.0-4) unstable; urgency=medium
 
   * debian/patches/setopt-make-CURLOPT_MAXREDIRS-accept-1-again.patch: import
