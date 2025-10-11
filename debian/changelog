@@ -1,3 +1,19 @@
+curl (8.17.0~rc1-1~exp1) experimental; urgency=medium
+
+  * New upstream version 8.17.0-rc1
+  * Drop patches merged upstream:
+    - setopt-accept-_SSL_VERIFYHOST-set-to-2L.patch
+    - asyn-thrdd-drop-pthread_cancel.patch
+    - setopt-make-CURLOPT_MAXREDIRS-accept-1-again.patch
+  * Refresh patches:
+    - ZZZgnutls-build.patch
+    - build-Divide-mit-krb5-gssapi-link-flags-between-LDFLAGS-a.patch
+  * d/copyright: Drop entry for lib/krb5.c, file was removed
+  * d/libcurl*.symbols: Add new symbols curl_multi_notify_disable and
+    curl_multi_notify_enable
+
+ -- Samuel Henrique <samueloph@debian.org>  Sat, 11 Oct 2025 16:14:08 +0100
+
 curl (8.16.0-4) unstable; urgency=medium
 
   * debian/patches/setopt-make-CURLOPT_MAXREDIRS-accept-1-again.patch: import
