@@ -1,0 +1,29 @@
+From 57f544e831fcad6eca21760a3233b6b3f7e36fce Mon Sep 17 00:00:00 2001
+From: Samuel Henrique <samueloph@debian.org>
+Date: Sun, 21 Sep 2025 19:32:46 +0200
+Subject: [PATCH] Set CURL_OPTIONS right before the url
+
+ I'm reordering the parameters used in the curl invocation to have
+ "CURL-OPTIONS" be set for last, allowing "--output" to also be
+ overwritten and making the curl invocation more clear, as having
+ "--continue-at -" not right before the URL looks weird.
+
+ As far as my tests went, this has no functionality side effect other
+ than allowing "output" to be set by the user.
+---
+ wcurl | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/wcurl b/wcurl
+index e4a56e2..fa9366f 100755
+--- a/wcurl
++++ b/wcurl
+@@ -231,7 +231,7 @@ exec_curl()
+             [ -z "${OUTPUT_PATH}" ] && OUTPUT_PATH=index.html
+         fi
+         # shellcheck disable=SC2086
+-        set -- "$@" ${NEXT_PARAMETER} ${PER_URL_PARAMETERS} ${CURL_HAS_NO_CLOBBER} ${CURL_OPTIONS} --output "${OUTPUT_PATH}" "${url}"
++        set -- "$@" ${NEXT_PARAMETER} ${PER_URL_PARAMETERS} ${CURL_HAS_NO_CLOBBER} --output "${OUTPUT_PATH}" ${CURL_OPTIONS} "${url}"
+         NEXT_PARAMETER="--next"
+     done
+ 
