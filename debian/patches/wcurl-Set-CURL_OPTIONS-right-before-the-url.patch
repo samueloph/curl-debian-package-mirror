@@ -10,14 +10,18 @@ Subject: [PATCH] Set CURL_OPTIONS right before the url
 
  As far as my tests went, this has no functionality side effect other
  than allowing "output" to be set by the user.
+
+Backported-by: Samuel Henrique <samueloph@debian.org>
+ * Modify wcurl patch to apply on curl sources by changing the location of the
+   wcurl script from wcurl to scripts/wcurl.
 ---
- wcurl | 2 +-
+ scripts/wcurl | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/wcurl b/wcurl
-index e4a56e2..fa9366f 100755
---- a/wcurl
-+++ b/wcurl
+diff --git a/scripts/wcurl b/scripts/wcurl
+index af66ae7..84b981a 100755
+--- a/scripts/wcurl
++++ b/scripts/wcurl
 @@ -231,7 +231,7 @@ exec_curl()
              [ -z "${OUTPUT_PATH}" ] && OUTPUT_PATH=index.html
          fi
