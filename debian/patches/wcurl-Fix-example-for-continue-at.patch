@@ -12,32 +12,19 @@ Subject: [PATCH] Fix example for "continue-at"
  Closes: https://github.com/curl/wcurl/issues/61
 
 Co-authored-by: Sergio Durigan Junior <github@sergiodj.net>
----
- README.md | 4 ++--
- wcurl.md  | 5 ++---
- 2 files changed, 4 insertions(+), 5 deletions(-)
 
-diff --git a/README.md b/README.md
-index 1ef1105..c8febd4 100644
---- a/README.md
-+++ b/README.md
-@@ -133,10 +133,10 @@ then performs the parsing. May be specified more than once.
-   wcurl --curl-options="--progress-bar --http2" example.com/filename.txt
-   ```
- 
--* Resume from an interrupted download (if more options are used, this needs to be the last one in the list):
-+* Resume from an interrupted download. The options necessary to resume the download (`--clobber --continue-at -`) must be the **last** options specified in `--curl-options`. Note that the only way to resume interrupted downloads is to allow wcurl to overwrite the destination file:
- 
-   ```sh
--  wcurl --curl-options="--continue-at -" example.com/filename.txt
-+  wcurl --curl-options="--clobber --continue-at -" example.com/filename.txt
-   ```
- 
- # Running the testsuite
-diff --git a/wcurl.md b/wcurl.md
+Backported-by: Samuel Henrique <samueloph@debian.org>
+ * Modify wcurl patch to apply on curl sources by changing the location of the
+   wcurl script from wcurl to scripts/wcurl.
+ * Drop changes to wcurl's README file as they are not in the curl sources.
+---
+ docs/wcurl.md | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/docs/wcurl.md b/docs/wcurl.md
 index 4111af5..1864500 100644
---- a/wcurl.md
-+++ b/wcurl.md
+--- a/docs/wcurl.md
++++ b/docs/wcurl.md
 @@ -124,10 +124,9 @@ Download a file passing the **--progress-bar** and **--http2** flags to curl:
  
  **wcurl --curl-options="--progress-bar --http2" example.com/filename.txt**
