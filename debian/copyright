@@ -86,7 +86,6 @@ Files: m4/xc-am-iface.m4
  m4/xc-val-flgs.m4
  m4/zz40-xc-ovr.m4
  m4/zz50-xc-ovr.m4
- m4/zz60-xc-ovr.m4
 Copyright: 2011-2022, Daniel Stenberg <daniel@haxx.se>
 License: ISC
 
@@ -284,11 +283,6 @@ License: curl
 Files: docs/examples/maxconnects.c
 Copyright: James Fuller, <jim@webcomposite.com>, et al.
 License: curl
-
-Files: lib/vssh/curl_path.c
-Copyright:            Daniel Stenberg, <daniel@haxx.se>, et al.
-           2001-2004, Damien Miller, <djm@openbsd.org>
-License: curl and ISC
 
 Files: lib/vtls/cipher_suite.c
        lib/vtls/cipher_suite.h
