@@ -61,7 +61,6 @@
 #include "progress.h"
 #include "curlx/timediff.h"
 #include "httpsrr.h"
-#include "strdup.h"
 
 #include <ares.h>
 #include <ares_version.h> /* really old c-ares did not include this by
@@ -517,8 +516,6 @@ static void async_ares_hostbyname_cb(void *user_data,
   (void)timeouts; /* ignored */
 
   if(ARES_EDESTRUCTION == status)
-    /* when this ares handle is getting destroyed, the 'arg' pointer may not
-       be valid so only defer it when we know the 'status' says its fine! */
     return;
 
   if(ARES_SUCCESS == status) {
@@ -733,6 +730,9 @@ struct Curl_addrinfo *Curl_async_getaddrinfo(struct Curl_easy *data,
                                              int *waitp)
 {
   struct async_ares_ctx *ares = &data->state.async.ares;
+#ifdef USE_HTTPSRR
+  char *rrname = NULL;
+#endif
   *waitp = 0; /* default to synchronous response */
 
   if(async_ares_init_lazy(data))
@@ -745,6 +745,15 @@ struct Curl_addrinfo *Curl_async_getaddrinfo(struct Curl_easy *data,
   data->state.async.hostname = strdup(hostname);
   if(!data->state.async.hostname)
     return NULL;
+#ifdef USE_HTTPSRR
+  if(port != 443) {
+    rrname = curl_maprintf("_%d_.https.%s", port, hostname);
+    if(!rrname) {
+      free(data->state.async.hostname);
+      return NULL;
+    }
+  }
+#endif
 
   /* initial status - failed */
   ares->ares_status = ARES_ENOTFOUND;
@@ -817,11 +826,14 @@ struct Curl_addrinfo *Curl_async_getaddrinfo(struct Curl_easy *data,
 #endif
 #ifdef USE_HTTPSRR
   {
-    CURL_TRC_DNS(data, "asyn-ares: fire off query for HTTPSRR");
+    CURL_TRC_DNS(data, "asyn-ares: fire off query for HTTPSRR: %s",
+                 rrname ? rrname : data->state.async.hostname);
     memset(&ares->hinfo, 0, sizeof(ares->hinfo));
     ares->hinfo.port = -1;
+    ares->hinfo.rrname = rrname;
     ares->num_pending++; /* one more */
-    ares_query_dnsrec(ares->channel, data->state.async.hostname,
+    ares_query_dnsrec(ares->channel,
+                      rrname ? rrname : data->state.async.hostname,
                       ARES_CLASS_IN, ARES_REC_TYPE_HTTPS,
                       async_ares_rr_done, data, NULL);
   }

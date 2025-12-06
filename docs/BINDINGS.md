@@ -61,7 +61,7 @@ Go: [go-curl](https://github.com/andelf/go-curl) by ShuYu Wang
 
 [Haskell](https://hackage.haskell.org/package/curl) Written by Galois, Inc
 
-[Hollywood](https://www.hollywood-mal.com/download.html) hURL by Andreas Falkenhahn
+[Hollywood](https://web.archive.org/web/20250116185836/https://www.hollywood-mal.com/download.html) hURL by Andreas Falkenhahn
 
 [Java](https://github.com/covers1624/curl4j)
 
@@ -100,7 +100,7 @@ Bailiff and Bálint Szilakszi,
 
 [PostgreSQL](https://github.com/RekGRpth/pg_curl) - cURL client for PostgreSQL
 
-[PureBasic](https://www.purebasic.com/documentation/http/index.html) uses libcurl in its "native" HTTP subsystem
+[PureBasic](https://web.archive.org/web/20250325015028/www.purebasic.com/documentation/http/index.html) uses libcurl in its "native" HTTP subsystem
 
 [Python](http://pycurl.io/) PycURL by Kjetil Jacobsen
 

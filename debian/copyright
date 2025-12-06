@@ -68,9 +68,7 @@ Copyright: Daniel Stenberg <daniel@haxx.se>, et al.
            John Malmberg
 License: curl or ISC
 
-Files: lib/curl_des.c
- lib/curl_des.h
- lib/system_win32.c
+Files: lib/system_win32.c
  lib/system_win32.h
  lib/vauth/krb5_sspi.c
  lib/vauth/vauth.c

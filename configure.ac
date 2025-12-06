@@ -1909,6 +1909,18 @@ if test x"$want_gss" = xyes; then
         fi
       fi
     fi
+    gss_version=""
+    if test -n "$host_alias" -a -f "$GSSAPI_ROOT/bin/$host_alias-krb5-config"; then
+      gss_version=`$GSSAPI_ROOT/bin/$host_alias-krb5-config --version | $SED 's/Kerberos 5 release //'`
+    elif test "$PKGCONFIG" != "no"; then
+      gss_version=`$PKGCONFIG --modversion mit-krb5-gssapi`
+    elif test -f "$KRB5CONFIG"; then
+      gss_version=`$KRB5CONFIG --version | $SED 's/Kerberos 5 release //'`
+    fi
+    if test -n "$gss_version"; then
+      AC_MSG_NOTICE([GSS-API MIT Kerberos version detected: $gss_version])
+      AC_DEFINE_UNQUOTED([CURL_KRB5_VERSION], ["$gss_version"], [MIT Kerberos version])
+    fi
   else
     LDFLAGS="$LDFLAGS $GSSAPI_LIB_DIR"
     LDFLAGSPC="$LDFLAGSPC $GSSAPI_LIB_DIR"
@@ -5240,10 +5252,11 @@ fi
 use_curl_ntlm_core=no
 
 if test "x$CURL_DISABLE_NTLM" != "x1"; then
-  if test "x$OPENSSL_ENABLED" = "x1" -o "x$MBEDTLS_ENABLED" = "x1" \
+  if test "x$HAVE_DES_ECB_ENCRYPT" = "x1" \
       -o "x$GNUTLS_ENABLED" = "x1" \
       -o "x$USE_WIN32_CRYPTO" = "x1" \
-      -o "x$HAVE_WOLFSSL_DES_ECB_ENCRYPT" = "x1"; then
+      -o "x$HAVE_WOLFSSL_DES_ECB_ENCRYPT" = "x1" \
+      -o "x$HAVE_MBEDTLS_DES_CRYPT_ECB" = "x1"; then
     use_curl_ntlm_core=yes
   fi
 
@@ -5302,6 +5315,10 @@ if test "x$OPENSSL_ENABLED" = "x1" -o -n "$SSL_ENABLED"; then
   if test "x$ECH_ENABLED" = "x1"; then
     SUPPORT_FEATURES="$SUPPORT_FEATURES ECH"
   fi
+fi
+
+if test "x$APPLE_SECTRUST_ENABLED" = "x1"; then
+  SUPPORT_FEATURES="$SUPPORT_FEATURES AppleSecTrust"
 fi
 
 if test "x$want_httpsrr" != "xno"; then

@@ -25600,6 +25600,21 @@ printf "%s\n" "found" >&6; }
         fi
       fi
     fi
+    gss_version=""
+    if test -n "$host_alias" -a -f "$GSSAPI_ROOT/bin/$host_alias-krb5-config"; then
+      gss_version=`$GSSAPI_ROOT/bin/$host_alias-krb5-config --version | $SED 's/Kerberos 5 release //'`
+    elif test "$PKGCONFIG" != "no"; then
+      gss_version=`$PKGCONFIG --modversion mit-krb5-gssapi`
+    elif test -f "$KRB5CONFIG"; then
+      gss_version=`$KRB5CONFIG --version | $SED 's/Kerberos 5 release //'`
+    fi
+    if test -n "$gss_version"; then
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: GSS-API MIT Kerberos version detected: $gss_version" >&5
+printf "%s\n" "$as_me: GSS-API MIT Kerberos version detected: $gss_version" >&6;}
+
+printf "%s\n" "#define CURL_KRB5_VERSION \"$gss_version\"" >>confdefs.h
+
+    fi
   else
     LDFLAGS="$LDFLAGS $GSSAPI_LIB_DIR"
     LDFLAGSPC="$LDFLAGSPC $GSSAPI_LIB_DIR"
@@ -26322,64 +26337,7 @@ then :
 fi
 
 
-    if test "$ac_cv_lib_ssl_SSL_connect" != yes; then
-            { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for ssl with RSAglue/rsaref libs in use" >&5
-printf %s "checking for ssl with RSAglue/rsaref libs in use... " >&6; };
-      OLIBS=$LIBS
-      LIBS="-lRSAglue -lrsaref $LIBS"
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for SSL_connect in -lssl" >&5
-printf %s "checking for SSL_connect in -lssl... " >&6; }
-if test ${ac_cv_lib_ssl_SSL_connect+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lssl  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-
-#ifdef __cplusplus
-extern "C"
-#endif
-char SSL_connect ();
-int main(void)
-{
-return SSL_connect ();
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"
-then :
-  ac_cv_lib_ssl_SSL_connect=yes
-else $as_nop
-  ac_cv_lib_ssl_SSL_connect=no
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_ssl_SSL_connect" >&5
-printf "%s\n" "$ac_cv_lib_ssl_SSL_connect" >&6; }
-if test "x$ac_cv_lib_ssl_SSL_connect" = xyes
-then :
-  printf "%s\n" "#define HAVE_LIBSSL 1" >>confdefs.h
-
-  LIBS="-lssl $LIBS"
-
-fi
-
-      if test "$ac_cv_lib_ssl_SSL_connect" != yes; then
-                { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
-printf "%s\n" "no" >&6; }
-        LIBS=$OLIBS
-      else
-        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-printf "%s\n" "yes" >&6; }
-      fi
-
-    else
-
+    if test "$ac_cv_lib_ssl_SSL_connect" = yes; then
                    for ac_header in openssl/x509.h openssl/rsa.h openssl/crypto.h openssl/pem.h openssl/ssl.h openssl/err.h
 do :
   as_ac_Header=`printf "%s\n" "ac_cv_header_$ac_header" | $as_tr_sh`
@@ -26615,7 +26573,46 @@ printf "%s\n" "$as_me: OPENSSL_ENABLED: $OPENSSL_ENABLED" >&6;}
 fi
 
 if test "$OPENSSL_ENABLED" = "1"; then
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for SRP support in OpenSSL" >&5
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for DES support in OpenSSL" >&5
+printf %s "checking for DES support in OpenSSL... " >&6; }
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+
+      #ifndef OPENSSL_SUPPRESS_DEPRECATED
+      #define OPENSSL_SUPPRESS_DEPRECATED
+      #endif
+      #include <openssl/des.h>
+
+int main(void)
+{
+
+      DES_ecb_encrypt(0, 0, 0, DES_ENCRYPT);
+
+  return 0;
+}
+
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+printf "%s\n" "yes" >&6; }
+
+printf "%s\n" "#define HAVE_DES_ECB_ENCRYPT 1" >>confdefs.h
+
+    HAVE_DES_ECB_ENCRYPT=1
+
+else $as_nop
+
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for SRP support in OpenSSL" >&5
 printf %s "checking for SRP support in OpenSSL... " >&6; }
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
@@ -26654,10 +26651,8 @@ printf "%s\n" "no" >&6; }
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.beam \
     conftest$ac_exeext conftest.$ac_ext
-fi
 
-if test X"$OPENSSL_ENABLED" = X"1"; then
-  # Check whether --enable-openssl-auto-load-config was given.
+        # Check whether --enable-openssl-auto-load-config was given.
 if test ${enable_openssl_auto_load_config+y}
 then :
   enableval=$enable_openssl_auto_load_config;  if test X"$enableval" = X"no"; then
@@ -26670,10 +26665,8 @@ printf "%s\n" "#define CURL_DISABLE_OPENSSL_AUTO_LOAD_CONFIG 1" >>confdefs.h
 
 fi
 
-fi
 
-if test "$OPENSSL_ENABLED" = "1"; then
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for QUIC support and OpenSSL >= 3.3" >&5
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for QUIC support and OpenSSL >= 3.3" >&5
 printf %s "checking for QUIC support and OpenSSL >= 3.3... " >&6; }
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
@@ -26985,9 +26978,8 @@ printf "%s\n" "$as_me: Added $gtlslib to CURL_LIBRARY_PATH" >&6;}
   test -z "$ssl_msg" || ssl_backends="${ssl_backends:+$ssl_backends, }$ssl_msg"
 fi
 
-
 if test "$GNUTLS_ENABLED" = "1"; then
-  USE_GNUTLS_NETTLE=
+        USE_GNUTLS_NETTLE=
   # First check if we can detect either crypto library via transitive linking
   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for nettle_MD5Init in -lgnutls" >&5
 printf %s "checking for nettle_MD5Init in -lgnutls... " >&6; }
@@ -27075,10 +27067,8 @@ fi
     as_fn_error $? "GnuTLS found, but nettle was not found" "$LINENO" 5
   fi
   LIBS="-lnettle $LIBS"
-fi
 
-if test "$GNUTLS_ENABLED" = "1"; then
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for gnutls_srp_verifier in -lgnutls" >&5
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for gnutls_srp_verifier in -lgnutls" >&5
 printf %s "checking for gnutls_srp_verifier in -lgnutls... " >&6; }
 if test ${ac_cv_lib_gnutls_gnutls_srp_verifier+y}
 then :
@@ -27123,7 +27113,6 @@ printf "%s\n" "#define HAVE_GNUTLS_SRP 1" >>confdefs.h
 fi
 
 fi
-
 
 
 
@@ -27278,6 +27267,17 @@ printf "%s\n" "$as_me: Added $mbedtlslib to CURL_LIBRARY_PATH" >&6;}
       fi
             if false; then
         LIBCURL_PC_REQUIRES_PRIVATE="$LIBCURL_PC_REQUIRES_PRIVATE mbedtls mbedx509 mbedcrypto"
+      fi
+
+            ac_fn_c_check_func "$LINENO" "mbedtls_des_crypt_ecb" "ac_cv_func_mbedtls_des_crypt_ecb"
+if test "x$ac_cv_func_mbedtls_des_crypt_ecb" = xyes
+then :
+  printf "%s\n" "#define HAVE_MBEDTLS_DES_CRYPT_ECB 1" >>confdefs.h
+
+fi
+
+      if test "$ac_cv_func_mbedtls_des_crypt_ecb" = 'yes'; then
+        HAVE_MBEDTLS_DES_CRYPT_ECB=1
       fi
     fi
 
@@ -28073,7 +28073,10 @@ else $as_nop
 
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
-  if test "x$build_for_apple" != "xno"; then
+  if test "x$build_for_apple" == "xno"; then
+    as_fn_error $? "Apple SecTrust can only be enabled for Apple OS targets" "$LINENO" 5
+  fi
+  if test "x$OPENSSL_ENABLED" == "x1" -o "x$GNUTLS_ENABLED" == "x1"; then
     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
@@ -28084,8 +28087,7 @@ printf "%s\n" "#define USE_APPLE_SECTRUST 1" >>confdefs.h
     LDFLAGS="$LDFLAGS $APPLE_SECTRUST_LDFLAGS"
     LDFLAGSPC="$LDFLAGSPC $APPLE_SECTRUST_LDFLAGS"
   else
-    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
-printf "%s\n" "no" >&6; }
+    as_fn_error $? "Apple SecTrust is only supported for OpenSSL/GnuTLS builds" "$LINENO" 5
   fi
 else
   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
@@ -45645,10 +45647,11 @@ fi
 use_curl_ntlm_core=no
 
 if test "x$CURL_DISABLE_NTLM" != "x1"; then
-  if test "x$OPENSSL_ENABLED" = "x1" -o "x$MBEDTLS_ENABLED" = "x1" \
+  if test "x$HAVE_DES_ECB_ENCRYPT" = "x1" \
       -o "x$GNUTLS_ENABLED" = "x1" \
       -o "x$USE_WIN32_CRYPTO" = "x1" \
-      -o "x$HAVE_WOLFSSL_DES_ECB_ENCRYPT" = "x1"; then
+      -o "x$HAVE_WOLFSSL_DES_ECB_ENCRYPT" = "x1" \
+      -o "x$HAVE_MBEDTLS_DES_CRYPT_ECB" = "x1"; then
     use_curl_ntlm_core=yes
   fi
 
@@ -45712,6 +45715,10 @@ if test "x$OPENSSL_ENABLED" = "x1" -o -n "$SSL_ENABLED"; then
   if test "x$ECH_ENABLED" = "x1"; then
     SUPPORT_FEATURES="$SUPPORT_FEATURES ECH"
   fi
+fi
+
+if test "x$APPLE_SECTRUST_ENABLED" = "x1"; then
+  SUPPORT_FEATURES="$SUPPORT_FEATURES AppleSecTrust"
 fi
 
 if test "x$want_httpsrr" != "xno"; then

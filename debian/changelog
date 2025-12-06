@@ -1,6 +1,33 @@
-curl (8.17.0~rc1-1~exp1) experimental; urgency=medium
+curl (8.17.0-3) unstable; urgency=medium
 
-  * New upstream version 8.17.0-rc1
+  * d/p/fix-progress-meter-in-parallel-mode.patch: cherry-pick from upstream.
+
+ -- Carlos Henrique Lima Melara <charlesmelara@riseup.net>  Sun, 23 Nov 2025 21:41:12 -0300
+
+curl (8.17.0-2) unstable; urgency=medium
+
+  * d/p/wcurl-CVE-2025-11563.patch: Import new upstream patch to fix
+    CVE-2025-11563
+
+ -- Samuel Henrique <samueloph@debian.org>  Wed, 12 Nov 2025 20:08:24 -0800
+
+curl (8.17.0-1) unstable; urgency=medium
+
+  * New upstream version 8.17.0
+
+ -- Samuel Henrique <samueloph@debian.org>  Wed, 05 Nov 2025 08:22:23 +0000
+
+curl (8.17.0~rc3-1) unstable; urgency=medium
+
+  * New upstream version 8.17.0~rc3
+  * d/copyright: Drop lib/curl_des.c and lib/curl_des.h, removed upstream
+
+ -- Samuel Henrique <samueloph@debian.org>  Wed, 29 Oct 2025 18:33:28 +0000
+
+curl (8.17.0~rc2-1) unstable; urgency=medium
+
+  * New upstream version 8.17.0~rc2
+  * Revert "d/salsa-ci: enable ARM build test"
   * Drop patches merged upstream:
     - setopt-accept-_SSL_VERIFYHOST-set-to-2L.patch
     - asyn-thrdd-drop-pthread_cancel.patch
@@ -12,7 +39,7 @@ curl (8.17.0~rc1-1~exp1) experimental; urgency=medium
   * d/libcurl*.symbols: Add new symbols curl_multi_notify_disable and
     curl_multi_notify_enable
 
- -- Samuel Henrique <samueloph@debian.org>  Sat, 11 Oct 2025 16:14:08 +0100
+ -- Samuel Henrique <samueloph@debian.org>  Mon, 20 Oct 2025 19:05:21 +0100
 
 curl (8.16.0-4) unstable; urgency=medium
 

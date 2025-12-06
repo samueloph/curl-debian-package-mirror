@@ -43,7 +43,7 @@
 
 static CURL *curl;
 
-static size_t wrfu(void *ptr, size_t size, size_t nmemb, void *stream)
+static size_t write_cb(void *ptr, size_t size, size_t nmemb, void *stream)
 {
   const struct curl_tlssessioninfo *info;
   CURLcode res;
@@ -96,14 +96,14 @@ static size_t wrfu(void *ptr, size_t size, size_t nmemb, void *stream)
 
 int main(void)
 {
-  CURLcode res = CURLE_OK;
-
-  curl_global_init(CURL_GLOBAL_DEFAULT);
+  CURLcode res = curl_global_init(CURL_GLOBAL_ALL);
+  if(res)
+    return (int)res;
 
   curl = curl_easy_init();
   if(curl) {
     curl_easy_setopt(curl, CURLOPT_URL, "https://www.example.com/");
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, wrfu);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_cb);
     curl_easy_setopt(curl, CURLOPT_VERBOSE, 0L);
 
     res = curl_easy_perform(curl);
