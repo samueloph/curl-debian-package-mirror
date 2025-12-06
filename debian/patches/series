@@ -1,5 +1,3 @@
 ZZZgnutls-build.patch
 build-Divide-mit-krb5-gssapi-link-flags-between-LDFLAGS-a.patch
 11_omit-directories-from-config.patch
-wcurl-CVE-2025-11563.patch
-fix-progress-meter-in-parallel-mode.patch
