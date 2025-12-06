@@ -49,8 +49,8 @@ archives](https://curl.se/mail/list.cgi?list=curl-distros)).
 
 *Rolling Release*
 
-- curl package source and patches: https://git.buildroot.net/buildroot/tree/package/libcurl
-- curl issues: https://bugs.buildroot.org/buglist.cgi?quicksearch=curl
+- curl package source and patches: **missing URL**
+- curl issues: **missing URL**
 
 ## Chimera
 
@@ -188,9 +188,9 @@ unless it is specific to Homebrew's way of packaging software.
 
 *Rolling Release*
 
-- curl: https://github.com/lordmulder/cURL-build-win32
-- curl issues: https://github.com/lordmulder/cURL-build-win32/issues
-- curl patches: https://github.com/lordmulder/cURL-build-win32/tree/master/patch
+- curl: https://github.com/lordmulder/curl-build-win32
+- curl issues: https://github.com/lordmulder/curl-build-win32/issues
+- curl patches: https://github.com/lordmulder/curl-build-win32/tree/master/patch
 
 ## NixOS
 
@@ -221,6 +221,12 @@ can also be used on other distributions
 - curl: https://github.com/oracle/solaris-userland/tree/master/components/curl
 - curl issues: https://support.oracle.com/ (requires support contract)
 - curl patches: https://github.com/oracle/solaris-userland/tree/master/components/curl/patches
+
+## OpenBSD
+
+- curl: https://github.com/openbsd/ports/tree/master/net/curl
+- curl issues: https://www.openbsd.org/mail.html (ports mailing list)
+- curl patches: https://github.com/openbsd/ports/tree/master/net/curl/patches
 
 ## OpenEmbedded / Yocto Project
 

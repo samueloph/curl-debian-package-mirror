@@ -52,12 +52,14 @@
 #include "unit2602.c"
 #include "unit2603.c"
 #include "unit2604.c"
+#include "unit2605.c"
 #include "unit3200.c"
 #include "unit3205.c"
 #include "unit3211.c"
 #include "unit3212.c"
 #include "unit3213.c"
 #include "unit3214.c"
+#include "unit3216.c"
 
 const struct entry_s s_entries[] = {
   {"unit1300", test_unit1300},
@@ -110,12 +112,14 @@ const struct entry_s s_entries[] = {
   {"unit2602", test_unit2602},
   {"unit2603", test_unit2603},
   {"unit2604", test_unit2604},
+  {"unit2605", test_unit2605},
   {"unit3200", test_unit3200},
   {"unit3205", test_unit3205},
   {"unit3211", test_unit3211},
   {"unit3212", test_unit3212},
   {"unit3213", test_unit3213},
   {"unit3214", test_unit3214},
+  {"unit3216", test_unit3216},
   {NULL, NULL}
 };
 

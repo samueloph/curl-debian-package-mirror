@@ -9,6 +9,7 @@
 #include "../../lib/curlx/fopen.c"
 #include "../../lib/curlx/multibyte.c"
 #include "../../lib/curlx/strerr.c"
+#include "../../lib/curlx/strparse.c"
 #include "../../lib/curlx/timediff.c"
 #include "../../lib/curlx/timeval.c"
 #include "../../lib/curlx/version_win32.c"

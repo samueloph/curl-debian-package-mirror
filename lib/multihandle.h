@@ -91,12 +91,12 @@ struct Curl_multi {
   unsigned int xfers_alive; /* amount of added transfers that have
                                not yet reached COMPLETE state */
   curl_off_t xfers_total_ever; /* total of added transfers, ever. */
-  struct uint_tbl xfers; /* transfers added to this multi */
+  struct uint32_tbl xfers; /* transfers added to this multi */
   /* Each transfer's mid may be present in at most one of these */
-  struct uint_bset process; /* transfer being processed */
-  struct uint_bset dirty; /* transfer to be run NOW, e.g. ASAP. */
-  struct uint_bset pending; /* transfers in waiting (conn limit etc.) */
-  struct uint_bset msgsent; /* transfers done with message for application */
+  struct uint32_bset process; /* transfer being processed */
+  struct uint32_bset dirty; /* transfer to be run NOW, e.g. ASAP. */
+  struct uint32_bset pending; /* transfers in waiting (conn limit etc.) */
+  struct uint32_bset msgsent; /* transfers done with message for application */
 
   struct Curl_llist msglist; /* a list of messages from completed transfers */
 
@@ -149,11 +149,10 @@ struct Curl_multi {
   struct cshutdn cshutdn; /* connection shutdown handling */
   struct cpool cpool;     /* connection pool (bundles) */
 
-  long max_host_connections; /* if >0, a fixed limit of the maximum number
-                                of connections per host */
-
-  long max_total_connections; /* if >0, a fixed limit of the maximum number
-                                 of connections in total */
+  size_t max_host_connections; /* if >0, a fixed limit of the maximum number
+                                  of connections per host */
+  size_t max_total_connections; /* if >0, a fixed limit of the maximum number
+                                   of connections in total */
 
   /* timer callback and user data pointer for the *socket() API */
   curl_multi_timer_callback timer_cb;

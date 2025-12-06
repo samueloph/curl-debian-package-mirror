@@ -39,15 +39,14 @@ http
 <name>
 urlglob with out of range -o #[num] usage
 </name>
- <command option="no-output">
+<command option="no-output">
 "http://%HOSTIP:%HTTPPORT/[%TESTNUMBER0001-%TESTNUMBER0002]" -o "%LOGDIR/dumpit%TESTNUMBER-#2.dump"
 </command>
 </client>
 
 #
 # Verify data after the test has been "shot". Note that the command line
-# will write both responses into the same file name so only the second
-# survives
+# writes both responses into the same filename so only the second survives
 #
 <verify>
 <file name="%LOGDIR/dumpit%TESTNUMBER-#2.dump" crlf="headers">

@@ -20,10 +20,10 @@ smtp
 SMTP
 </name>
 <file name="%LOGDIR/mail%TESTNUMBER">
-From: different
-To: another
-
-body
+From: different%CR
+To: another%CR
+%CR
+body%CR
 %repeat[6553 x 0123456789]%
 </file>
 
@@ -37,19 +37,19 @@ smtp://%HOSTIP:%SMTPPORT/%TESTNUMBER --mail-rcpt recipient@example.com --mail-fr
 <verify>
 <protocol crlf="yes">
 EHLO %TESTNUMBER
-MAIL FROM:<sender@example.com>
-RCPT TO:<recipient@example.com>
+MAIL FROM:%LTsender@example.com%GT
+RCPT TO:%LTrecipient@example.com%GT
 DATA
 QUIT
 </protocol>
 <upload>
-From: different
-To: another
-
-body
+From: different%CR
+To: another%CR
+%CR
+body%CR
 %repeat[6553 x 0123456789]%
-
-.
+%CR
+.%CR
 </upload>
 </verify>
 </testcase>

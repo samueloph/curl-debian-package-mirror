@@ -157,8 +157,7 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/curl-amissl.m4 \
 	$(top_srcdir)/m4/xc-lt-iface.m4 \
 	$(top_srcdir)/m4/xc-val-flgs.m4 \
 	$(top_srcdir)/m4/zz40-xc-ovr.m4 \
-	$(top_srcdir)/m4/zz50-xc-ovr.m4 \
-	$(top_srcdir)/m4/zz60-xc-ovr.m4 $(top_srcdir)/acinclude.m4 \
+	$(top_srcdir)/m4/zz50-xc-ovr.m4 $(top_srcdir)/acinclude.m4 \
 	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
@@ -203,10 +202,11 @@ am__libcurltool_la_SOURCES_DIST = config2setopts.c slist_wc.c \
 	../lib/curl_setup.h ../lib/curlx/binmode.h \
 	../lib/curlx/dynbuf.h ../lib/curlx/fopen.h \
 	../lib/curlx/multibyte.h ../lib/curlx/nonblock.h \
-	../lib/curlx/strerr.h ../lib/curlx/strparse.h \
-	../lib/curlx/timediff.h ../lib/curlx/timeval.h \
-	../lib/curlx/version_win32.h ../lib/curlx/wait.h \
-	../lib/curlx/warnless.h ../lib/curlx/winapi.h
+	../lib/curlx/snprintf.h ../lib/curlx/strerr.h \
+	../lib/curlx/strparse.h ../lib/curlx/timediff.h \
+	../lib/curlx/timeval.h ../lib/curlx/version_win32.h \
+	../lib/curlx/wait.h ../lib/curlx/warnless.h \
+	../lib/curlx/winapi.h
 am__objects_1 = libcurltool_la-config2setopts.lo \
 	libcurltool_la-slist_wc.lo libcurltool_la-terminal.lo \
 	libcurltool_la-tool_bname.lo libcurltool_la-tool_cb_dbg.lo \
@@ -298,11 +298,11 @@ am__curl_SOURCES_DIST = config2setopts.c slist_wc.c terminal.c \
 	../lib/curlx/winapi.c ../lib/curl_setup.h \
 	../lib/curlx/binmode.h ../lib/curlx/dynbuf.h \
 	../lib/curlx/fopen.h ../lib/curlx/multibyte.h \
-	../lib/curlx/nonblock.h ../lib/curlx/strerr.h \
-	../lib/curlx/strparse.h ../lib/curlx/timediff.h \
-	../lib/curlx/timeval.h ../lib/curlx/version_win32.h \
-	../lib/curlx/wait.h ../lib/curlx/warnless.h \
-	../lib/curlx/winapi.h curl.rc
+	../lib/curlx/nonblock.h ../lib/curlx/snprintf.h \
+	../lib/curlx/strerr.h ../lib/curlx/strparse.h \
+	../lib/curlx/timediff.h ../lib/curlx/timeval.h \
+	../lib/curlx/version_win32.h ../lib/curlx/wait.h \
+	../lib/curlx/warnless.h ../lib/curlx/winapi.h curl.rc
 am__objects_6 = curl-config2setopts.$(OBJEXT) curl-slist_wc.$(OBJEXT) \
 	curl-terminal.$(OBJEXT) curl-tool_bname.$(OBJEXT) \
 	curl-tool_cb_dbg.$(OBJEXT) curl-tool_cb_hdr.$(OBJEXT) \
@@ -748,6 +748,7 @@ CURLX_HFILES = \
   ../lib/curlx/fopen.h \
   ../lib/curlx/multibyte.h \
   ../lib/curlx/nonblock.h \
+  ../lib/curlx/snprintf.h \
   ../lib/curlx/strerr.h \
   ../lib/curlx/strparse.h \
   ../lib/curlx/timediff.h \
@@ -867,7 +868,6 @@ AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_builddir)/lib \
 	-I$(top_srcdir)/lib -I$(srcdir) $(am__append_1) \
 	$(am__append_2) $(am__append_3)
 curlinfo_SOURCES = curlinfo.c
-AM_LDFLAGS = 
 @USE_UNICODE_TRUE@UNICODEFLAG = -municode
 curl_cfiles_gen = $(HUGE) $(CA_EMBED_CSOURCE)
 curl_hfiles_gen = tool_hugehelp.h
@@ -883,7 +883,7 @@ CLEANFILES = $(am__append_4) $(am__append_6) $(HUGE) \
 @USE_UNITY_FALSE@	$(curl_cfiles_gen) $(curl_hfiles_gen) \
 @USE_UNITY_FALSE@	$(curlx_csrc) $(curlx_hsrc) $(am__append_5)
 @USE_UNITY_TRUE@curl_SOURCES = $(am__append_5)
-curl_LDFLAGS = $(AM_LDFLAGS) $(CURL_LDFLAGS_BIN) $(UNICODEFLAG)
+curl_LDFLAGS = $(CURL_LDFLAGS_BIN) $(UNICODEFLAG)
 curl_LDADD = $(top_builddir)/lib/libcurl.la @LIBCURL_PC_LIBS_PRIVATE@
 
 # if unit tests are enabled, build a static library to link them with

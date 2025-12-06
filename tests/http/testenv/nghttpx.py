@@ -138,7 +138,7 @@ class Nghttpx:
                 except subprocess.TimeoutExpired:
                     log.warning(f'nghttpx({running.pid}), not shut down yet.')
                     os.kill(running.pid, signal.SIGQUIT)
-            if datetime.now() >= end_wait:
+            if running and datetime.now() >= end_wait:
                 log.error(f'nghttpx({running.pid}), terminate forcefully.')
                 os.kill(running.pid, signal.SIGKILL)
                 running.terminate()
@@ -238,7 +238,7 @@ class NghttpxQuic(Nghttpx):
         if self._process:
             self.stop()
         creds = self.env.get_credentials(self._cred_name)
-        assert creds  # convince pytype this isn't None
+        assert creds  # convince pytype this is not None
         self._loaded_cred_name = self._cred_name
         args = [self._cmd, f'--frontend=*,{self._port};tls']
         if self.supports_h3():
@@ -297,7 +297,7 @@ class NghttpxFwd(Nghttpx):
         if self._process:
             self.stop()
         creds = self.env.get_credentials(self._cred_name)
-        assert creds  # convince pytype this isn't None
+        assert creds  # convince pytype this is not None
         self._loaded_cred_name = self._cred_name
         args = [
             self._cmd,
