@@ -1,8 +1,18 @@
-curl (8.18.0~rc1-1) UNRELEASED; urgency=medium
+curl (8.18.0~rc1-1+exp1) experimental; urgency=medium
 
   * New upstream version 8.18.0~rc1
+  * d/patches:
+    - Drop patches merged upstream:
+      ~ fix-progress-meter-in-parallel-mode.patch
+      ~ wcurl-CVE-2025-11563.patch
+    - Update patches:
+      ~ ZZZgnutls-build.patch: Variables AM_CFLAGS and AM_LDFLAGS were dropped
+        in lib/Makefile.am
+      ~ build-Divide-mit-krb5-gssapi-link-flags-between-LDFLAGS-a.patch:
+        Context update.
+  * d/copyright: Remove entries for files removed upstream
 
- -- Samuel Henrique <samueloph@debian.org>  Sat, 06 Dec 2025 12:00:02 -0800
+ -- Samuel Henrique <samueloph@debian.org>  Sat, 06 Dec 2025 13:16:00 -0800
 
 curl (8.17.0-3) unstable; urgency=medium
 
