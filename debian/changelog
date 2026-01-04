@@ -1,6 +1,6 @@
-curl (7.74.0-1.3+deb11u16) UNRELEASED; urgency=medium
+curl (7.74.0-1.3+deb11u16) bullseye-security; urgency=medium
 
-  * Team upload.
+  * Non-maintainer upload by the LTS Security Team.
   * Backport upstream patch for CVE-2025-9086
     - cookie: don't treat the leading slash as trailing
 
