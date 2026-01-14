@@ -24,7 +24,7 @@ Copyright: 1999, Leon Breedt <ljb@debian.org>
  2022, Paul Gevers <elbrus@debian.org>
  2013, 2022, Salvatore Bonaccorso <carnil@debian.org>
  2023 John Scott <jscott@posteo.net>
- 2023-2025, Carlos Henrique Lima Melara <charlesmelara@riseup.net>
+ 2023-2026, Carlos Henrique Lima Melara <charlesmelara@riseup.net>
  2022-2024, Sergio Durigan Junior <sergiodj@debian.org>
  2021-2024, Samuel Henrique <samueloph@debian.org>
  2025, Aquila Macedo Costa <aquilamacedo@riseup.net>
@@ -68,9 +68,7 @@ Copyright: Daniel Stenberg <daniel@haxx.se>, et al.
            John Malmberg
 License: curl or ISC
 
-Files: lib/curl_des.c
- lib/curl_des.h
- lib/system_win32.c
+Files: lib/system_win32.c
  lib/system_win32.h
  lib/vauth/krb5_sspi.c
  lib/vauth/vauth.c
@@ -88,7 +86,6 @@ Files: m4/xc-am-iface.m4
  m4/xc-val-flgs.m4
  m4/zz40-xc-ovr.m4
  m4/zz50-xc-ovr.m4
- m4/zz60-xc-ovr.m4
 Copyright: 2011-2022, Daniel Stenberg <daniel@haxx.se>
 License: ISC
 
@@ -105,8 +102,6 @@ License: FSFUL or curl
 
 Files: lib/vtls/mbedtls.c
  lib/vtls/mbedtls.h
- lib/vtls/mbedtls_threadlock.c
- lib/vtls/mbedtls_threadlock.h
 Copyright: 2010-2011, Hoi-Ho Chan, <hoiho.chan@gmail.com>
   2012-2022, Daniel Stenberg, <daniel@haxx.se>, et al.
 License: curl
@@ -201,11 +196,6 @@ Copyright: 1996-2022, Free Software Foundation, Inc.
            Gordon Matzigkeit
 License: GPL-2+ with Libtool exception
 
-Files: lib/krb5.c
-Copyright: 1995-1999, Kungliga Tekniska Högskolan
-  2004-2022, Daniel Stenberg
-License: BSD-3-clause
-
 Files: tests/server/tftpd.c
 Copyright: 1983, Regents of the University of California.
   2005-2022, Daniel Stenberg, <daniel@haxx.se>, et al.
@@ -292,11 +282,6 @@ Files: docs/examples/maxconnects.c
 Copyright: James Fuller, <jim@webcomposite.com>, et al.
 License: curl
 
-Files: lib/vssh/curl_path.c
-Copyright:            Daniel Stenberg, <daniel@haxx.se>, et al.
-           2001-2004, Damien Miller, <djm@openbsd.org>
-License: curl and ISC
-
 Files: lib/vtls/cipher_suite.c
        lib/vtls/cipher_suite.h
        tests/unit/unit3205.c
@@ -329,34 +314,6 @@ License: curl
  Except as contained in this notice, the name of a copyright holder shall not
  be used in advertising or otherwise to promote the sale, use or other dealings
  in this Software without prior written authorization of the copyright holder.
-
-License: BSD-3-Clause
- Redistribution and use in source and binary forms, with or without
- modification, are permitted provided that the following conditions
- are met:
- .
- 1. Redistributions of source code must retain the above copyright
-    notice, this list of conditions and the following disclaimer.
- .
- 2. Redistributions in binary form must reproduce the above copyright
-    notice, this list of conditions and the following disclaimer in the
-    documentation and/or other materials provided with the distribution.
- .
- 3. Neither the name of the Institute nor the names of its contributors
-    may be used to endorse or promote products derived from this software
-    without specific prior written permission.
- .
- THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
- ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
- FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- SUCH DAMAGE.
 
 License: BSD-4-Clause-UC
  Redistribution and use in source and binary forms, with or without

@@ -116,6 +116,7 @@ host_triplet = @host@
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/curl-amissl.m4 \
+	$(top_srcdir)/m4/curl-apple-sectrust.m4 \
 	$(top_srcdir)/m4/curl-compilers.m4 \
 	$(top_srcdir)/m4/curl-confopts.m4 \
 	$(top_srcdir)/m4/curl-functions.m4 \
@@ -135,8 +136,7 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/curl-amissl.m4 \
 	$(top_srcdir)/m4/xc-lt-iface.m4 \
 	$(top_srcdir)/m4/xc-val-flgs.m4 \
 	$(top_srcdir)/m4/zz40-xc-ovr.m4 \
-	$(top_srcdir)/m4/zz50-xc-ovr.m4 \
-	$(top_srcdir)/m4/zz60-xc-ovr.m4 $(top_srcdir)/acinclude.m4 \
+	$(top_srcdir)/m4/zz50-xc-ovr.m4 $(top_srcdir)/acinclude.m4 \
 	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
@@ -376,7 +376,9 @@ RANLIB = @RANLIB@
 RC = @RC@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
+SFTPD = @SFTPD@
 SHELL = @SHELL@
+SSHD = @SSHD@
 SSL_BACKENDS = @SSL_BACKENDS@
 STRIP = @STRIP@
 SUPPORT_FEATURES = @SUPPORT_FEATURES@
@@ -444,15 +446,16 @@ top_srcdir = @top_srcdir@
 AUTOMAKE_OPTIONS = foreign
 ACLOCAL_AMFLAGS = -I m4
 CMAKE_DIST = \
- CMake/cmake_uninstall.cmake.in                 \
- CMake/CMakeConfigurableFile.in                 \
- CMake/curl-config.cmake.in                     \
+ CMake/cmake_uninstall.in.cmake                 \
+ CMake/curl-config.in.cmake                     \
  CMake/CurlSymbolHiding.cmake                   \
  CMake/CurlTests.c                              \
  CMake/FindBrotli.cmake                         \
  CMake/FindCares.cmake                          \
+ CMake/FindGnuTLS.cmake                         \
  CMake/FindGSS.cmake                            \
  CMake/FindLDAP.cmake                           \
+ CMake/FindLibbacktrace.cmake                   \
  CMake/FindLibgsasl.cmake                       \
  CMake/FindLibidn2.cmake                        \
  CMake/FindLibpsl.cmake                         \
@@ -467,7 +470,6 @@ CMAKE_DIST = \
  CMake/FindNettle.cmake                         \
  CMake/FindQuiche.cmake                         \
  CMake/FindRustls.cmake                         \
- CMake/FindWolfSSH.cmake                        \
  CMake/FindWolfSSL.cmake                        \
  CMake/FindZstd.cmake                           \
  CMake/Macros.cmake                             \
@@ -482,9 +484,6 @@ CMAKE_DIST = \
  tests/cmake/test.sh
 
 VC_DIST = projects/README.md projects/generate.bat
-WINBUILD_DIST = winbuild/README.md \
- winbuild/MakefileBuild.vc winbuild/Makefile.vc winbuild/makedebug.bat
-
 PLAN9_DIST = plan9/include/mkfile \
  plan9/include/mkfile             \
  plan9/mkfile.proto               \
@@ -496,7 +495,7 @@ PLAN9_DIST = plan9/include/mkfile \
  plan9/src/mkfile
 
 EXTRA_DIST = CHANGES.md COPYING RELEASE-NOTES Dockerfile .editorconfig \
- $(CMAKE_DIST) $(VC_DIST) $(WINBUILD_DIST) $(PLAN9_DIST)
+ $(CMAKE_DIST) $(VC_DIST) $(PLAN9_DIST)
 
 DISTCLEANFILES = buildinfo.txt
 bin_SCRIPTS = curl-config
@@ -1053,7 +1052,7 @@ uninstall-am: uninstall-binSCRIPTS uninstall-pkgconfigDATA
 
 dist-hook:
 	rm -rf $(top_builddir)/tests/log
-	find $(distdir) -name "*.dist" -exec rm {} \;
+	find $(distdir) -name "*.dist" -exec rm -- {} \;
 	(distit=`find $(srcdir) -name "*.dist" | grep -v Makefile`; \
 	for file in $$distit; do \
 	  strip=`echo $$file | sed -e s/^$(srcdir)// -e s/\.dist//`; \
@@ -1072,7 +1071,7 @@ check: test examples check-docs
 @CROSSCOMPILING_TRUE@pytest-ci: test
 
 @CROSSCOMPILING_TRUE@test:
-@CROSSCOMPILING_TRUE@	@echo "NOTICE: we can't run the tests when cross-compiling!"
+@CROSSCOMPILING_TRUE@	@echo "NOTICE: we cannot run the tests when cross-compiling!"
 
 @CROSSCOMPILING_FALSE@test:
 @CROSSCOMPILING_FALSE@	@(cd tests; $(MAKE) all quiet-test)

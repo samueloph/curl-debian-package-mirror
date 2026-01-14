@@ -5,13 +5,20 @@
 #include "memptr.c"
 #include "testutil.c"
 #include "testtrace.c"
-#include "../../lib/curlx/warnless.c"
+#include "../../lib/curl_threads.c"
+#include "../../lib/curlx/fopen.c"
 #include "../../lib/curlx/multibyte.c"
+#include "../../lib/curlx/strcopy.c"
+#include "../../lib/curlx/strerr.c"
+#include "../../lib/curlx/strparse.c"
 #include "../../lib/curlx/timediff.c"
 #include "../../lib/curlx/timeval.c"
-#include "../../lib/curl_threads.c"
 #include "../../lib/curlx/version_win32.c"
 #include "../../lib/curlx/wait.c"
+#include "../../lib/curlx/warnless.c"
+#include "../../lib/curlx/winapi.c"
+#include "../../src/toolx/tool_time.c"
+#include "cli_ftp_upload.c"
 #include "cli_h2_pausing.c"
 #include "cli_h2_serverpush.c"
 #include "cli_h2_upgrade_extreme.c"
@@ -116,6 +123,7 @@
 #include "lib753.c"
 #include "lib758.c"
 #include "lib757.c"
+#include "lib766.c"
 #include "lib1156.c"
 #include "lib1301.c"
 #include "lib1308.c"
@@ -175,6 +183,7 @@
 #include "lib1569.c"
 #include "lib1571.c"
 #include "lib1576.c"
+#include "lib1582.c"
 #include "lib1591.c"
 #include "lib1592.c"
 #include "lib1593.c"
@@ -185,6 +194,7 @@
 #include "lib1662.c"
 #include "lib1900.c"
 #include "lib1901.c"
+#include "lib1902.c"
 #include "lib1903.c"
 #include "lib1905.c"
 #include "lib1906.c"
@@ -198,6 +208,7 @@
 #include "lib1916.c"
 #include "lib1918.c"
 #include "lib1919.c"
+#include "lib1920.c"
 #include "lib1933.c"
 #include "lib1934.c"
 #include "lib1935.c"
@@ -255,6 +266,7 @@
 #include "lib1521.c"
 
 const struct entry_s s_entries[] = {
+  {"cli_ftp_upload", test_cli_ftp_upload},
   {"cli_h2_pausing", test_cli_h2_pausing},
   {"cli_h2_serverpush", test_cli_h2_serverpush},
   {"cli_h2_upgrade_extreme", test_cli_h2_upgrade_extreme},
@@ -359,6 +371,7 @@ const struct entry_s s_entries[] = {
   {"lib753", test_lib753},
   {"lib758", test_lib758},
   {"lib757", test_lib757},
+  {"lib766", test_lib766},
   {"lib1156", test_lib1156},
   {"lib1301", test_lib1301},
   {"lib1308", test_lib1308},
@@ -418,6 +431,7 @@ const struct entry_s s_entries[] = {
   {"lib1569", test_lib1569},
   {"lib1571", test_lib1571},
   {"lib1576", test_lib1576},
+  {"lib1582", test_lib1582},
   {"lib1591", test_lib1591},
   {"lib1592", test_lib1592},
   {"lib1593", test_lib1593},
@@ -428,6 +442,7 @@ const struct entry_s s_entries[] = {
   {"lib1662", test_lib1662},
   {"lib1900", test_lib1900},
   {"lib1901", test_lib1901},
+  {"lib1902", test_lib1902},
   {"lib1903", test_lib1903},
   {"lib1905", test_lib1905},
   {"lib1906", test_lib1906},
@@ -441,6 +456,7 @@ const struct entry_s s_entries[] = {
   {"lib1916", test_lib1916},
   {"lib1918", test_lib1918},
   {"lib1919", test_lib1919},
+  {"lib1920", test_lib1920},
   {"lib1933", test_lib1933},
   {"lib1934", test_lib1934},
   {"lib1935", test_lib1935},

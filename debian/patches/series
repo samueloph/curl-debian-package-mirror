@@ -1,6 +1,3 @@
 ZZZgnutls-build.patch
 build-Divide-mit-krb5-gssapi-link-flags-between-LDFLAGS-a.patch
 11_omit-directories-from-config.patch
-setopt-accept-_SSL_VERIFYHOST-set-to-2L.patch
-asyn-thrdd-drop-pthread_cancel.patch
-setopt-make-CURLOPT_MAXREDIRS-accept-1-again.patch

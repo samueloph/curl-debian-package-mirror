@@ -11,7 +11,7 @@ docs/DEPRECATE.md
 docs/DISTROS.md
 docs/EARLY-RELEASE.md
 docs/EXPERIMENTAL.md
-docs/FAQ
+docs/FAQ.md
 docs/FEATURES.md
 docs/GOVERNANCE.md
 docs/HELP-US.md
@@ -19,7 +19,7 @@ docs/HISTORY.md
 docs/HTTP-COOKIES.md
 docs/HTTP3.md
 docs/INTERNALS.md
-docs/KNOWN_BUGS
+docs/KNOWN_BUGS.md
 docs/README.md
 docs/RELEASE-PROCEDURE.md
 docs/ROADMAP.md
@@ -29,7 +29,7 @@ docs/SPONSORS.md
 docs/SSL-PROBLEMS.md
 docs/SSLCERTS.md
 docs/THANKS
-docs/TODO
+docs/TODO.md
 docs/TheArtOfHttpScripting.md
 docs/URL-SYNTAX.md
 docs/VERSIONS.md
