@@ -1,3 +1,27 @@
+curl (8.14.1-2+deb13u2) trixie; urgency=medium
+
+  * d/p/wcurl-CVE-2025-11563.patch: Pull upstream changes to actually fix
+    CVE-2025-11563
+
+ -- Samuel Henrique <samueloph@debian.org>  Sun, 09 Nov 2025 06:49:56 -0800
+
+curl (8.14.1-2+deb13u1) trixie; urgency=medium
+
+  [ Alex ]
+  * Team upload.
+  * d/p/cookie-don-t-treat-the-leading-slash-as-trailing: import upstream
+    patch to fix CVE-2025-9086
+  * d/p/CVE-2025-10148.patch: backport upstream patch for CVE-2025-10148
+
+  [ Samuel Henrique ]
+  * Import wcurl patches.
+     * wcurl-CVE-2025-11563.patch: Fix CVE-2025-11563
+     * wcurl-Fix-example-for-continue-at.patch: Fix example in manpage
+     * wcurl-Set-CURL_OPTIONS-right-before-the-url.patch: Fix to allow
+       --output to be overwritten with --curl-options
+
+ -- Alex <alex@puer-robustus.eu>  Sun, 05 Oct 2025 23:03:32 +0200
+
 curl (8.14.1-2~bpo12+1) bookworm-backports; urgency=medium
 
   * Rebuild for bookworm-backports.

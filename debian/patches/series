@@ -6,3 +6,13 @@ build-Divide-mit-krb5-gssapi-link-flags-between-LDFLAGS-a.patch
 tool_getparam_fix_ftp_pasv.patch
 curl_path_make_SFTP_handle_a_path.patch
 tool_operate_fix_return_code_when_retry_is_used_but_not_triggered.patch
+
+# CVE-2025-9086
+cookie-don-t-treat-the-leading-slash-as-trailing.patch
+
+CVE-2025-10148.patch
+
+wcurl-Set-CURL_OPTIONS-right-before-the-url.patch
+wcurl-Fix-example-for-continue-at.patch
+# CVE-2025-11563
+wcurl-CVE-2025-11563.patch
