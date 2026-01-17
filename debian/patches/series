@@ -62,9 +62,6 @@ CVE-2024-11053.patch
 # Patches from 8.12.0.
 CVE-2025-0167.patch
 
-# Patches from 8.16.0
-CVE-2025-9086.patch
-
 # Fix test issues with port clashes, now each build has a different random seed.
 runtests.pl-Increase-variance-of-random-seed-used-for-tes.patch
 
