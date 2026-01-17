@@ -1,11 +1,3 @@
-curl (7.88.1-10+deb12u15) UNRELEASED; urgency=medium
-
-  * Team upload.
-  * Backport upstream patch for CVE-2025-9086
-    - cookie: don't treat the leading slash as trailing
-
- -- Alex <alex@puer-robustus.eu>  Sat, 27 Sep 2025 19:16:29 +0200
-
 curl (7.88.1-10+deb12u14) bookworm; urgency=medium
 
   * d/p/0001-http_chunks-reset...: New patch to fix memory leak:
