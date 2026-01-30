@@ -1,3 +1,10 @@
+curl (8.14.1-2+deb13u3) trixie; urgency=medium
+
+  * Team upload.
+  * d/p/CVE-2025-13034.patch: cherry-pick from upstream
+
+ -- Matheus Souza Zanzin <mahzze.dev@gmail.com>  Thu, 29 Jan 2026 23:20:09 -0300
+
 curl (8.14.1-2+deb13u2) trixie; urgency=medium
 
   * d/p/wcurl-CVE-2025-11563.patch: Pull upstream changes to actually fix
