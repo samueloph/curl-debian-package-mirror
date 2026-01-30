@@ -16,3 +16,4 @@ wcurl-Set-CURL_OPTIONS-right-before-the-url.patch
 wcurl-Fix-example-for-continue-at.patch
 # CVE-2025-11563
 wcurl-CVE-2025-11563.patch
+CVE-2025-13034.patch
