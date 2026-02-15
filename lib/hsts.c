@@ -28,18 +28,15 @@
 #include "curl_setup.h"
 
 #if !defined(CURL_DISABLE_HTTP) && !defined(CURL_DISABLE_HSTS)
-#include <curl/curl.h>
 #include "urldata.h"
 #include "llist.h"
 #include "hsts.h"
 #include "curl_fopen.h"
 #include "curl_get_line.h"
-#include "sendf.h"
 #include "parsedate.h"
-#include "rename.h"
 #include "curl_share.h"
-#include "strdup.h"
 #include "curlx/strparse.h"
+#include "curlx/strcopy.h"
 
 #define MAX_HSTS_LINE    4095
 #define MAX_HSTS_HOSTLEN 2048
@@ -75,11 +72,7 @@ struct hsts *Curl_hsts_init(void)
   return h;
 }
 
-static void hsts_free(struct stsentry *e)
-{
-  curlx_free(CURL_UNCONST(e->host));
-  curlx_free(e);
-}
+#define hsts_free(x) curlx_free(x)
 
 void Curl_hsts_cleanup(struct hsts **hp)
 {
@@ -111,18 +104,11 @@ static CURLcode hsts_create(struct hsts *h,
     /* strip off any trailing dot */
     --hlen;
   if(hlen) {
-    char *duphost;
-    struct stsentry *sts = curlx_calloc(1, sizeof(struct stsentry));
+    struct stsentry *sts = curlx_calloc(1, sizeof(struct stsentry) + hlen);
     if(!sts)
       return CURLE_OUT_OF_MEMORY;
-
-    duphost = Curl_memdup0(hostname, hlen);
-    if(!duphost) {
-      curlx_free(sts);
-      return CURLE_OUT_OF_MEMORY;
-    }
-
-    sts->host = duphost;
+    /* the null terminator is already there */
+    memcpy(sts->host, hostname, hlen);
     sts->expires = expires;
     sts->includeSubDomains = subdomains;
     Curl_llist_append(&h->list, sts, &sts->node);
@@ -294,12 +280,12 @@ static CURLcode hsts_push(struct Curl_easy *data,
   struct tm stamp;
   CURLcode result;
 
-  e.name = (char *)CURL_UNCONST(sts->host);
+  e.name = (char *)sts->host;
   e.namelen = strlen(sts->host);
   e.includeSubDomains = sts->includeSubDomains;
 
   if(sts->expires != TIME_T_MAX) {
-    result = Curl_gmtime((time_t)sts->expires, &stamp);
+    result = curlx_gmtime((time_t)sts->expires, &stamp);
     if(result)
       return result;
 
@@ -308,7 +294,7 @@ static CURLcode hsts_push(struct Curl_easy *data,
                    stamp.tm_hour, stamp.tm_min, stamp.tm_sec);
   }
   else
-    strcpy(e.expire, UNLIMITED);
+    curlx_strcopy(e.expire, sizeof(e.expire), UNLIMITED, strlen(UNLIMITED));
 
   sc = data->set.hsts_write(data, &e, i, data->set.hsts_write_userp);
   *stop = (sc != CURLSTS_OK);
@@ -322,7 +308,7 @@ static CURLcode hsts_out(struct stsentry *sts, FILE *fp)
 {
   struct tm stamp;
   if(sts->expires != TIME_T_MAX) {
-    CURLcode result = Curl_gmtime((time_t)sts->expires, &stamp);
+    CURLcode result = curlx_gmtime((time_t)sts->expires, &stamp);
     if(result)
       return result;
     curl_mfprintf(fp, "%s%s \"%d%02d%02d %02d:%02d:%02d\"\n",
@@ -373,7 +359,7 @@ CURLcode Curl_hsts_save(struct Curl_easy *data, struct hsts *h,
         break;
     }
     curlx_fclose(out);
-    if(!result && tempstore && Curl_rename(tempstore, file))
+    if(!result && tempstore && curlx_rename(tempstore, file))
       result = CURLE_WRITE_ERROR;
 
     if(result && tempstore)

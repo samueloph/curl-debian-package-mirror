@@ -21,26 +21,20 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-
 #include "curl_setup.h"
 
 #include "http_proxy.h"
 
 #if !defined(CURL_DISABLE_HTTP) && !defined(CURL_DISABLE_PROXY)
 
-#include <curl/curl.h>
-#include "sendf.h"
+#include "curl_trc.h"
 #include "http.h"
 #include "url.h"
-#include "select.h"
-#include "progress.h"
 #include "cfilters.h"
 #include "cf-h1-proxy.h"
 #include "cf-h2-proxy.h"
 #include "connect.h"
-#include "vtls/vtls.h"
 #include "transfer.h"
-#include "multiif.h"
 #include "vauth/vauth.h"
 #include "curlx/strparse.h"
 
@@ -442,4 +436,4 @@ out:
   return result;
 }
 
-#endif /* ! CURL_DISABLE_HTTP && !CURL_DISABLE_PROXY */
+#endif /* !CURL_DISABLE_HTTP && !CURL_DISABLE_PROXY */

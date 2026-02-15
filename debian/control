@@ -1,6 +1,5 @@
 Source: curl
 Section: web
-Priority: optional
 Maintainer: Debian Curl Maintainers <team+curl@tracker.debian.org>
 Uploaders: Carlos Henrique Lima Melara <charlesmelara@riseup.net>,
            Samuel Henrique <samueloph@debian.org>,
@@ -37,11 +36,10 @@ Build-Depends: debhelper-compat (= 13),
                zlib1g-dev,
 Build-Conflicts: autoconf2.13,
                  automake1.4,
-Standards-Version: 4.7.2
+Standards-Version: 4.7.3
 Vcs-Git: https://salsa.debian.org/debian/curl.git
 Vcs-Browser: https://salsa.debian.org/debian/curl
 Homepage: https://curl.se/
-Rules-Requires-Root: no
 
 Package: curl
 Architecture: any

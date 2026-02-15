@@ -21,7 +21,6 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-
 #include "curl_setup.h"
 
 #ifndef CURL_DISABLE_TFTP
@@ -47,22 +46,22 @@
 #endif
 
 #include "urldata.h"
-#include <curl/curl.h>
 #include "cfilters.h"
 #include "cf-socket.h"
 #include "transfer.h"
 #include "sendf.h"
+#include "curl_trc.h"
 #include "tftp.h"
 #include "progress.h"
 #include "connect.h"
 #include "sockaddr.h" /* required for Curl_sockaddr_storage */
-#include "multiif.h"
 #include "url.h"
 #include "strcase.h"
 #include "select.h"
 #include "escape.h"
 #include "curlx/strerr.h"
 #include "curlx/strparse.h"
+#include "curlx/strcopy.h"
 
 /* RFC2348 allows the block size to be negotiated */
 #define TFTP_BLKSIZE_DEFAULT 512
@@ -143,7 +142,6 @@ struct tftp_conn {
   BIT(remote_pinned);
 };
 
-
 /* Forward declarations */
 static CURLcode tftp_rx(struct tftp_conn *state, tftp_event_t event);
 static CURLcode tftp_tx(struct tftp_conn *state, tftp_event_t event);
@@ -162,7 +160,6 @@ static CURLcode tftp_translate_code(tftp_error_t error);
 /*
  * TFTP protocol handler.
  */
-
 const struct Curl_handler Curl_handler_tftp = {
   "tftp",                               /* scheme */
   tftp_setup_connection,                /* setup_connection */
@@ -205,7 +202,7 @@ static CURLcode tftp_set_timeouts(struct tftp_conn *state)
   bool start = (state->state == TFTP_STATE_START);
 
   /* Compute drop-dead time */
-  timeout_ms = Curl_timeleft_ms(state->data, NULL, start);
+  timeout_ms = Curl_timeleft_ms(state->data, start);
 
   if(timeout_ms < 0) {
     /* time-out, bail out, go home */
@@ -372,12 +369,17 @@ static CURLcode tftp_parse_option_ack(struct tftp_conn *state,
 }
 
 static CURLcode tftp_option_add(struct tftp_conn *state, size_t *csize,
-                                char *buf, const char *option)
+                                size_t index, const char *option)
 {
-  if((strlen(option) + *csize + 1) > (size_t)state->blksize)
+  char *buf = (char *)&state->spacket.data[index];
+  size_t oplen = strlen(option);
+  size_t blen;
+  if((state->blksize <= index) ||
+     (oplen + 1) > (size_t)(state->blksize - index))
     return CURLE_TFTP_ILLEGAL;
-  strcpy(buf, option);
-  *csize += strlen(option) + 1;
+  blen = state->blksize - index;
+  curlx_strcopy(buf, blen, option, oplen);
+  *csize += oplen + 1;
   return CURLE_OK;
 }
 
@@ -482,32 +484,23 @@ static CURLcode tftp_send_first(struct tftp_conn *state,
                      data->state.upload && (data->state.infilesize != -1) ?
                      data->state.infilesize : 0);
 
-      result = tftp_option_add(state, &sbytes,
-                               (char *)state->spacket.data + sbytes,
-                               TFTP_OPTION_TSIZE);
+      result = tftp_option_add(state, &sbytes, sbytes, TFTP_OPTION_TSIZE);
       if(result == CURLE_OK)
-        result = tftp_option_add(state, &sbytes,
-                                 (char *)state->spacket.data + sbytes, buf);
+        result = tftp_option_add(state, &sbytes, sbytes, buf);
 
       /* add blksize option */
       curl_msnprintf(buf, sizeof(buf), "%d", state->requested_blksize);
       if(result == CURLE_OK)
-        result = tftp_option_add(state, &sbytes,
-                                 (char *)state->spacket.data + sbytes,
-                                 TFTP_OPTION_BLKSIZE);
+        result = tftp_option_add(state, &sbytes, sbytes, TFTP_OPTION_BLKSIZE);
       if(result == CURLE_OK)
-        result = tftp_option_add(state, &sbytes,
-                                 (char *)state->spacket.data + sbytes, buf);
+        result = tftp_option_add(state, &sbytes, sbytes, buf);
 
       /* add timeout option */
       curl_msnprintf(buf, sizeof(buf), "%d", state->retry_time);
       if(result == CURLE_OK)
-        result = tftp_option_add(state, &sbytes,
-                                 (char *)state->spacket.data + sbytes,
-                                 TFTP_OPTION_INTERVAL);
+        result = tftp_option_add(state, &sbytes, sbytes, TFTP_OPTION_INTERVAL);
       if(result == CURLE_OK)
-        result = tftp_option_add(state, &sbytes,
-                                 (char *)state->spacket.data + sbytes, buf);
+        result = tftp_option_add(state, &sbytes, sbytes, buf);
 
       if(result != CURLE_OK) {
         failf(data, "TFTP buffer too small for options");
@@ -793,7 +786,7 @@ static CURLcode tftp_tx(struct tftp_conn *state, tftp_event_t event)
     }
     /* Update the progress meter */
     k->writebytecount += state->sbytes;
-    Curl_pgrsSetUploadCounter(data, k->writebytecount);
+    Curl_pgrs_upload_inc(data, state->sbytes);
     break;
 
   case TFTP_EVENT_TIMEOUT:
@@ -1192,7 +1185,7 @@ static timediff_t tftp_state_timeout(struct tftp_conn *state,
   if(event)
     *event = TFTP_EVENT_NONE;
 
-  timeout_ms = Curl_timeleft_ms(state->data, NULL,
+  timeout_ms = Curl_timeleft_ms(state->data,
                                 (state->state == TFTP_STATE_START));
   if(timeout_ms < 0) {
     state->error = TFTP_ERR_TIMEOUT;

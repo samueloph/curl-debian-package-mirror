@@ -21,7 +21,6 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-
 #include "curl_setup.h"
 
 #ifndef CURL_DISABLE_FTP
@@ -40,15 +39,14 @@
 #include <inet.h>
 #endif
 
-#include <curl/curl.h>
 #include "urldata.h"
 #include "sendf.h"
+#include "curl_trc.h"
 #include "if2ip.h"
 #include "hostip.h"
 #include "progress.h"
 #include "transfer.h"
 #include "escape.h"
-#include "http.h" /* for HTTP proxy tunnel stuff */
 #include "ftp.h"
 #include "fileinfo.h"
 #include "ftplistparser.h"
@@ -65,9 +63,7 @@
 #include "sockaddr.h" /* required for Curl_sockaddr_storage */
 #include "multiif.h"
 #include "url.h"
-#include "curlx/warnless.h"
 #include "http_proxy.h"
-#include "socks.h"
 #include "strdup.h"
 #include "curlx/strerr.h"
 #include "curlx/strparse.h"
@@ -445,8 +441,7 @@ static CURLcode ftp_check_ctrl_on_data_wait(struct Curl_easy *data,
     /* there is pending control data still in the buffer to read */
     response = TRUE;
   else {
-    int socketstate = Curl_socket_check(ctrl_sock, CURL_SOCKET_BAD,
-                                        CURL_SOCKET_BAD, 0);
+    int socketstate = SOCKET_READABLE(ctrl_sock, 0);
     /* see if the connection request is already here */
     switch(socketstate) {
     case -1: /* error */
@@ -1030,8 +1025,12 @@ static CURLcode ftp_state_use_port(struct Curl_easy *data,
   /* step 2, create a socket for the requested address */
   error = 0;
   for(ai = res; ai; ai = ai->ai_next) {
-    if(Curl_socket_open(data, ai, NULL,
-                        Curl_conn_get_transport(data, conn), &portsock)) {
+    result = Curl_socket_open(data, ai, NULL,
+                              Curl_conn_get_transport(data, conn), &portsock);
+    if(result) {
+      if(result == CURLE_OUT_OF_MEMORY)
+        goto out;
+      result = CURLE_FTP_PORT_FAILED;
       error = SOCKERRNO;
       continue;
     }
@@ -1944,7 +1943,8 @@ static CURLcode ftp_state_pasv_resp(struct Curl_easy *data,
                            CURL_CF_SSL_ENABLE : CURL_CF_SSL_DISABLE);
 
   if(result) {
-    if(ftpc->count1 == 0 && ftpcode == 229) {
+    if((result != CURLE_OUT_OF_MEMORY) &&
+       (ftpc->count1 == 0) && (ftpcode == 229)) {
       curlx_free(newhost);
       return ftp_epsv_disable(data, ftpc, conn);
     }
@@ -2110,7 +2110,7 @@ static CURLcode ftp_state_mdtm_resp(struct Curl_easy *data,
       struct tm buffer;
       const struct tm *tm = &buffer;
 
-      result = Curl_gmtime(filetime, &buffer);
+      result = curlx_gmtime(filetime, &buffer);
       if(result)
         return result;
 
@@ -3178,7 +3178,7 @@ static CURLcode ftp_connect(struct Curl_easy *data,
     conn->bits.ftp_use_control_ssl = TRUE;
   }
 
-  Curl_pp_init(pp); /* once per transfer */
+  Curl_pp_init(pp, Curl_pgrs_now(data)); /* once per transfer */
 
   /* When we connect, we start in the state where we await the 220
      response */
@@ -3314,7 +3314,7 @@ static CURLcode ftp_done(struct Curl_easy *data, CURLcode status,
      * data has been transferred. This happens when doing through NATs etc that
      * abandon old silent connections.
      */
-    pp->response = curlx_now(); /* timeout relative now */
+    pp->response = *Curl_pgrs_now(data); /* timeout relative now */
     result = getftpresponse(data, &nread, &ftpcode);
 
     if(!nread && (CURLE_OPERATION_TIMEDOUT == result)) {
@@ -3434,7 +3434,7 @@ static CURLcode ftp_sendquote(struct Curl_easy *data,
 
       result = Curl_pp_sendf(data, &ftpc->pp, "%s", cmd);
       if(!result) {
-        pp->response = curlx_now(); /* timeout relative now */
+        pp->response = *Curl_pgrs_now(data); /* timeout relative now */
         result = getftpresponse(data, &nread, &ftpcode);
       }
       if(result)
@@ -3555,6 +3555,8 @@ static CURLcode ftp_do_more(struct Curl_easy *data, int *completep)
   if(conn->cfilter[SECONDARYSOCKET]) {
     bool is_eptr = Curl_conn_is_tcp_listen(data, SECONDARYSOCKET);
     result = Curl_conn_connect(data, SECONDARYSOCKET, FALSE, &connected);
+    if(result == CURLE_OUT_OF_MEMORY)
+      return result;
     if(result || (!connected && !is_eptr &&
                   !Curl_conn_is_ip_connected(data, SECONDARYSOCKET))) {
       if(result && !is_eptr && (ftpc->count1 == 0)) {
@@ -3683,7 +3685,6 @@ static CURLcode ftp_do_more(struct Curl_easy *data, int *completep)
 
   return result;
 }
-
 
 /***********************************************************************
  *

@@ -21,13 +21,9 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-
 #include "../curl_setup.h"
 
-#include <curl/curl.h>
-
 #include "vauth.h"
-#include "../strdup.h"
 #include "../curlx/multibyte.h"
 #include "../url.h"
 
@@ -136,7 +132,7 @@ bool Curl_auth_user_contains_domain(const char *user)
 }
 
 /*
- * Curl_auth_ollowed_to_host() tells if authentication, cookies or other
+ * Curl_auth_allowed_to_host() tells if authentication, cookies or other
  * "sensitive data" can (still) be sent to this host.
  */
 bool Curl_auth_allowed_to_host(struct Curl_easy *data)

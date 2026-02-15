@@ -22,15 +22,12 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-
 #include "curl_setup.h"
 
 #if !defined(CURL_DISABLE_AWS) || !defined(CURL_DISABLE_DIGEST_AUTH) || \
   defined(USE_LIBSSH2) || defined(USE_SSL)
 
-#include "curlx/warnless.h"
 #include "curl_sha256.h"
-#include "curl_hmac.h"
 
 #ifdef USE_MBEDTLS
   #include <mbedtls/version.h>

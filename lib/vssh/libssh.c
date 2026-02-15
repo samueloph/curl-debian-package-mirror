@@ -24,12 +24,9 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-
 #include "../curl_setup.h"
 
 #ifdef USE_LIBSSH
-
-#include <limits.h>
 
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
@@ -45,24 +42,20 @@
 #include <inet.h>
 #endif
 
-#include <curl/curl.h>
 #include "../urldata.h"
 #include "../sendf.h"
+#include "../curl_trc.h"
 #include "../hostip.h"
 #include "../progress.h"
 #include "../transfer.h"
-#include "../http.h"               /* for HTTP proxy tunnel stuff */
 #include "ssh.h"
 #include "../url.h"
-#include "../vtls/vtls.h"
 #include "../cfilters.h"
 #include "../connect.h"
 #include "../parsedate.h"          /* for the week day and month names */
-#include "../sockaddr.h"           /* required for Curl_sockaddr_storage */
 #include "../curlx/strparse.h"
 #include "../multiif.h"
 #include "../select.h"
-#include "../curlx/warnless.h"
 #include "vssh.h"
 
 #ifdef HAVE_UNISTD_H
@@ -209,7 +202,7 @@ static CURLcode sftp_error_to_CURLE(int err)
   return CURLE_SSH;
 }
 
-#if !defined(CURL_DISABLE_VERBOSE_STRINGS)
+#ifndef CURL_DISABLE_VERBOSE_STRINGS
 static const char *myssh_statename(sshstate state)
 {
   static const char * const names[] = {
@@ -282,7 +275,6 @@ static const char *myssh_statename(sshstate state)
 #define myssh_statename(x)    ""
 #endif /* !CURL_DISABLE_VERBOSE_STRINGS */
 
-
 #define myssh_to(x, y, z) myssh_set_state(x, y, z)
 
 /*
@@ -293,7 +285,7 @@ static void myssh_set_state(struct Curl_easy *data,
                             struct ssh_conn *sshc,
                             sshstate nowstate)
 {
-#if !defined(CURL_DISABLE_VERBOSE_STRINGS)
+#ifndef CURL_DISABLE_VERBOSE_STRINGS
   if(sshc->state != nowstate) {
     CURL_TRC_SSH(data, "[%s] -> [%s]",
                  myssh_statename(sshc->state),
@@ -929,7 +921,11 @@ static int myssh_in_AUTHLIST(struct Curl_easy *data,
           "keyboard-interactive, " : "",
           sshc->auth_methods & SSH_AUTH_METHOD_PASSWORD ?
           "password": "");
-  if(sshc->auth_methods & SSH_AUTH_METHOD_PUBLICKEY) {
+  /* For public key auth we need either the private key or
+     CURLSSH_AUTH_AGENT. */
+  if((sshc->auth_methods & SSH_AUTH_METHOD_PUBLICKEY) &&
+     (data->set.str[STRING_SSH_PRIVATE_KEY] ||
+      (data->set.ssh_auth_types & CURLSSH_AUTH_AGENT))) {
     myssh_to(data, sshc, SSH_AUTH_PKEY_INIT);
     infof(data, "Authentication using SSH public key file");
   }
@@ -2500,7 +2496,7 @@ static CURLcode myssh_block_statemach(struct Curl_easy *data,
       if(result)
         break;
 
-      left_ms = Curl_timeleft_ms(data, NULL, FALSE);
+      left_ms = Curl_timeleft_ms(data, FALSE);
       if(left_ms < 0) {
         failf(data, "Operation timed out");
         return CURLE_OPERATION_TIMEDOUT;
@@ -2510,8 +2506,7 @@ static CURLcode myssh_block_statemach(struct Curl_easy *data,
     if(block) {
       curl_socket_t fd_read = conn->sock[FIRSTSOCKET];
       /* wait for the socket to become ready */
-      (void)Curl_socket_check(fd_read, CURL_SOCKET_BAD, CURL_SOCKET_BAD,
-                              left_ms > 1000 ? 1000 : left_ms);
+      (void)SOCKET_READABLE(fd_read, left_ms > 1000 ? 1000 : left_ms);
     }
   }
 
@@ -2636,6 +2631,11 @@ static CURLcode myssh_connect(struct Curl_easy *data, bool *done)
     infof(data, "Known hosts: %s", data->set.str[STRING_SSH_KNOWNHOSTS]);
     rc = ssh_options_set(sshc->ssh_session, SSH_OPTIONS_KNOWNHOSTS,
                          data->set.str[STRING_SSH_KNOWNHOSTS]);
+    if(rc == SSH_OK)
+      /* libssh has two separate options for this. Set both to the same file
+         to avoid surprises */
+      rc = ssh_options_set(sshc->ssh_session, SSH_OPTIONS_GLOBAL_KNOWNHOSTS,
+                           data->set.str[STRING_SSH_KNOWNHOSTS]);
     if(rc != SSH_OK) {
       failf(data, "Could not set known hosts file path");
       return CURLE_FAILED_INIT;

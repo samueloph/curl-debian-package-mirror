@@ -22,7 +22,6 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-
 #include "curl_setup.h"
 
 #ifdef USE_LIBRTMP
@@ -30,12 +29,11 @@
 #include "curl_rtmp.h"
 #include "urldata.h"
 #include "url.h"
-#include "curlx/nonblock.h" /* for curlx_nonblock */
+#include "curlx/nonblock.h"
 #include "progress.h" /* for Curl_pgrsSetUploadSize */
 #include "transfer.h"
 #include "bufref.h"
-#include "curlx/warnless.h"
-#include <curl/curl.h>
+
 #include <librtmp/rtmp.h>
 
 #if defined(USE_WINSOCK) || defined(LWIP_SO_SNDRCVTIMEO_NONSTANDARD)
@@ -62,7 +60,7 @@ static Curl_recv rtmp_recv;
 static Curl_send rtmp_send;
 
 /*
- * RTMP protocol handler.h, based on https://rtmpdump.mplayerhq.hu
+ * RTMP protocol handler.h, based on https://rtmpdump.mplayerhq.hu/
  */
 
 const struct Curl_handler Curl_handler_rtmp = {
@@ -385,4 +383,4 @@ void Curl_rtmp_version(char *version, size_t len)
                  suff);
 }
 
-#endif  /* USE_LIBRTMP */
+#endif /* USE_LIBRTMP */

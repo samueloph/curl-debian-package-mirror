@@ -323,7 +323,9 @@ RANLIB = @RANLIB@
 RC = @RC@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
+SFTPD = @SFTPD@
 SHELL = @SHELL@
+SSHD = @SSHD@
 SSL_BACKENDS = @SSL_BACKENDS@
 STRIP = @STRIP@
 SUPPORT_FEATURES = @SUPPORT_FEATURES@
@@ -436,7 +438,8 @@ FIRST_C = ../libtest/first.c
 TESTS_C = \
   tool1394.c \
   tool1604.c \
-  tool1621.c
+  tool1621.c \
+  tool1622.c
 
 
 # Get BUNDLE, FIRST_C, TESTS_C variables

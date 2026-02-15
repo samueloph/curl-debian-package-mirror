@@ -21,12 +21,12 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-
 #include "curl_setup.h"
 
 #if !defined(CURL_DISABLE_HTTP) && defined(USE_NGHTTP2)
 #include <stdint.h>
 #include <nghttp2/nghttp2.h>
+
 #include "urldata.h"
 #include "bufq.h"
 #include "uint-hash.h"
@@ -34,19 +34,18 @@
 #include "http2.h"
 #include "http.h"
 #include "sendf.h"
+#include "curl_trc.h"
 #include "select.h"
 #include "curlx/base64.h"
 #include "multiif.h"
+#include "progress.h"
 #include "url.h"
 #include "urlapi-int.h"
 #include "cfilters.h"
 #include "connect.h"
-#include "rand.h"
-#include "curlx/strparse.h"
 #include "transfer.h"
 #include "bufref.h"
 #include "curlx/dynbuf.h"
-#include "curlx/warnless.h"
 #include "headers.h"
 
 #if (NGHTTP2_VERSION_NUM < 0x010c00)
@@ -305,7 +304,8 @@ static void h2_stream_hash_free(unsigned int id, void *stream)
 static int32_t cf_h2_get_desired_local_win(struct Curl_cfilter *cf,
                                            struct Curl_easy *data)
 {
-  curl_off_t avail = Curl_rlimit_avail(&data->progress.dl.rlimit, curlx_now());
+  curl_off_t avail = Curl_rlimit_avail(&data->progress.dl.rlimit,
+                                       Curl_pgrs_now(data));
 
   (void)cf;
   if(avail < CURL_OFF_T_MAX) { /* limit in place */
@@ -945,7 +945,7 @@ static int push_promise(struct Curl_cfilter *cf,
     struct h2_stream_ctx *stream;
     struct h2_stream_ctx *newstream;
     struct curl_pushheaders heads;
-    CURLMcode rc;
+    CURLMcode mresult;
     CURLcode result;
     /* clone the parent */
     struct Curl_easy *newhandle = h2_duphandle(cf, data);
@@ -997,8 +997,8 @@ static int push_promise(struct Curl_cfilter *cf,
     /* approved, add to the multi handle for processing. This
      * assigns newhandle->mid. For the new `mid` we assign the
      * h2_stream instance and remember the stream_id already known. */
-    rc = Curl_multi_add_perform(data->multi, newhandle, cf->conn);
-    if(rc) {
+    mresult = Curl_multi_add_perform(data->multi, newhandle, cf->conn);
+    if(mresult) {
       infof(data, "failed to add handle to multi");
       discard_newhandle(cf, newhandle);
       rv = CURL_PUSH_DENY;
@@ -1664,15 +1664,16 @@ static int on_header(nghttp2_session *session, const nghttp2_frame *frame,
      memcmp(HTTP_PSEUDO_STATUS, name, namelen) == 0) {
     /* nghttp2 guarantees :status is received first and only once. */
     char buffer[32];
+    size_t hlen;
     result = Curl_http_decode_status(&stream->status_code,
                                      (const char *)value, valuelen);
     if(result) {
       cf_h2_header_error(cf, data_s, stream, result);
       return NGHTTP2_ERR_CALLBACK_FAILURE;
     }
-    curl_msnprintf(buffer, sizeof(buffer), HTTP_PSEUDO_STATUS ":%u\r",
-                   stream->status_code);
-    result = Curl_headers_push(data_s, buffer, CURLH_PSEUDO);
+    hlen = curl_msnprintf(buffer, sizeof(buffer), HTTP_PSEUDO_STATUS ":%u\r",
+                          stream->status_code);
+    result = Curl_headers_push(data_s, buffer, hlen, CURLH_PSEUDO);
     if(result) {
       cf_h2_header_error(cf, data_s, stream, result);
       return NGHTTP2_ERR_CALLBACK_FAILURE;
@@ -2041,7 +2042,7 @@ static CURLcode h2_progress_ingress(struct Curl_cfilter *cf,
     return CURLE_HTTP2;
   }
 
-  /* Process network input buffer fist */
+  /* Process network input buffer first */
   if(!Curl_bufq_is_empty(&ctx->inbufq)) {
     CURL_TRC_CF(data, cf, "Process %zu bytes in connection buffer",
                 Curl_bufq_len(&ctx->inbufq));
@@ -3042,7 +3043,6 @@ void *Curl_nghttp2_realloc(void *ptr, size_t size, void *user_data)
 #else /* CURL_DISABLE_HTTP || !USE_NGHTTP2 */
 
 /* Satisfy external references even if http2 is not compiled in. */
-#include <curl/curl.h>
 
 char *curl_pushheader_bynum(struct curl_pushheaders *h, size_t num)
 {

@@ -34,9 +34,7 @@
  * Draft   LOGIN SASL Mechanism <draft-murchison-sasl-login-00.txt>
  *
  ***************************************************************************/
-
 #include "curl_setup.h"
-#include "curlx/dynbuf.h"
 
 #ifndef CURL_DISABLE_IMAP
 
@@ -54,15 +52,15 @@
 #include <inet.h>
 #endif
 
-#include <curl/curl.h>
+#include "curlx/dynbuf.h"
 #include "urldata.h"
 #include "sendf.h"
+#include "curl_trc.h"
 #include "hostip.h"
 #include "progress.h"
 #include "transfer.h"
 #include "escape.h"
-#include "http.h" /* for HTTP proxy tunnel stuff */
-#include "socks.h"
+#include "pingpong.h"
 #include "imap.h"
 #include "mime.h"
 #include "curlx/strparse.h"
@@ -71,13 +69,10 @@
 #include "cfilters.h"
 #include "connect.h"
 #include "select.h"
-#include "multiif.h"
 #include "url.h"
 #include "bufref.h"
 #include "curl_sasl.h"
-#include "curlx/warnless.h"
-#include "curl_ctype.h"
-
+#include "curlx/strcopy.h"
 
 /* meta key for storing protocol meta at easy handle */
 #define CURL_META_IMAP_EASY   "meta:proto:imap:easy"
@@ -141,7 +136,6 @@ struct IMAP {
   unsigned int uidvalidity; /* UIDVALIDITY to check in select */
   BIT(uidvalidity_set);
 };
-
 
 /* Local API functions */
 static CURLcode imap_regular_transfer(struct Curl_easy *data,
@@ -1308,13 +1302,13 @@ static CURLcode imap_state_select_resp(struct Curl_easy *data,
                                        imapstate instate)
 {
   CURLcode result = CURLE_OK;
-  const char *line = curlx_dyn_ptr(&imapc->pp.recvbuf);
-
   (void)instate;
 
   if(imapcode == '*') {
     /* See if this is an UIDVALIDITY response */
-    if(checkprefix("OK [UIDVALIDITY ", line + 2)) {
+    const char *line = curlx_dyn_ptr(&imapc->pp.recvbuf);
+    size_t len = curlx_dyn_len(&imapc->pp.recvbuf);
+    if((len >= 18) && checkprefix("OK [UIDVALIDITY ", &line[2])) {
       curl_off_t value;
       const char *p = &line[2] + strlen("OK [UIDVALIDITY ");
       if(!curlx_str_number(&p, &value, UINT_MAX)) {
@@ -1684,7 +1678,7 @@ static CURLcode imap_connect(struct Curl_easy *data, bool *done)
   imap_state(data, imapc, IMAP_SERVERGREET);
 
   /* Start off with an response id of '*' */
-  strcpy(imapc->resptag, "*");
+  curlx_strcopy(imapc->resptag, sizeof(imapc->resptag), "*", 1);
 
   result = imap_multi_statemach(data, done);
 
@@ -1995,7 +1989,7 @@ static CURLcode imap_setup_connection(struct Curl_easy *data,
   Curl_sasl_init(&imapc->sasl, data, &saslimap);
 
   curlx_dyn_init(&imapc->dyn, DYN_IMAP_CMD);
-  Curl_pp_init(pp);
+  Curl_pp_init(pp, Curl_pgrs_now(data));
 
   if(Curl_conn_meta_set(conn, CURL_META_IMAP_CONN, imapc, imap_conn_dtor))
     return CURLE_OUT_OF_MEMORY;

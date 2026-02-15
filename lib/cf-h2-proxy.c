@@ -21,13 +21,13 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-
 #include "curl_setup.h"
 
 #if !defined(CURL_DISABLE_HTTP) && !defined(CURL_DISABLE_PROXY) && \
   defined(USE_NGHTTP2)
 
 #include <nghttp2/nghttp2.h>
+
 #include "urldata.h"
 #include "url.h"
 #include "cfilters.h"
@@ -36,13 +36,11 @@
 #include "bufq.h"
 #include "curlx/dynbuf.h"
 #include "dynhds.h"
-#include "http1.h"
 #include "http2.h"
 #include "http_proxy.h"
 #include "multiif.h"
 #include "sendf.h"
 #include "select.h"
-#include "curlx/warnless.h"
 #include "cf-h2-proxy.h"
 
 #define PROXY_H2_CHUNK_SIZE  (16 * 1024)
@@ -447,7 +445,7 @@ static CURLcode proxy_h2_progress_ingress(struct Curl_cfilter *cf,
   CURLcode result = CURLE_OK;
   size_t nread;
 
-  /* Process network input buffer fist */
+  /* Process network input buffer first */
   if(!Curl_bufq_is_empty(&ctx->inbufq)) {
     CURL_TRC_CF(data, cf, "[0] process %zu bytes in connection buffer",
                 Curl_bufq_len(&ctx->inbufq));
@@ -1088,7 +1086,7 @@ static CURLcode cf_h2_proxy_connect(struct Curl_cfilter *cf,
   }
   DEBUGASSERT(ts->authority);
 
-  if(Curl_timeleft_ms(data, NULL, TRUE) < 0) {
+  if(Curl_timeleft_ms(data, TRUE) < 0) {
     failf(data, "Proxy CONNECT aborted due to timeout");
     result = CURLE_OPERATION_TIMEDOUT;
     goto out;

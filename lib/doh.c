@@ -21,7 +21,6 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-
 #include "curl_setup.h"
 
 #ifndef CURL_DISABLE_DOH
@@ -30,11 +29,9 @@
 #include "curl_addrinfo.h"
 #include "doh.h"
 
-#include "sendf.h"
+#include "curl_trc.h"
 #include "multiif.h"
 #include "url.h"
-#include "curl_share.h"
-#include "curlx/base64.h"
 #include "connect.h"
 #include "strdup.h"
 #include "curlx/dynbuf.h"
@@ -307,7 +304,7 @@ static CURLcode doh_probe_run(struct Curl_easy *data,
     goto error;
   }
 
-  timeout_ms = Curl_timeleft_ms(data, NULL, TRUE);
+  timeout_ms = Curl_timeleft_ms(data, TRUE);
   if(timeout_ms <= 0) {
     result = CURLE_OPERATION_TIMEDOUT;
     goto error;

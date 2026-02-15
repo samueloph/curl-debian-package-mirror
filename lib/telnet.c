@@ -21,7 +21,6 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-
 #include "curl_setup.h"
 
 #ifndef CURL_DISABLE_TELNET
@@ -48,16 +47,14 @@
 
 #include "urldata.h"
 #include "url.h"
-#include <curl/curl.h>
 #include "transfer.h"
 #include "sendf.h"
+#include "curl_trc.h"
 #include "telnet.h"
 #include "connect.h"
 #include "progress.h"
-#include "system_win32.h"
 #include "arpa_telnet.h"
 #include "select.h"
-#include "curlx/warnless.h"
 #include "curlx/strparse.h"
 
 #define SUBBUFSIZE 512
@@ -93,7 +90,6 @@
 
 #define CURL_EMPTY       0
 #define CURL_OPPOSITE    1
-
 
 /* meta key for storing protocol meta at easy handle */
 #define CURL_META_TELNET_EASY   "meta:proto:telnet:easy"
@@ -1128,7 +1124,6 @@ static CURLcode telrcv(struct Curl_easy *data,
       break;
 
     case CURL_TS_IAC:
-process_iac:
       DEBUGASSERT(startwrite < 0);
       switch(c) {
       case CURL_WILL:
@@ -1201,24 +1196,12 @@ process_iac:
         if(c != CURL_IAC) {
           /*
            * This is an error. We only expect to get "IAC IAC" or "IAC SE".
-           * Several things may have happened. An IAC was not doubled, the
-           * IAC SE was left off, or another option got inserted into the
-           * suboption are all possibilities. If we assume that the IAC was
-           * not doubled, and really the IAC SE was left off, we could get
-           * into an infinite loop here. So, instead, we terminate the
-           * suboption, and process the partial suboption if we can.
+           * Several things may have happened. An IAC was not doubled, the IAC
+           * SE was left off, or another option got inserted into the
+           * suboption are all possibilities.
            */
-          CURL_SB_ACCUM(tn, CURL_IAC);
-          CURL_SB_ACCUM(tn, c);
-          tn->subpointer -= 2;
-          CURL_SB_TERM(tn);
-
-          printoption(data, "In SUBOPTION processing, RCVD", CURL_IAC, c);
-          result = suboption(data, tn);   /* handle sub-option */
-          if(result)
-            return result;
-          tn->telrcv_state = CURL_TS_IAC;
-          goto process_iac;
+          failf(data, "telnet: suboption error");
+          return CURLE_RECV_ERROR;
         }
         CURL_SB_ACCUM(tn, c);
         tn->telrcv_state = CURL_TS_SB;
@@ -1325,11 +1308,8 @@ static CURLcode telnet_do(struct Curl_easy *data, bool *done)
   timediff_t interval_ms;
   struct pollfd pfd[2];
   int poll_cnt;
-  curl_off_t total_dl = 0;
-  curl_off_t total_ul = 0;
   ssize_t snread;
 #endif
-  struct curltime now;
   bool keepon = TRUE;
   char buffer[4 * 1024];
   struct TELNET *tn;
@@ -1511,8 +1491,8 @@ static CURLcode telnet_do(struct Curl_easy *data, bool *done)
     } /* switch */
 
     if(data->set.timeout) {
-      now = curlx_now();
-      if(curlx_timediff_ms(now, conn->created) >= data->set.timeout) {
+      if(curlx_ptimediff_ms(Curl_pgrs_now(data), &conn->created) >=
+         data->set.timeout) {
         failf(data, "Time-out");
         result = CURLE_OPERATION_TIMEDOUT;
         keepon = FALSE;
@@ -1581,8 +1561,7 @@ static CURLcode telnet_do(struct Curl_easy *data, bool *done)
           break;
         }
 
-        total_dl += nread;
-        Curl_pgrsSetDownloadCounter(data, total_dl);
+        Curl_pgrs_download_inc(data, nread);
         result = telrcv(data, tn, (unsigned char *)buffer, nread);
         if(result) {
           keepon = FALSE;
@@ -1622,8 +1601,7 @@ static CURLcode telnet_do(struct Curl_easy *data, bool *done)
           keepon = FALSE;
           break;
         }
-        total_ul += snread;
-        Curl_pgrsSetUploadCounter(data, total_ul);
+        Curl_pgrs_upload_inc(data, (size_t)snread);
       }
       else if(snread < 0)
         keepon = FALSE;
@@ -1632,8 +1610,8 @@ static CURLcode telnet_do(struct Curl_easy *data, bool *done)
     } /* poll switch statement */
 
     if(data->set.timeout) {
-      now = curlx_now();
-      if(curlx_timediff_ms(now, conn->created) >= data->set.timeout) {
+      if(curlx_ptimediff_ms(Curl_pgrs_now(data), &conn->created) >=
+         data->set.timeout) {
         failf(data, "Time-out");
         result = CURLE_OPERATION_TIMEDOUT;
         keepon = FALSE;

@@ -61,7 +61,7 @@
 #include <sys/filio.h>  /* FIONREAD on Solaris 7 */
 #endif
 
-#include <setjmp.h>
+#include <setjmp.h>  /* for sigjmp_buf, sigsetjmp() */
 
 #ifdef HAVE_PWD_H
 #include <pwd.h>
@@ -646,11 +646,6 @@ static int test_tftpd(int argc, char **argv)
 
   snprintf(loglockfile, sizeof(loglockfile), "%s/%s/tftp-%s.lock",
            logdir, SERVERLOGS_LOCKDIR, ipv_inuse);
-
-#ifdef _WIN32
-  if(win32_init())
-    return 2;
-#endif
 
   install_signal_handlers(true);
 

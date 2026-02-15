@@ -21,17 +21,14 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-
 #include "curl_setup.h"
 
 #ifndef CURL_DISABLE_PROXY
 
-#include <curl/curl.h>
 #include "urldata.h"
 #include "cfilters.h"
 #include "cf-haproxy.h"
 #include "curl_trc.h"
-#include "multiif.h"
 #include "select.h"
 
 

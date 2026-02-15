@@ -21,11 +21,7 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-
 #include "curl_setup.h"
-
-#include <curl/curl.h>
-#include <curl/mprintf.h>
 
 #ifdef USE_WINDOWS_SSPI
 #include "curl_sspi.h"
@@ -33,6 +29,7 @@
 
 #include "curlx/winapi.h"
 #include "strerror.h"
+#include "curlx/strcopy.h"
 
 const char *curl_easy_strerror(CURLcode error)
 {
@@ -666,8 +663,7 @@ const char *Curl_sspi_strerror(SECURITY_STATUS err, char *buf, size_t buflen)
     txt = "No error";
   else
     txt = "Error";
-  if(buflen > strlen(txt))
-    strcpy(buf, txt);
+  curlx_strcopy(buf, buflen, txt, strlen(txt));
 #endif
 
   if(errno != old_errno)

@@ -25,7 +25,6 @@
 
 #include "tool_cfgable.h"
 #include "tool_cb_prg.h"
-#include "tool_util.h"
 #include "tool_operate.h"
 #include "terminal.h"
 
@@ -229,8 +228,7 @@ int tool_progress_cb(void *clientp,
   return 0;
 }
 
-void progressbarinit(struct ProgressData *bar,
-                     struct OperationConfig *config)
+void progressbarinit(struct ProgressData *bar, struct OperationConfig *config)
 {
   memset(bar, 0, sizeof(struct ProgressData));
 

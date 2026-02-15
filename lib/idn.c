@@ -21,16 +21,13 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-
 /*
  * IDN conversions
  */
-
 #include "curl_setup.h"
+
 #include "urldata.h"
 #include "idn.h"
-#include "sendf.h"
-#include "curlx/warnless.h"
 
 #ifdef USE_LIBIDN2
 #include <idn2.h>
@@ -42,7 +39,7 @@
 #define IDN2_LOOKUP(name, host, flags)                          \
   idn2_lookup_ul((const char *)name, (char **)host, flags)
 #endif
-#endif  /* USE_LIBIDN2 */
+#endif /* USE_LIBIDN2 */
 
 /* for macOS and iOS targets */
 #ifdef USE_APPLE_IDN
@@ -185,6 +182,9 @@ static CURLcode win32_idn_to_ascii(const char *in, char **out)
   wchar_t in_w[IDN_MAX_LENGTH];
   int in_w_len;
   *out = NULL;
+  /* Returned in_w_len includes the null-terminator, which then gets
+     preserved across the calls that follow, ending up terminating
+     the buffer returned to the caller. */
   in_w_len = MultiByteToWideChar(CP_UTF8, 0, in, -1, in_w, IDN_MAX_LENGTH);
   if(in_w_len) {
     wchar_t punycode[IDN_MAX_LENGTH];
@@ -208,6 +208,9 @@ static CURLcode win32_ascii_to_idn(const char *in, char **out)
   wchar_t in_w[IDN_MAX_LENGTH];
   int in_w_len;
   *out = NULL;
+  /* Returned in_w_len includes the null-terminator, which then gets
+     preserved across the calls that follow, ending up terminating
+     the buffer returned to the caller. */
   in_w_len = MultiByteToWideChar(CP_UTF8, 0, in, -1, in_w, IDN_MAX_LENGTH);
   if(in_w_len) {
     WCHAR idn[IDN_MAX_LENGTH]; /* stores a UTF-16 string */

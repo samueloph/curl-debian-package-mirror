@@ -26,7 +26,6 @@
 #include "curl_setup.h"
 
 #if !defined(CURL_DISABLE_HTTP) && !defined(CURL_DISABLE_HSTS)
-#include <curl/curl.h>
 #include "llist.h"
 
 #if defined(DEBUGBUILD) || defined(UNITTESTS)
@@ -35,9 +34,9 @@ extern time_t deltatime;
 
 struct stsentry {
   struct Curl_llist_node node;
-  const char *host;
   curl_off_t expires; /* the timestamp of this entry's expiry */
   BIT(includeSubDomains);
+  char host[1];
 };
 
 /* The HSTS cache. Needs to be able to tailmatch hostnames. */

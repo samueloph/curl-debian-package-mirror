@@ -23,9 +23,7 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-
 /* This file is for lib internal stuff */
-
 #include "curl_setup.h"
 
 #define PORT_FTP    21
@@ -133,7 +131,6 @@ typedef unsigned int curl_prot_t;
    input easier and better. */
 #define CURL_MAX_INPUT_LENGTH 8000000
 
-
 #include "cookie.h"
 #include "psl.h"
 #include "formdata.h"
@@ -146,8 +143,6 @@ typedef unsigned int curl_prot_t;
 #endif
 
 #include "curlx/timeval.h"
-
-#include <curl/curl.h>
 
 #include "http_chunks.h" /* for the structs and enum stuff */
 #include "hostip.h"
@@ -176,13 +171,8 @@ typedef CURLcode (Curl_recv)(struct Curl_easy *data,   /* transfer */
                              size_t *pnread);          /* how much received */
 
 #include "mime.h"
-#include "imap.h"
-#include "smtp.h"
 #include "ftp.h"
-#include "file.h"
-#include "vssh/ssh.h"
 #include "http.h"
-#include "rtsp.h"
 #include "smb.h"
 #include "mqtt.h"
 #include "ftplistparser.h"
@@ -538,43 +528,45 @@ struct Curl_handler {
 };
 
 #define PROTOPT_NONE 0             /* nothing extra */
-#define PROTOPT_SSL (1<<0)         /* uses SSL */
-#define PROTOPT_DUAL (1<<1)        /* this protocol uses two connections */
-#define PROTOPT_CLOSEACTION (1<<2) /* need action before socket close */
+#define PROTOPT_SSL (1 << 0)       /* uses SSL */
+#define PROTOPT_DUAL (1 << 1)      /* this protocol uses two connections */
+#define PROTOPT_CLOSEACTION (1 << 2) /* need action before socket close */
 /* some protocols will have to call the underlying functions without regard to
    what exact state the socket signals. IE even if the socket says "readable",
    the send function might need to be called while uploading, or vice versa.
 */
-#define PROTOPT_DIRLOCK (1<<3)
-#define PROTOPT_NONETWORK (1<<4)   /* protocol does not use the network! */
-#define PROTOPT_NEEDSPWD (1<<5)    /* needs a password, and if none is set it
+#define PROTOPT_DIRLOCK (1 << 3)
+#define PROTOPT_NONETWORK (1 << 4) /* protocol does not use the network! */
+#define PROTOPT_NEEDSPWD (1 << 5)  /* needs a password, and if none is set it
                                       gets a default */
-#define PROTOPT_NOURLQUERY (1<<6)   /* protocol cannot handle
-                                       URL query strings (?foo=bar) ! */
-#define PROTOPT_CREDSPERREQUEST (1<<7) /* requires login credentials per
-                                          request instead of per connection */
-#define PROTOPT_ALPN (1<<8) /* set ALPN for this */
-/* (1<<9) was PROTOPT_STREAM, now free */
-#define PROTOPT_URLOPTIONS (1<<10) /* allow options part in the userinfo field
-                                      of the URL */
-#define PROTOPT_PROXY_AS_HTTP (1<<11) /* allow this non-HTTP scheme over a
-                                         HTTP proxy as HTTP proxies may know
-                                         this protocol and act as a gateway */
-#define PROTOPT_WILDCARD (1<<12)    /* protocol supports wildcard matching */
-#define PROTOPT_USERPWDCTRL (1<<13) /* Allow "control bytes" (< 32 ASCII) in
-                                       username and password */
-#define PROTOPT_NOTCPPROXY (1<<14)  /* this protocol cannot proxy over TCP */
-#define PROTOPT_SSL_REUSE (1<<15)   /* this protocol may reuse an existing
-                                       SSL connection in the same family
-                                       without having PROTOPT_SSL. */
-#define PROTOPT_CONN_REUSE (1<<16)  /* this protocol can reuse connections */
+#define PROTOPT_NOURLQUERY (1 << 6)  /* protocol cannot handle
+                                        URL query strings (?foo=bar) ! */
+#define PROTOPT_CREDSPERREQUEST (1 << 7) /* requires login credentials per
+                                            request instead of per
+                                            connection */
+#define PROTOPT_ALPN (1 << 8) /* set ALPN for this */
+/* (1 << 9) was PROTOPT_STREAM, now free */
+#define PROTOPT_URLOPTIONS (1 << 10) /* allow options part in the userinfo
+                                        field of the URL */
+#define PROTOPT_PROXY_AS_HTTP (1 << 11) /* allow this non-HTTP scheme over a
+                                           HTTP proxy as HTTP proxies may know
+                                           this protocol and act as
+                                           a gateway */
+#define PROTOPT_WILDCARD (1 << 12)  /* protocol supports wildcard matching */
+#define PROTOPT_USERPWDCTRL (1 << 13) /* Allow "control bytes" (< 32 ASCII) in
+                                         username and password */
+#define PROTOPT_NOTCPPROXY (1 << 14)  /* this protocol cannot proxy over TCP */
+#define PROTOPT_SSL_REUSE (1 << 15)   /* this protocol may reuse an existing
+                                         SSL connection in the same family
+                                         without having PROTOPT_SSL. */
+#define PROTOPT_CONN_REUSE (1 << 16)  /* this protocol can reuse connections */
 
 #define CONNCHECK_NONE 0                 /* No checks */
-#define CONNCHECK_ISDEAD (1<<0)          /* Check if the connection is dead. */
-#define CONNCHECK_KEEPALIVE (1<<1)       /* Perform any keepalive function. */
+#define CONNCHECK_ISDEAD (1 << 0)        /* Check if the connection is dead. */
+#define CONNCHECK_KEEPALIVE (1 << 1)     /* Perform any keepalive function. */
 
 #define CONNRESULT_NONE 0                /* No extra information. */
-#define CONNRESULT_DEAD (1<<0)           /* The connection is dead. */
+#define CONNRESULT_DEAD (1 << 0)         /* The connection is dead. */
 
 #define TRNSPRT_NONE 0
 #define TRNSPRT_TCP  3
@@ -742,14 +734,14 @@ struct connectdata {
 
 #ifndef CURL_DISABLE_PROXY
 #define CURL_CONN_HOST_DISPNAME(c) \
-          ((c)->bits.socksproxy ? (c)->socks_proxy.host.dispname : \
-            (c)->bits.httpproxy ? (c)->http_proxy.host.dispname : \
-              (c)->bits.conn_to_host ? (c)->conn_to_host.dispname : \
-                (c)->host.dispname)
+  ((c)->bits.socksproxy ? (c)->socks_proxy.host.dispname : \
+    (c)->bits.httpproxy ? (c)->http_proxy.host.dispname : \
+      (c)->bits.conn_to_host ? (c)->conn_to_host.dispname : \
+        (c)->host.dispname)
 #else
 #define CURL_CONN_HOST_DISPNAME(c) \
-          (c)->bits.conn_to_host ? (c)->conn_to_host.dispname : \
-            (c)->host.dispname
+  (c)->bits.conn_to_host ? (c)->conn_to_host.dispname : \
+    (c)->host.dispname
 #endif
 
 /* The end of connectdata. */
@@ -803,6 +795,7 @@ struct pgrs_dir {
 };
 
 struct Progress {
+  struct curltime now; /* current time of processing */
   time_t lastshow; /* time() of the last displayed progress meter or NULL to
                       force redraw at next call */
   struct pgrs_dir ul;
@@ -1134,6 +1127,8 @@ struct UrlState {
   BIT(http_hd_te); /* Added HTTP header TE: */
   BIT(http_hd_upgrade); /* Added HTTP header Upgrade: */
   BIT(http_hd_h2_settings); /* Added HTTP header H2Settings: */
+  BIT(maybe_folded);
+  BIT(leading_unfold); /* unfold started, this is the leading bytes */
 #endif
 };
 
@@ -1160,7 +1155,7 @@ enum dupstring {
   STRING_SSL_CIPHER_LIST, /* list of ciphers to use */
   STRING_SSL_CIPHER13_LIST, /* list of TLS 1.3 ciphers to use */
   STRING_SSL_CRLFILE,     /* CRL file to check certificate */
-  STRING_SSL_ISSUERCERT, /* issuer cert file to check certificate */
+  STRING_SSL_ISSUERCERT,  /* issuer cert file to check certificate */
   STRING_SERVICE_NAME,    /* Service name */
 #ifndef CURL_DISABLE_PROXY
   STRING_CERT_PROXY,      /* client certificate filename */

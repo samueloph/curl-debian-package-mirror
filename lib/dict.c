@@ -21,7 +21,6 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-
 #include "curl_setup.h"
 
 #ifndef CURL_DISABLE_DICT
@@ -53,11 +52,9 @@
 #endif
 
 #include "urldata.h"
-#include <curl/curl.h>
 #include "transfer.h"
-#include "sendf.h"
+#include "curl_trc.h"
 #include "escape.h"
-#include "progress.h"
 #include "dict.h"
 
 #define DICT_MATCH   "/MATCH:"

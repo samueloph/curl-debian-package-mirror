@@ -21,15 +21,11 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-
 #include "curl_setup.h"
 
 #ifdef USE_CURL_NTLM_CORE
 
-#include <string.h>
-
 #include "curl_md4.h"
-#include "curlx/warnless.h"
 
 #ifdef USE_OPENSSL
 #include <openssl/opensslv.h>

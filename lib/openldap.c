@@ -22,7 +22,6 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-
 #include "curl_setup.h"
 
 #if !defined(CURL_DISABLE_LDAP) && defined(USE_OPENLDAP)
@@ -42,8 +41,8 @@
 
 #include "urldata.h"
 #include "url.h"
-#include <curl/curl.h>
 #include "sendf.h"
+#include "curl_trc.h"
 #include "vtls/vtls.h"
 #include "transfer.h"
 #include "curl_ldap.h"

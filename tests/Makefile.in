@@ -323,7 +323,9 @@ RANLIB = @RANLIB@
 RC = @RC@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
+SFTPD = @SFTPD@
 SHELL = @SHELL@
+SSHD = @SSHD@
 SSL_BACKENDS = @SSL_BACKENDS@
 STRIP = @STRIP@
 SUPPORT_FEATURES = @SUPPORT_FEATURES@
@@ -468,18 +470,18 @@ TEST_COMMON = $(am__append_1)
 @CROSSCOMPILING_TRUE@TEST = @echo "NOTICE: we cannot run the tests when cross-compiling!"
 @CROSSCOMPILING_FALSE@PYTEST = pytest
 @CROSSCOMPILING_TRUE@PYTEST = $(TEST)
-@CROSSCOMPILING_FALSE@TEST_Q = -a -w -s
-@CROSSCOMPILING_FALSE@TEST_AM = -a -w -am
-@CROSSCOMPILING_FALSE@TEST_F = -a -w -p -r
-@CROSSCOMPILING_FALSE@TEST_T = -a -w -t -j20
-@CROSSCOMPILING_FALSE@TEST_E = -a -w -e
+@CROSSCOMPILING_FALSE@TEST_Q = -a -s
+@CROSSCOMPILING_FALSE@TEST_AM = -a -am
+@CROSSCOMPILING_FALSE@TEST_F = -a -p -r
+@CROSSCOMPILING_FALSE@TEST_T = -a -t -j20
+@CROSSCOMPILING_FALSE@TEST_E = -a -e
 
 # ~<keyword> means that it runs all tests matching the keyword, but ignores
 # their results (since these ones are likely to fail for no good reason)
-@CROSSCOMPILING_FALSE@TEST_NF = -a -w -p ~flaky ~timing-dependent
+@CROSSCOMPILING_FALSE@TEST_NF = -a -p ~flaky ~timing-dependent
 
 # special target for CI use
-@CROSSCOMPILING_FALSE@TEST_CI = -a -p ~flaky ~timing-dependent -r --retry=5 -j20 --buildinfo
+@CROSSCOMPILING_FALSE@TEST_CI = $(TEST_NF) -r --retry=5 -j20 --buildinfo
 all: all-recursive
 
 .SUFFIXES:

@@ -21,7 +21,6 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-
 #include "curl_setup.h"
 
 #if !defined(CURL_DISABLE_HTTP) && !defined(CURL_DISABLE_AWS)
@@ -32,14 +31,12 @@
 #include "http_aws_sigv4.h"
 #include "curl_sha256.h"
 #include "transfer.h"
-#include "parsedate.h"
-#include "sendf.h"
+#include "curl_trc.h"
 #include "escape.h"
 #include "curlx/strparse.h"
+#include "slist.h"
 
 #include <time.h>
-
-#include "slist.h"
 
 #define HMAC_SHA256(k, kl, d, dl, o)                \
   do {                                              \
@@ -806,7 +803,7 @@ CURLcode Curl_output_aws_sigv4(struct Curl_easy *data)
 #else
   clock = time(NULL);
 #endif
-  result = Curl_gmtime(clock, &tm);
+  result = curlx_gmtime(clock, &tm);
   if(result) {
     goto fail;
   }

@@ -1,18 +1,54 @@
-curl (8.18.0~rc1-1+exp1) experimental; urgency=medium
+curl (8.18.0-1) unstable; urgency=medium
 
-  * New upstream version 8.18.0~rc1
+  * New upstream version 8.18.0
+  * debian/control:
+      - Bump stds-version to 4.7.3.
+      - Remove Priority field, it already defaults to optional.
+      - Remove Rules-Requires-Root, it already defaults to no.
+  * debian/copyright: bump packaging copyright years, happy 2026!
+
+ -- Carlos Henrique Lima Melara <charlesmelara@riseup.net>  Wed, 07 Jan 2026 21:09:51 -0300
+
+curl (8.18.0~rc3-1) unstable; urgency=medium
+
+  * New upstream version 8.18.0~rc3
+  * Refresh patches
+  * d/copyright: Remove entries for files removed upstream
+  * Refresh patches:
+     - ZZZgnutls-build.patch
+     - build-Divide-mit-krb5-gssapi-link-flags-between-LDFLAGS-a.patch
+  * d/copyright: Remove entries for files removed upstream:
+     - lib/vtls/mbedtls_threadlock.c
+     - lib/vtls/mbedtls_threadlock.h
+
+ -- Samuel Henrique <samueloph@debian.org>  Sun, 28 Dec 2025 21:54:41 -0800
+
+curl (8.18.0~rc2-1) unstable; urgency=medium
+
+  * New upstream version 8.18.0~rc2
+  * d/copyright: Remove entries for files removed upstream
   * d/patches:
     - Drop patches merged upstream:
       ~ fix-progress-meter-in-parallel-mode.patch
       ~ wcurl-CVE-2025-11563.patch
     - Update patches:
-      ~ ZZZgnutls-build.patch: Variables AM_CFLAGS and AM_LDFLAGS were dropped
-        in lib/Makefile.am
+      ~ ZZZgnutls-build.patch:
+        + Variables AM_CFLAGS and AM_LDFLAGS were dropped
+          in lib/Makefile.am
+        + Update patch's context.
       ~ build-Divide-mit-krb5-gssapi-link-flags-between-LDFLAGS-a.patch:
-        Context update.
-  * d/copyright: Remove entries for files removed upstream
+        + Context update.
+        + Update patch offset.
+      ~ 11_omit-directories-from-config.patch:
+        + Update for upstream usage of double quotes (replacing single quotes)
+          for variables and usage of '&& test' instead of '-a' in
+          curl-config.in.
+  * d/libcurl4-doc.docs: Some docs were converted to .md:
+    - docs/FAQ.md
+    - docs/KNOWN_BUGS.md
+    - docs/TODO.md
 
- -- Samuel Henrique <samueloph@debian.org>  Sat, 06 Dec 2025 13:16:00 -0800
+ -- Samuel Henrique <samueloph@debian.org>  Mon, 15 Dec 2025 18:51:22 -0800
 
 curl (8.17.0-3) unstable; urgency=medium
 

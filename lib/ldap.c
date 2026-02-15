@@ -21,7 +21,6 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-
 #include "curl_setup.h"
 
 #if !defined(CURL_DISABLE_LDAP) && !defined(USE_OPENLDAP)
@@ -64,27 +63,22 @@
 #  pragma warning(pop)
 # endif
 # include <winldap.h>
-# ifndef LDAP_VENDOR_NAME
-#  error Your Platform SDK is NOT sufficient for LDAP support! \
-         Update your Platform SDK, or disable LDAP support!
-# else
-#  include <winber.h>
-# endif
+# include <winber.h>
 #else
 # define LDAP_DEPRECATED 1      /* Be sure ldap_init() is defined. */
 # ifdef HAVE_LBER_H
 #  include <lber.h>
 # endif
 # include <ldap.h>
-# if (defined(HAVE_LDAP_SSL) && defined(HAVE_LDAP_SSL_H))
+# if defined(HAVE_LDAP_SSL) && defined(HAVE_LDAP_SSL_H)
 #  include <ldap_ssl.h>
 # endif /* HAVE_LDAP_SSL && HAVE_LDAP_SSL_H */
 #endif
 
 #include "urldata.h"
-#include <curl/curl.h>
 #include "cfilters.h"
 #include "sendf.h"
+#include "curl_trc.h"
 #include "escape.h"
 #include "progress.h"
 #include "transfer.h"
@@ -100,7 +94,7 @@
 #define curl_ldap_num_t    ULONG
 #else
 #define FREE_ON_WINLDAP(x)
-#define curl_ldap_num_t int
+#define curl_ldap_num_t    int
 #endif
 
 #ifndef HAVE_LDAP_URL_PARSE
@@ -1028,16 +1022,27 @@ void Curl_ldap_version(char *buf, size_t bufsz)
   LDAPAPIInfo api;
   api.ldapai_info_version = LDAP_API_INFO_VERSION;
 
-  if(ldap_get_option(NULL, LDAP_OPT_API_INFO, &api) == LDAP_OPT_SUCCESS) {
+  /* Comparing against 0, as different platforms
+     disagree on the success define name */
+  if(ldap_get_option(NULL, LDAP_OPT_API_INFO, &api) == 0) {
     unsigned int patch = (unsigned int)(api.ldapai_vendor_version % 100);
     unsigned int major = (unsigned int)(api.ldapai_vendor_version / 10000);
     unsigned int minor =
       (((unsigned int)api.ldapai_vendor_version - major * 10000)
        - patch) / 100;
+
+#ifdef __OS400__
+    curl_msnprintf(buf, bufsz, "IBMLDAP/%u.%u.%u",
+                   major, minor, patch);
+
+    ldap_value_free(api.ldapai_extensions);
+#else
     curl_msnprintf(buf, bufsz, "%s/%u.%u.%u%s",
                    api.ldapai_vendor_name, major, minor, patch, flavor);
+
     ldap_memfree(api.ldapai_vendor_name);
     ber_memvfree((void **)api.ldapai_extensions);
+#endif
   }
   else
     curl_msnprintf(buf, bufsz, "LDAP/1");

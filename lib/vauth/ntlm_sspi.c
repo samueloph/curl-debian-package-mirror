@@ -21,17 +21,13 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-
 #include "../curl_setup.h"
 
 #if defined(USE_WINDOWS_SSPI) && defined(USE_NTLM)
 
-#include <curl/curl.h>
-
 #include "vauth.h"
 #include "../curl_ntlm_core.h"
-#include "../curlx/warnless.h"
-#include "../sendf.h"
+#include "../curl_trc.h"
 #include "../strdup.h"
 
 /*

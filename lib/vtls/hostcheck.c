@@ -21,7 +21,6 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-
 #include "../curl_setup.h"
 
 #if defined(USE_OPENSSL) || defined(USE_SCHANNEL)
@@ -92,8 +91,8 @@ static bool hostmatch(const char *hostname,
   if(strncmp(pattern, "*.", 2))
     return pmatch(hostname, hostlen, pattern, patternlen);
 
-  /* detect IP address as hostname and fail the match if so */
-  else if(Curl_host_is_ipnum(hostname))
+  /* detect host as IP address or starting with a dot and fail if so */
+  else if(Curl_host_is_ipnum(hostname) || (hostname[0] == '.'))
     return FALSE;
 
   /* We require at least 2 dots in the pattern to avoid too wide wildcard
@@ -125,4 +124,4 @@ bool Curl_cert_hostcheck(const char *match, size_t matchlen,
   return FALSE;
 }
 
-#endif /* OPENSSL or SCHANNEL */
+#endif /* USE_OPENSSL || USE_SCHANNEL */

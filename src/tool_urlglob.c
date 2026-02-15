@@ -489,7 +489,7 @@ bool glob_inuse(struct URLGlob *glob)
   return glob->palloc ? TRUE : FALSE;
 }
 
-CURLcode glob_url(struct URLGlob *glob, char *url, curl_off_t *urlnum,
+CURLcode glob_url(struct URLGlob *glob, const char *url, curl_off_t *urlnum,
                   FILE *error)
 {
   /*
@@ -500,7 +500,7 @@ CURLcode glob_url(struct URLGlob *glob, char *url, curl_off_t *urlnum,
   CURLcode res;
 
   memset(glob, 0, sizeof(struct URLGlob));
-  curlx_dyn_init(&glob->buf, 1024 * 1024);
+  curlx_dyn_init(&glob->buf, MAX_CONFIG_LINE_LENGTH);
   glob->pattern = curlx_malloc(2 * sizeof(struct URLPattern));
   if(!glob->pattern)
     return CURLE_OUT_OF_MEMORY;
@@ -704,8 +704,11 @@ CURLcode glob_match_url(char **output, const char *filename,
                                          (SANITIZE_ALLOW_PATH |
                                           SANITIZE_ALLOW_RESERVED));
     curlx_dyn_free(&dyn);
-    if(sc)
+    if(sc) {
+      if(sc == SANITIZE_ERR_OUT_OF_MEMORY)
+        return CURLE_OUT_OF_MEMORY;
       return CURLE_URL_MALFORMAT;
+    }
     *output = sanitized;
     return CURLE_OK;
   }

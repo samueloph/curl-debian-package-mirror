@@ -21,12 +21,10 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-
 #include "curl_setup.h"
 
 #ifndef CURL_DISABLE_PROXY
 
-#include <curl/curl.h>  /* for curl_strnequal() */
 #include "curlx/inet_pton.h"
 #include "noproxy.h"
 #include "curlx/strparse.h"
@@ -211,8 +209,10 @@ bool Curl_check_noproxy(const char *name, const char *no_proxy)
     namelen = strlen(name);
     if(curlx_inet_pton(AF_INET, name, &address) == 1)
       type = TYPE_IPV4;
+#ifdef USE_IPV6
     else if(curlx_inet_pton(AF_INET6, name, &address) == 1)
       type = TYPE_IPV6;
+#endif
     else {
       /* ignore trailing dots in the hostname */
       if(name[namelen - 1] == '.')
