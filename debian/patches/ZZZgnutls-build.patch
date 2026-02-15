@@ -18,7 +18,7 @@ diff --git a/configure.ac b/configure.ac
 index 2700158..d79b7d9 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -249,6 +249,16 @@ AS_HELP_STRING([--with-gnutls=PATH],[where to look for GnuTLS, PATH points to th
+@@ -247,6 +247,16 @@ AS_HELP_STRING([--with-gnutls=PATH],[where to look for GnuTLS, PATH points to th
    fi
  ])
  
@@ -61,9 +61,9 @@ diff --git a/lib/Makefile.am b/lib/Makefile.am
 index f2fc303..acda87a 100644
 --- a/lib/Makefile.am
 +++ b/lib/Makefile.am
-@@ -32,7 +32,11 @@ EXTRA_DIST = config-mac.h config-os400.h config-plan9.h config-riscos.h \
-   config-win32.h curl_config.h.in $(LIB_RCFILES) libcurl.def            \
-   $(CMAKE_DIST) Makefile.soname optiontable.pl
+@@ -32,7 +32,11 @@ EXTRA_DIST = config-mac.h config-os400.h config-riscos.h config-win32.h
+   curl_config.h.in $(LIB_RCFILES) libcurl.def $(CMAKE_DIST) Makefile.soname     \
+   optiontable.pl
  
 +if GNUTLSBUILD
 +lib_LTLIBRARIES = libcurl-gnutls.la
@@ -73,7 +73,7 @@ index f2fc303..acda87a 100644
  
  if BUILD_UNITTESTS
  noinst_LTLIBRARIES = libcurlu.la
-@@ -79,63 +83,121 @@ if USE_UNITY
+@@ -76,63 +80,121 @@ if USE_UNITY
  libcurl_unity.c: $(top_srcdir)/scripts/mk-unity.pl $(CSOURCES)
  	@PERL@ $(top_srcdir)/scripts/mk-unity.pl --include $(CSOURCES) > libcurl_unity.c
  
@@ -199,7 +199,7 @@ diff --git a/src/Makefile.am b/src/Makefile.am
 index 49dc669..b570215 100644
 --- a/src/Makefile.am
 +++ b/src/Makefile.am
-@@ -101,7 +101,7 @@ CFLAGS += @CURL_CFLAG_EXTRAS@
+@@ -98,7 +98,7 @@ CFLAGS += @CURL_CFLAG_EXTRAS@
  # Prevent LIBS from being used for all link targets
  LIBS = $(BLANK_AT_MAKETIME)
  
@@ -222,10 +222,10 @@ index 7b99ba6..5b483cd 100644
  
  lib1521.c: $(top_srcdir)/tests/libtest/mk-lib1521.pl $(top_srcdir)/include/curl/curl.h
 diff --git a/tests/tunit/Makefile.am b/tests/tunit/Makefile.am
-index 219b7a1..79acb86 100644
+index ac7e31a..c45e7f7 100644
 --- a/tests/tunit/Makefile.am
 +++ b/tests/tunit/Makefile.am
-@@ -63,8 +63,8 @@ $(BUNDLE).c: $(top_srcdir)/scripts/mk-unity.pl Makefile.inc $(FIRST_C) $(TESTS_C
+@@ -60,8 +60,8 @@ $(BUNDLE).c: $(top_srcdir)/scripts/mk-unity.pl Makefile.inc $(FIRST_C) $(TESTS_C
  	@PERL@ $(top_srcdir)/scripts/mk-unity.pl --test $(TESTS_C) > $(BUNDLE).c
  
  noinst_PROGRAMS = $(BUNDLE)
