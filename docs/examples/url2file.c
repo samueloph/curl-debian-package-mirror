@@ -42,7 +42,7 @@ static size_t write_cb(void *ptr, size_t size, size_t nmemb, void *stream)
   return written;
 }
 
-int main(int argc, char *argv[])
+int main(int argc, const char *argv[])
 {
   static const char *pagefilename = "page.out";
 
@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
   }
 
   result = curl_global_init(CURL_GLOBAL_ALL);
-  if(result) {
+  if(result != CURLE_OK) {
     fprintf(stderr, "Could not init curl\n");
     return (int)result;
   }

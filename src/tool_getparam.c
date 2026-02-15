@@ -36,7 +36,6 @@
 #include "tool_main.h"
 #include "tool_stderr.h"
 #include "tool_help.h"
-#include "tool_strdup.h"
 #include "var.h"
 
 #define ALLOW_BLANK TRUE
@@ -70,7 +69,7 @@ static ParameterError getstrn(char **str, const char *val,
   if(!allowblank && !val[0])
     return PARAM_BLANK_STRING;
 
-  *str = memdup0(val, len);
+  *str = curlx_memdup0(val, len);
   if(!*str)
     return PARAM_NO_MEM;
 
@@ -182,7 +181,7 @@ static const struct LongShort aliases[]= {
   {"ip-tos",                     ARG_STRG, ' ', C_IP_TOS},
 #ifndef CURL_DISABLE_IPFS
   {"ipfs-gateway",               ARG_STRG, ' ', C_IPFS_GATEWAY},
-#endif /* !CURL_DISABLE_IPFS */
+#endif
   {"ipv4",                       ARG_NONE, '4', C_IPV4},
   {"ipv6",                       ARG_NONE, '6', C_IPV6},
   {"json",                       ARG_STRG, ' ', C_JSON},
@@ -381,10 +380,9 @@ static const struct LongShort aliases[]= {
  *
  * Unit test 1394
  */
-UNITTEST
-ParameterError parse_cert_parameter(const char *cert_parameter,
-                                    char **certname,
-                                    char **passphrase)
+UNITTEST ParameterError parse_cert_parameter(const char *cert_parameter,
+                                             char **certname,
+                                             char **passphrase)
 {
   size_t param_length = strlen(cert_parameter);
   size_t span;
@@ -534,54 +532,93 @@ static ParameterError GetFileAndPassword(const char *nextarg, char **file,
   return err;
 }
 
+struct sizeunit {
+  char unit; /* single lowercase ASCII letter */
+  curl_off_t mul;
+  size_t mlen; /* number of digits in 'mul', when written in decimal */
+};
+
+static const struct sizeunit *getunit(char unit)
+{
+  static const struct sizeunit list[] = {
+    {'p', (curl_off_t)1125899906842624, 16 }, /* Peta */
+    {'t', (curl_off_t)1099511627776,    13 }, /* Tera */
+    {'g', 1073741824,                   10 }, /* Giga */
+    {'m', 1048576,                       7 }, /* Mega */
+    {'k', 1024,                          4 }, /* Kilo */
+  };
+
+  size_t i;
+  for(i = 0; i < CURL_ARRAYSIZE(list); i++)
+    if((unit | 0x20) == list[i].unit)
+      return &list[i];
+  return NULL;
+}
+
 /* Get a size parameter for '--limit-rate' or '--max-filesize'.
- * We support a 'G', 'M' or 'K' suffix too.
+   We support P, T, G, M and K (case insensitive) suffixes.
+
+   Unit test 1623
   */
-static ParameterError GetSizeParameter(const char *arg,
-                                       const char *which,
-                                       curl_off_t *value_out)
+UNITTEST ParameterError GetSizeParameter(const char *arg, curl_off_t *out)
 {
   const char *unit = arg;
   curl_off_t value;
+  curl_off_t prec = 0;
+  size_t plen = 0;
+  curl_off_t add = 0;
+  curl_off_t mul = 1;
+  int rc;
 
-  if(curlx_str_number(&unit, &value, CURL_OFF_T_MAX)) {
-    warnf("invalid number specified for %s", which);
-    return PARAM_BAD_USE;
+  rc = curlx_str_number(&unit, &value, CURL_OFF_T_MAX);
+  if(rc == STRE_OVERFLOW)
+    return PARAM_NUMBER_TOO_LARGE;
+  else if(rc)
+    return PARAM_BAD_NUMERIC;
+
+  if(!curlx_str_single(&unit, '.')) {
+    const char *s = unit;
+    if(curlx_str_number(&unit, &prec, CURL_OFF_T_MAX))
+      return PARAM_BAD_NUMERIC;
+    plen = unit - s;
   }
 
-  if(!*unit)
-    unit = "b";
-  else if(strlen(unit) > 1)
-    unit = "w"; /* unsupported */
-
-  switch(*unit) {
-  case 'G':
-  case 'g':
-    if(value > (CURL_OFF_T_MAX / (1024 * 1024 * 1024)))
-      return PARAM_NUMBER_TOO_LARGE;
-    value *= 1024 * 1024 * 1024;
-    break;
-  case 'M':
-  case 'm':
-    if(value > (CURL_OFF_T_MAX / (1024 * 1024)))
-      return PARAM_NUMBER_TOO_LARGE;
-    value *= 1024 * 1024;
-    break;
-  case 'K':
-  case 'k':
-    if(value > (CURL_OFF_T_MAX / 1024))
-      return PARAM_NUMBER_TOO_LARGE;
-    value *= 1024;
-    break;
-  case 'b':
-  case 'B':
-    /* for plain bytes, leave as-is */
-    break;
-  default:
-    warnf("unsupported %s unit. Use G, M, K or B", which);
+  if(strlen(unit) > 1)
     return PARAM_BAD_USE;
+  else if(!*unit || ((*unit | 0x20) == 'b')) {
+    if(plen)
+      /* cannot handle partial bytes */
+      return PARAM_BAD_USE;
   }
-  *value_out = value;
+  else {
+    const struct sizeunit *su = getunit(*unit);
+    if(!su)
+      return PARAM_BAD_USE;
+    mul = su->mul;
+
+    if(prec) {
+      /* precision was provided */
+      curl_off_t frac = 1;
+
+      /* too many precision digits, trim them */
+      while(su->mlen <= plen) {
+        prec /= 10;
+        plen--;
+      }
+
+      while(plen--)
+        frac *= 10;
+
+      if((CURL_OFF_T_MAX / mul) > prec)
+        add = mul * prec / frac;
+      else
+        add = (mul / frac) * prec;
+    }
+  }
+  if(value > ((CURL_OFF_T_MAX - add) / mul))
+    return PARAM_NUMBER_TOO_LARGE;
+
+  *out = value * mul + add;
   return PARAM_OK;
 }
 
@@ -638,7 +675,7 @@ static ParameterError data_urlencode(const char *nextarg,
     /* a '@' letter, it means that a filename or - (stdin) follows */
     if(!strcmp("-", p)) {
       file = stdin;
-      CURLX_SET_BINMODE(stdin);
+      CURL_BINMODE(stdin);
     }
     else {
       file = curlx_fopen(p, "rb");
@@ -912,7 +949,7 @@ static ParameterError set_data(cmdline_t cmd,
     if(!strcmp("-", nextarg)) {
       file = stdin;
       if(cmd == C_DATA_BINARY) /* forced data-binary */
-        CURLX_SET_BINMODE(stdin);
+        CURL_BINMODE(stdin);
     }
     else {
       file = curlx_fopen(nextarg, "rb");
@@ -1635,7 +1672,7 @@ static ParameterError parse_upload_flags(struct OperationConfig *config,
     bool negate;
     const struct flagmap *map;
     size_t len;
-    char *next = strchr(flag, ','); /* Find next comma or end */
+    const char *next = strchr(flag, ','); /* Find next comma or end */
     if(next)
       len = next - flag;
     else
@@ -2171,7 +2208,7 @@ static ParameterError existingfile(char **store,
                                    const struct LongShort *a,
                                    const char *filename)
 {
-  struct_stat info;
+  curlx_struct_stat info;
   if(curlx_stat(filename, &info)) {
     errorf("The file '%s' provided to --%s does not exist",
            filename, a->lname);
@@ -2365,7 +2402,7 @@ static ParameterError opt_string(struct OperationConfig *config,
       err = getstr(&config->dns_servers, nextarg, DENY_BLANK);
     break;
   case C_LIMIT_RATE: /* --limit-rate */
-    err = GetSizeParameter(nextarg, "rate", &value);
+    err = GetSizeParameter(nextarg, &value);
     if(!err) {
       config->recvpersecond = value;
       config->sendpersecond = value;
@@ -2388,7 +2425,7 @@ static ParameterError opt_string(struct OperationConfig *config,
   case C_IPFS_GATEWAY: /* --ipfs-gateway */
     err = getstr(&config->ipfs_gateway, nextarg, DENY_BLANK);
     break;
-#endif /* !CURL_DISABLE_IPFS */
+#endif
   case C_AWS_SIGV4: /* --aws-sigv4 */
     config->authtype |= CURLAUTH_AWS_SIGV4;
     err = getstr(&config->aws_sigv4, nextarg, ALLOW_BLANK);
@@ -2401,7 +2438,7 @@ static ParameterError opt_string(struct OperationConfig *config,
     err = getstr(&config->haproxy_clientip, nextarg, DENY_BLANK);
     break;
   case C_MAX_FILESIZE: /* --max-filesize */
-    err = GetSizeParameter(nextarg, "max-filesize", &value);
+    err = GetSizeParameter(nextarg, &value);
     if(!err)
       config->max_filesize = value;
     break;
@@ -2842,7 +2879,7 @@ static ParameterError opt_string(struct OperationConfig *config,
 /* detect e2 80 80 - e2 80 ff */
 static bool has_leading_unicode(const unsigned char *arg)
 {
-  return ((arg[0] == 0xe2) && (arg[1] == 0x80) && (arg[2] & 0x80));
+  return (arg[0] == 0xe2) && (arg[1] == 0x80) && (arg[2] & 0x80);
 }
 
 /* the longest command line option, excluding the leading -- */
@@ -3017,10 +3054,10 @@ ParameterError parse_args(int argc, argv_item_t argv[])
   int i;
   bool stillflags;
   const char *orig_opt = NULL;
-  ParameterError result = PARAM_OK;
+  ParameterError err = PARAM_OK;
   struct OperationConfig *config = global->first;
 
-  for(i = 1, stillflags = TRUE; i < argc && !result; i++) {
+  for(i = 1, stillflags = TRUE; i < argc && !err; i++) {
     orig_opt = convert_tchar_to_UTF8(argv[i]);
     if(!orig_opt)
       return PARAM_NO_MEM;
@@ -3042,15 +3079,15 @@ ParameterError parse_args(int argc, argv_item_t argv[])
           }
         }
 
-        result = getparameter(orig_opt, nextarg, &passarg, config,
-                              CONFIG_MAX_LEVELS);
+        err = getparameter(orig_opt, nextarg, &passarg, config,
+                           CONFIG_MAX_LEVELS);
 
         unicodefree(CURL_UNCONST(nextarg));
         config = global->last;
-        if(result == PARAM_NEXT_OPERATION) {
-          /* Reset result as PARAM_NEXT_OPERATION is only used here and not
+        if(err == PARAM_NEXT_OPERATION) {
+          /* Reset err as PARAM_NEXT_OPERATION is only used here and not
              returned from this function */
-          result = PARAM_OK;
+          err = PARAM_OK;
 
           if(config->url_list && config->url_list->url) {
             /* Allocate the next config */
@@ -3064,14 +3101,14 @@ ParameterError parse_args(int argc, argv_item_t argv[])
               config = config->next;
             }
             else
-              result = PARAM_NO_MEM;
+              err = PARAM_NO_MEM;
           }
           else {
             errorf("missing URL before --next");
-            result = PARAM_BAD_USE;
+            err = PARAM_BAD_USE;
           }
         }
-        else if(!result && passarg)
+        else if(!err && passarg)
           i++; /* we are supposed to skip this */
       }
     }
@@ -3079,26 +3116,26 @@ ParameterError parse_args(int argc, argv_item_t argv[])
       bool used;
 
       /* Just add the URL please */
-      result = getparameter("--url", orig_opt, &used, config, 0);
+      err = getparameter("--url", orig_opt, &used, config, 0);
     }
 
-    if(!result) {
+    if(!err) {
       unicodefree(CURL_UNCONST(orig_opt));
       orig_opt = NULL;
     }
   }
 
-  if(!result && config->content_disposition) {
+  if(!err && config->content_disposition) {
     if(config->resume_from_current)
-      result = PARAM_CONTDISP_RESUME_FROM;
+      err = PARAM_CONTDISP_RESUME_FROM;
   }
 
-  if(result && result != PARAM_HELP_REQUESTED &&
-     result != PARAM_MANUAL_REQUESTED &&
-     result != PARAM_VERSION_INFO_REQUESTED &&
-     result != PARAM_ENGINES_REQUESTED &&
-     result != PARAM_CA_EMBED_REQUESTED) {
-    const char *reason = param2text(result);
+  if(err && err != PARAM_HELP_REQUESTED &&
+     err != PARAM_MANUAL_REQUESTED &&
+     err != PARAM_VERSION_INFO_REQUESTED &&
+     err != PARAM_ENGINES_REQUESTED &&
+     err != PARAM_CA_EMBED_REQUESTED) {
+    const char *reason = param2text(err);
 
     if(orig_opt && strcmp(":", orig_opt))
       helpf("option %s: %s", orig_opt, reason);
@@ -3107,5 +3144,5 @@ ParameterError parse_args(int argc, argv_item_t argv[])
   }
 
   unicodefree(CURL_UNCONST(orig_opt));
-  return result;
+  return err;
 }

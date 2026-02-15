@@ -148,9 +148,6 @@
 /* Define if you have the `stricmp' function. */
 #define HAVE_STRICMP
 
-/* Define if you have the `strdup' function. */
-#define HAVE_STRDUP
-
 /* Define if you have the <strings.h> header file. */
 #define HAVE_STRINGS_H
 
@@ -186,12 +183,6 @@
 
 /* The size of `int', as computed by sizeof. */
 #define SIZEOF_INT              4
-
-/* Define if the compiler supports the 'long long' data type. */
-#define HAVE_LONGLONG
-
-/* The size of a `long long', as computed by sizeof. */
-#define SIZEOF_LONG_LONG        8
 
 /* The size of `long', as computed by sizeof. */
 #define SIZEOF_LONG             4
@@ -262,8 +253,8 @@
 /* Define to the type of arg 1 for send. */
 #define SEND_TYPE_ARG1 int
 
-/* Define to the type qualifier of arg 2 for send. */
-#define SEND_QUAL_ARG2
+/* Define if the type qualifier of arg 2 for send is not const. */
+#define SEND_NONCONST_ARG2
 
 /* Define to the type of arg 2 for send. */
 #define SEND_TYPE_ARG2 char *

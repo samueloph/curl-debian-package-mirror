@@ -114,7 +114,6 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 @DEBUGBUILD_TRUE@am__append_1 = -DDEBUGBUILD
-@CURLDEBUG_TRUE@am__append_2 = -DCURLDEBUG
 @BUILD_UNITTESTS_TRUE@noinst_PROGRAMS = $(am__EXEEXT_1)
 subdir = tests/unit
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -427,7 +426,7 @@ AUTOMAKE_OPTIONS = foreign nostdinc
 # unit tests are small pretend-libcurl-programs, pass BUILDING_LIBCURL to reflect that
 AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_builddir)/lib \
 	-I$(top_srcdir)/lib -I$(top_srcdir)/tests/libtest -I$(srcdir) \
-	-DCURL_STATICLIB -DUNITTESTS $(am__append_1) $(am__append_2) \
+	-DCURL_STATICLIB -DUNITTESTS $(am__append_1) \
 	-DBUILDING_LIBCURL
 BUNDLE = units
 

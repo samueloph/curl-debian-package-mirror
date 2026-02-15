@@ -332,6 +332,8 @@ makes us write better code.
 This is the full list of functions generally banned.
 
     _access
+    _fstati64
+    _lseeki64
     _mbscat
     _mbsncat
     _open
@@ -353,6 +355,7 @@ This is the full list of functions generally banned.
     atoi
     atol
     calloc
+    close
     CreateFile
     CreateFileA
     CreateFileW
@@ -363,9 +366,11 @@ This is the full list of functions generally banned.
     free
     freeaddrinfo
     freopen
+    fstat
     getaddrinfo
     gets
     gmtime
+    llseek
     LoadLibrary
     LoadLibraryA
     LoadLibraryEx
@@ -373,6 +378,7 @@ This is the full list of functions generally banned.
     LoadLibraryExW
     LoadLibraryW
     localtime
+    lseek
     malloc
     mbstowcs
     MoveFileEx

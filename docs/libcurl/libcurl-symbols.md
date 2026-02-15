@@ -477,7 +477,7 @@ Introduced in 7.57.0. See curl_version_info(3).
 Introduced in 7.15.4. See curl_version_info(3).
 
 ## CURL_VERSION_CURLDEBUG
-Introduced in 7.19.6. See curl_version_info(3).
+Introduced in 7.19.6. Deprecated since 8.19.0.
 
 ## CURL_VERSION_DEBUG
 Introduced in 7.10.6. See curl_version_info(3).
@@ -2896,6 +2896,9 @@ Introduced in 7.19.4. See CURLINFO_PROTOCOL(3).
 
 ## CURLPROTO_MQTT
 Introduced in 7.71.0. See CURLINFO_PROTOCOL(3).
+
+## CURLPROTO_MQTTS
+Introduced in 8.19.0. See CURLINFO_PROTOCOL(3).
 
 ## CURLPROTO_POP3
 Introduced in 7.20.0. See CURLINFO_PROTOCOL(3).

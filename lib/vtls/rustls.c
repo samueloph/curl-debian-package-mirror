@@ -33,6 +33,7 @@
 #include "../curlx/strerr.h"
 #include "../urldata.h"
 #include "../curl_trc.h"
+#include "../httpsrr.h"
 #include "vtls.h"
 #include "vtls_int.h"
 #include "rustls.h"
@@ -82,7 +83,7 @@ static bool cr_data_pending(struct Curl_cfilter *cf,
   (void)data;
   DEBUGASSERT(ctx && ctx->backend);
   backend = (struct rustls_ssl_backend_data *)ctx->backend;
-  return backend->data_in_pending;
+  return (bool)backend->data_in_pending;
 }
 
 struct io_ctx {
@@ -104,7 +105,7 @@ static int read_cb(void *userdata, uint8_t *buf, uintptr_t len,
   if(result) {
     nread = 0;
     /* !checksrc! disable ERRNOVAR 4 */
-    if(CURLE_AGAIN == result)
+    if(result == CURLE_AGAIN)
       ret = EAGAIN;
     else
       ret = EINVAL;
@@ -129,7 +130,7 @@ static int write_cb(void *userdata, const uint8_t *buf, uintptr_t len,
                              buf, len, FALSE, &nwritten);
   if(result) {
     nwritten = 0;
-    if(CURLE_AGAIN == result)
+    if(result == CURLE_AGAIN)
       ret = EAGAIN;
     else
       ret = EINVAL;
@@ -354,7 +355,7 @@ static CURLcode cr_send(struct Curl_cfilter *cf, struct Curl_easy *data,
 
   result = cr_flush_out(cf, data, rconn);
   if(result) {
-    if(CURLE_AGAIN == result) {
+    if(result == CURLE_AGAIN) {
       /* The TLS bytes may have been partially written, but we fail the
        * complete send() and remember how much we already added to Rustls. */
       backend->plain_out_buffered = plainwritten;
@@ -532,8 +533,8 @@ init_config_builder(struct Curl_easy *data,
   CURLcode result = CURLE_OK;
   rustls_result rr;
 
+  DEBUGASSERT(conn_config->version != CURL_SSLVERSION_DEFAULT);
   switch(conn_config->version) {
-  case CURL_SSLVERSION_DEFAULT:
   case CURL_SSLVERSION_TLSv1:
   case CURL_SSLVERSION_TLSv1_0:
   case CURL_SSLVERSION_TLSv1_1:
@@ -1171,6 +1172,7 @@ static CURLcode cr_connect(struct Curl_cfilter *cf, struct Curl_easy *data,
       }
       /* REALLY Done with the handshake. */
       {
+#ifdef CURLVERBOSE
         const uint16_t proto = rustls_connection_get_protocol_version(rconn);
         const rustls_str ciphersuite_name =
           rustls_connection_get_negotiated_ciphersuite_name(rconn);
@@ -1181,6 +1183,7 @@ static CURLcode cr_connect(struct Curl_cfilter *cf, struct Curl_easy *data,
           ver = "TLSv1.3";
         if(proto == RUSTLS_TLS_VERSION_TLSV1_2)
           ver = "TLSv1.2";
+#endif
         infof(data,
               "rustls: handshake complete, %s, ciphersuite: %.*s, "
               "key exchange group: %.*s",
@@ -1398,7 +1401,8 @@ const struct Curl_ssl Curl_ssl_rustls = {
   SSLSUPP_CIPHER_LIST |
   SSLSUPP_TLS13_CIPHERSUITES |
   SSLSUPP_CERTINFO |
-  SSLSUPP_ECH,
+  SSLSUPP_ECH |
+  SSLSUPP_CRLFILE,
   sizeof(struct rustls_ssl_backend_data),
 
   NULL,                            /* init */

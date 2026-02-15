@@ -129,9 +129,6 @@
 /* Define if you have the `strcmpi' function. */
 #undef HAVE_STRCMPI
 
-/* Define if you have the `strdup' function. */
-#define HAVE_STRDUP
-
 /* Define if you have the `stricmp' function. */
 #define HAVE_STRICMP
 
@@ -161,9 +158,6 @@
 
 /* The size of `int', as computed by sizeof. */
 #define SIZEOF_INT 4
-
-/* The size of `long long', as computed by sizeof. */
-#undef SIZEOF_LONG_LONG
 
 /* The size of `size_t', as computed by sizeof. */
 #define SIZEOF_SIZE_T 4
@@ -215,9 +209,6 @@
 
 /* Define to the type of arg 1 for send. */
 #define SEND_TYPE_ARG1 int
-
-/* Define to the type qualifier of arg 2 for send. */
-#define SEND_QUAL_ARG2 const
 
 /* Define to the type of arg 2 for send. */
 #define SEND_TYPE_ARG2 void *

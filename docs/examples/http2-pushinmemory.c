@@ -93,7 +93,7 @@ static int server_push_callback(CURL *parent,
                                 struct curl_pushheaders *headers,
                                 void *userp)
 {
-  char *headp;
+  const char *headp;
   int *transfers = (int *)userp;
   (void)parent;
   (void)num_headers;
@@ -126,7 +126,7 @@ int main(void)
   int i;
 
   CURLcode result = curl_global_init(CURL_GLOBAL_ALL);
-  if(result)
+  if(result != CURLE_OK)
     return (int)result;
 
   /* init a multi stack */

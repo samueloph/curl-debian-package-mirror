@@ -31,7 +31,7 @@ struct Curl_easy;
 
 #include "urldata.h" /* for struct Curl_easy */
 #include "mime.h"
-#include "strdup.h"
+#include "curlx/strdup.h"
 #include "bufref.h"
 #include "curlx/fopen.h"
 
@@ -304,13 +304,13 @@ static CURLFORMcode FormAdd(struct curl_httppost **httppost,
   struct FormInfo *first_form, *curr, *form = NULL;
   CURLFORMcode retval = CURL_FORMADD_OK;
   CURLformoption option;
-  struct curl_forms *forms = NULL;
+  const struct curl_forms *forms = NULL;
   char *avalue = NULL;
   struct curl_httppost *newchain = NULL;
   struct curl_httppost *lastnode = NULL;
 
 #define form_ptr_arg(t) (forms ? (t)(void *)avalue : va_arg(params, t))
-#ifdef HAVE_STDINT_H
+#ifdef HAVE_UINTPTR_T
 #define form_int_arg(t) (forms ? (t)(uintptr_t)avalue : va_arg(params, t))
 #else
 #define form_int_arg(t) (forms ? (t)(void *)avalue : va_arg(params, t))
@@ -696,7 +696,7 @@ static CURLcode setname(curl_mimepart *part, const char *name, size_t len)
 
   if(!name || !len)
     return curl_mime_name(part, name);
-  zname = Curl_memdup0(name, len);
+  zname = curlx_memdup0(name, len);
   if(!zname)
     return CURLE_OUT_OF_MEMORY;
   res = curl_mime_name(part, zname);
@@ -840,8 +840,7 @@ CURLcode Curl_getformdata(CURL *data,
   return result;
 }
 
-#else
-/* if disabled */
+#else /* if disabled */
 CURLFORMcode curl_formadd(struct curl_httppost **httppost,
                           struct curl_httppost **last_post, ...)
 {

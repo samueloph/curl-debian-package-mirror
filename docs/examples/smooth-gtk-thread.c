@@ -65,7 +65,7 @@ static size_t write_cb(void *ptr, size_t size, size_t nmemb, FILE *stream)
   return fwrite(ptr, size, nmemb, stream);
 }
 
-static void run_one(gchar *http, int j)
+static void run_one(const gchar *http, int j)
 {
   CURL *curl;
 
@@ -94,6 +94,7 @@ static void *pull_one_url(void *NaN)
   /* protect the reading and increasing of 'j' with a mutex */
   pthread_mutex_lock(&lock);
   while(j < num_urls) {
+    gchar *http;
     int i = j;
     j++;
     pthread_mutex_unlock(&lock);
@@ -152,7 +153,9 @@ static void *create_thread(void *progress_bar)
   gtk_widget_destroy(progress_bar);
 
   /* [Un]Comment this out to kill the program rather than pushing close. */
-  /* gtk_main_quit(); */
+#if 0
+  gtk_main_quit();
+#endif
 
   return NULL;
 }
@@ -163,13 +166,13 @@ static gboolean cb_delete(GtkWidget *window, gpointer data)
   return FALSE;
 }
 
-int main(int argc, char **argv)
+int main(int argc, const char **argv)
 {
   GtkWidget *top_window, *outside_frame, *inside_frame, *progress_bar;
 
   /* Must initialize libcurl before any threads are started */
   CURLcode result = curl_global_init(CURL_GLOBAL_ALL);
-  if(result)
+  if(result != CURLE_OK)
     return (int)result;
 
   /* Init thread */

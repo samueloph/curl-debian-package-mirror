@@ -30,28 +30,28 @@
 #include "curl_hmac.h"
 
 #ifdef USE_OPENSSL
-  #include <openssl/opensslconf.h>
-  #if !defined(OPENSSL_NO_MD5) && !defined(OPENSSL_NO_DEPRECATED_3_0)
-    #define USE_OPENSSL_MD5
-  #endif
+#include <openssl/opensslconf.h>
+#if !defined(OPENSSL_NO_MD5) && !defined(OPENSSL_NO_DEPRECATED_3_0)
+#define USE_OPENSSL_MD5
+#endif
 #endif
 
 #ifdef USE_WOLFSSL
-  #include <wolfssl/options.h>
-  #ifndef NO_MD5
-    #define USE_WOLFSSL_MD5
-  #endif
+#include <wolfssl/options.h>
+#ifndef NO_MD5
+#define USE_WOLFSSL_MD5
+#endif
 #endif
 
 #ifdef USE_MBEDTLS
-  #include <mbedtls/version.h>
-  #if MBEDTLS_VERSION_NUMBER < 0x03020000
-    #error "mbedTLS 3.2.0 or later required"
-  #endif
-  #include <psa/crypto_config.h>
-  #if defined(PSA_WANT_ALG_MD5) && PSA_WANT_ALG_MD5  /* mbedTLS 4+ */
-    #define USE_MBEDTLS_MD5
-  #endif
+#include <mbedtls/version.h>
+#if MBEDTLS_VERSION_NUMBER < 0x03020000
+#error "mbedTLS 3.2.0 or later required"
+#endif
+#include <psa/crypto_config.h>
+#if defined(PSA_WANT_ALG_MD5) && PSA_WANT_ALG_MD5  /* mbedTLS 4+ */
+#define USE_MBEDTLS_MD5
+#endif
 #endif
 
 #ifdef USE_GNUTLS
@@ -87,10 +87,9 @@ static CURLcode my_md5_init(void *ctx)
 }
 
 static void my_md5_update(void *ctx,
-                          const unsigned char *input,
-                          unsigned int inputLen)
+                          const unsigned char *input, unsigned int len)
 {
-  md5_update(ctx, inputLen, input);
+  md5_update(ctx, len, input);
 }
 
 static void my_md5_final(unsigned char *digest, void *ctx)
@@ -112,8 +111,7 @@ static CURLcode my_md5_init(void *ctx)
 }
 
 static void my_md5_update(void *ctx,
-                          const unsigned char *input,
-                          unsigned int len)
+                          const unsigned char *input, unsigned int len)
 {
   (void)MD5_Update(ctx, input, len);
 }
@@ -136,8 +134,7 @@ static CURLcode my_md5_init(void *ctx)
 }
 
 static void my_md5_update(void *ctx,
-                          const unsigned char *input,
-                          unsigned int len)
+                          const unsigned char *input, unsigned int len)
 {
   (void)wolfSSL_MD5_Update(ctx, input, len);
 }
@@ -160,10 +157,9 @@ static CURLcode my_md5_init(void *ctx)
 }
 
 static void my_md5_update(void *ctx,
-                          const unsigned char *data,
-                          unsigned int length)
+                          const unsigned char *input, unsigned int len)
 {
-  (void)psa_hash_update(ctx, data, length);
+  (void)psa_hash_update(ctx, input, len);
 }
 
 static void my_md5_final(unsigned char *digest, void *ctx)
@@ -191,10 +187,9 @@ static CURLcode my_md5_init(void *ctx)
 }
 
 static void my_md5_update(void *ctx,
-                          const unsigned char *input,
-                          unsigned int inputLen)
+                          const unsigned char *input, unsigned int len)
 {
-  CC_MD5_Update(ctx, input, inputLen);
+  CC_MD5_Update(ctx, input, len);
 }
 
 static void my_md5_final(unsigned char *digest, void *ctx)
@@ -227,11 +222,10 @@ static CURLcode my_md5_init(void *in)
 }
 
 static void my_md5_update(void *in,
-                          const unsigned char *input,
-                          unsigned int inputLen)
+                          const unsigned char *input, unsigned int len)
 {
   my_md5_ctx *ctx = in;
-  CryptHashData(ctx->hHash, (const BYTE *)input, inputLen, 0);
+  CryptHashData(ctx->hHash, (const BYTE *)input, len, 0);
 }
 
 static void my_md5_final(unsigned char *digest, void *in)
@@ -256,17 +250,17 @@ static void my_md5_final(unsigned char *digest, void *in)
  * MD5 Message-Digest Algorithm (RFC 1321).
  *
  * Homepage:
- https://openwall.info/wiki/people/solar/software/public-domain-source-code/md5
+ * https://openwall.info/wiki/people/solar/software/public-domain-source-code/md5
  *
  * Author:
  * Alexander Peslyak, better known as Solar Designer <solar at openwall.com>
  *
  * This software was written by Alexander Peslyak in 2001. No copyright is
- * claimed, and the software is hereby placed in the public domain.
- * In case this attempt to disclaim copyright and place the software in the
- * public domain is deemed null and void, then the software is
- * Copyright (c) 2001 Alexander Peslyak and it is hereby released to the
- * general public under the following terms:
+ * claimed, and the software is hereby placed in the public domain. In case
+ * this attempt to disclaim copyright and place the software in the public
+ * domain is deemed null and void, then the software is Copyright (c) 2001
+ * Alexander Peslyak and it is hereby released to the general public under
+ * the following terms:
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted.
@@ -276,21 +270,13 @@ static void my_md5_final(unsigned char *digest, void *in)
  * (This is a heavily cut-down "BSD license".)
  */
 
-/* Any 32-bit or wider unsigned integer data type will do */
-typedef unsigned int MD5_u32plus;
-
 struct md5_ctx {
-  MD5_u32plus lo, hi;
-  MD5_u32plus a, b, c, d;
+  uint32_t lo, hi;
+  uint32_t a, b, c, d;
   unsigned char buffer[64];
-  MD5_u32plus block[16];
+  uint32_t block[16];
 };
 typedef struct md5_ctx my_md5_ctx;
-
-static CURLcode my_md5_init(void *ctx);
-static void my_md5_update(void *ctx, const unsigned char *data,
-                          unsigned int size);
-static void my_md5_final(unsigned char *result, void *ctx);
 
 /*
  * The basic MD5 functions.
@@ -322,14 +308,14 @@ static void my_md5_final(unsigned char *result, void *ctx);
  * does not work.
  */
 #if defined(__i386__) || defined(__x86_64__) || defined(__vax__)
-#define MD5_SET(n) (*(const MD5_u32plus *)(const void *)&ptr[(n) * 4])
+#define MD5_SET(n) (*(const uint32_t *)(const void *)&ptr[(n) * 4])
 #define MD5_GET(n) MD5_SET(n)
 #else
 #define MD5_SET(n) (ctx->block[(n)] = \
-   (MD5_u32plus)ptr[(n) * 4] | \
-  ((MD5_u32plus)ptr[(n) * 4 + 1] <<  8) | \
-  ((MD5_u32plus)ptr[(n) * 4 + 2] << 16) | \
-  ((MD5_u32plus)ptr[(n) * 4 + 3] << 24))
+   (uint32_t)ptr[(n) * 4] | \
+  ((uint32_t)ptr[(n) * 4 + 1] <<  8) | \
+  ((uint32_t)ptr[(n) * 4 + 2] << 16) | \
+  ((uint32_t)ptr[(n) * 4 + 3] << 24))
 #define MD5_GET(n) (ctx->block[(n)])
 #endif
 
@@ -341,7 +327,7 @@ static const void *my_md5_body(my_md5_ctx *ctx,
                                const void *data, unsigned long size)
 {
   const unsigned char *ptr;
-  MD5_u32plus a, b, c, d;
+  uint32_t a, b, c, d;
 
   ptr = (const unsigned char *)data;
 
@@ -351,7 +337,7 @@ static const void *my_md5_body(my_md5_ctx *ctx,
   d = ctx->d;
 
   do {
-    MD5_u32plus saved_a, saved_b, saved_c, saved_d;
+    uint32_t saved_a, saved_b, saved_c, saved_d;
 
     saved_a = a;
     saved_b = b;
@@ -460,44 +446,44 @@ static CURLcode my_md5_init(void *in)
   return CURLE_OK;
 }
 
-static void my_md5_update(void *in, const unsigned char *data,
-                          unsigned int size)
+static void my_md5_update(void *in,
+                          const unsigned char *input, unsigned int len)
 {
-  MD5_u32plus saved_lo;
+  uint32_t saved_lo;
   unsigned int used;
   my_md5_ctx *ctx = (my_md5_ctx *)in;
 
   saved_lo = ctx->lo;
-  ctx->lo = (saved_lo + size) & 0x1fffffff;
+  ctx->lo = (saved_lo + len) & 0x1fffffff;
   if(ctx->lo < saved_lo)
     ctx->hi++;
-  ctx->hi += (MD5_u32plus)size >> 29;
+  ctx->hi += (uint32_t)len >> 29;
 
   used = saved_lo & 0x3f;
 
   if(used) {
     unsigned int available = 64 - used;
 
-    if(size < available) {
-      memcpy(&ctx->buffer[used], data, size);
+    if(len < available) {
+      memcpy(&ctx->buffer[used], input, len);
       return;
     }
 
-    memcpy(&ctx->buffer[used], data, available);
-    data = (const unsigned char *)data + available;
-    size -= available;
+    memcpy(&ctx->buffer[used], input, available);
+    input = (const unsigned char *)input + available;
+    len -= available;
     my_md5_body(ctx, ctx->buffer, 64);
   }
 
-  if(size >= 64) {
-    data = my_md5_body(ctx, data, size & ~(unsigned long)0x3f);
-    size &= 0x3f;
+  if(len >= 64) {
+    input = my_md5_body(ctx, input, len & ~(unsigned long)0x3f);
+    len &= 0x3f;
   }
 
-  memcpy(ctx->buffer, data, size);
+  memcpy(ctx->buffer, input, len);
 }
 
-static void my_md5_final(unsigned char *result, void *in)
+static void my_md5_final(unsigned char *digest, void *in)
 {
   unsigned int used, available;
   my_md5_ctx *ctx = (my_md5_ctx *)in;
@@ -529,22 +515,22 @@ static void my_md5_final(unsigned char *result, void *in)
 
   my_md5_body(ctx, ctx->buffer, 64);
 
-  result[0] = curlx_ultouc((ctx->a) & 0xff);
-  result[1] = curlx_ultouc((ctx->a >> 8) & 0xff);
-  result[2] = curlx_ultouc((ctx->a >> 16) & 0xff);
-  result[3] = curlx_ultouc(ctx->a >> 24);
-  result[4] = curlx_ultouc((ctx->b) & 0xff);
-  result[5] = curlx_ultouc((ctx->b >> 8) & 0xff);
-  result[6] = curlx_ultouc((ctx->b >> 16) & 0xff);
-  result[7] = curlx_ultouc(ctx->b >> 24);
-  result[8] = curlx_ultouc((ctx->c) & 0xff);
-  result[9] = curlx_ultouc((ctx->c >> 8) & 0xff);
-  result[10] = curlx_ultouc((ctx->c >> 16) & 0xff);
-  result[11] = curlx_ultouc(ctx->c >> 24);
-  result[12] = curlx_ultouc((ctx->d) & 0xff);
-  result[13] = curlx_ultouc((ctx->d >> 8) & 0xff);
-  result[14] = curlx_ultouc((ctx->d >> 16) & 0xff);
-  result[15] = curlx_ultouc(ctx->d >> 24);
+  digest[0] = curlx_ultouc((ctx->a) & 0xff);
+  digest[1] = curlx_ultouc((ctx->a >> 8) & 0xff);
+  digest[2] = curlx_ultouc((ctx->a >> 16) & 0xff);
+  digest[3] = curlx_ultouc(ctx->a >> 24);
+  digest[4] = curlx_ultouc((ctx->b) & 0xff);
+  digest[5] = curlx_ultouc((ctx->b >> 8) & 0xff);
+  digest[6] = curlx_ultouc((ctx->b >> 16) & 0xff);
+  digest[7] = curlx_ultouc(ctx->b >> 24);
+  digest[8] = curlx_ultouc((ctx->c) & 0xff);
+  digest[9] = curlx_ultouc((ctx->c >> 8) & 0xff);
+  digest[10] = curlx_ultouc((ctx->c >> 16) & 0xff);
+  digest[11] = curlx_ultouc(ctx->c >> 24);
+  digest[12] = curlx_ultouc((ctx->d) & 0xff);
+  digest[13] = curlx_ultouc((ctx->d >> 8) & 0xff);
+  digest[14] = curlx_ultouc((ctx->d >> 16) & 0xff);
+  digest[15] = curlx_ultouc(ctx->d >> 24);
 
   memset(ctx, 0, sizeof(*ctx));
 }
@@ -572,8 +558,8 @@ const struct MD5_params Curl_DIGEST_MD5 = {
  * @unittest: 1601
  * Returns CURLE_OK on success.
  */
-CURLcode Curl_md5it(unsigned char *outbuffer, const unsigned char *input,
-                    const size_t len)
+CURLcode Curl_md5it(unsigned char *output,
+                    const unsigned char *input, const size_t len)
 {
   CURLcode result;
   my_md5_ctx ctx;
@@ -581,7 +567,7 @@ CURLcode Curl_md5it(unsigned char *outbuffer, const unsigned char *input,
   result = my_md5_init(&ctx);
   if(!result) {
     my_md5_update(&ctx, input, curlx_uztoui(len));
-    my_md5_final(outbuffer, &ctx);
+    my_md5_final(output, &ctx);
   }
   return result;
 }
@@ -615,10 +601,9 @@ struct MD5_context *Curl_MD5_init(const struct MD5_params *md5params)
 }
 
 CURLcode Curl_MD5_update(struct MD5_context *context,
-                         const unsigned char *data,
-                         unsigned int len)
+                         const unsigned char *input, unsigned int len)
 {
-  (*context->md5_hash->md5_update_func)(context->md5_hashctx, data, len);
+  (*context->md5_hash->md5_update_func)(context->md5_hashctx, input, len);
 
   return CURLE_OK;
 }

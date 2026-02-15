@@ -57,11 +57,11 @@
 #endif
 
 #if defined(USE_OPENSSL) && defined(HAVE_DES_ECB_ENCRYPT)
-  #define USE_OPENSSL_DES
+#  define USE_OPENSSL_DES
 #elif defined(USE_WOLFSSL) && defined(HAVE_WOLFSSL_DES_ECB_ENCRYPT)
-  #define USE_OPENSSL_DES
+#  define USE_OPENSSL_DES
 #elif defined(USE_MBEDTLS) && defined(HAVE_MBEDTLS_DES_CRYPT_ECB)
-  #define USE_MBEDTLS_DES
+#  define USE_MBEDTLS_DES
 #endif
 
 #ifdef USE_OPENSSL_DES
@@ -84,13 +84,10 @@
 #    define DES_set_key_unchecked wolfSSL_DES_set_key_unchecked
 #    define DES_ecb_encrypt       wolfSSL_DES_ecb_encrypt
 #    define DESKEY(x)             ((WOLFSSL_DES_key_schedule *)(x))
-
-#    if defined(LIBWOLFSSL_VERSION_HEX) &&      \
-       (LIBWOLFSSL_VERSION_HEX >= 0x05007006)
+#    if defined(LIBWOLFSSL_VERSION_HEX) && LIBWOLFSSL_VERSION_HEX >= 0x05007006
 #      define DES_ENCRYPT WC_DES_ENCRYPT
 #      define DES_DECRYPT WC_DES_DECRYPT
 #    endif
-
 #  else
 #    define DESKEY(x) &x
 #  endif
@@ -340,7 +337,7 @@ void Curl_ntlm_core_lm_resp(const unsigned char *keys,
   des_encrypt(&des, 8, results + 8, plaintext);
   setup_des_key(keys + 14, &des);
   des_encrypt(&des, 8, results + 16, plaintext);
-#elif defined(USE_MBEDTLS_DES) || defined(USE_OS400CRYPTO) ||   \
+#elif defined(USE_MBEDTLS_DES) || defined(USE_OS400CRYPTO) || \
   defined(USE_WIN32_CRYPTO)
   encrypt_des(plaintext, results, keys);
   encrypt_des(plaintext, results + 8, keys + 7);
@@ -386,7 +383,7 @@ CURLcode Curl_ntlm_core_mk_lm_hash(const char *password,
     des_encrypt(&des, 8, lmbuffer, magic);
     setup_des_key(pw + 7, &des);
     des_encrypt(&des, 8, lmbuffer + 8, magic);
-#elif defined(USE_MBEDTLS_DES) || defined(USE_OS400CRYPTO) ||   \
+#elif defined(USE_MBEDTLS_DES) || defined(USE_OS400CRYPTO) || \
   defined(USE_WIN32_CRYPTO)
     encrypt_des(magic, lmbuffer, pw);
     encrypt_des(magic, lmbuffer + 8, pw + 7);
@@ -554,9 +551,9 @@ CURLcode Curl_ntlm_core_mk_ntlmv2_hash(const char *user, size_t userlen,
  *
  * Returns CURLE_OK on success.
  */
-CURLcode Curl_ntlm_core_mk_ntlmv2_resp(unsigned char *ntlmv2hash,
-                                       unsigned char *challenge_client,
-                                       struct ntlmdata *ntlm,
+CURLcode Curl_ntlm_core_mk_ntlmv2_resp(const unsigned char *ntlmv2hash,
+                                       const unsigned char *challenge_client,
+                                       const struct ntlmdata *ntlm,
                                        unsigned char **ntresp,
                                        unsigned int *ntresp_len)
 {
@@ -647,9 +644,9 @@ CURLcode Curl_ntlm_core_mk_ntlmv2_resp(unsigned char *ntlmv2hash,
  *
  * Returns CURLE_OK on success.
  */
-CURLcode Curl_ntlm_core_mk_lmv2_resp(unsigned char *ntlmv2hash,
-                                     unsigned char *challenge_client,
-                                     unsigned char *challenge_server,
+CURLcode Curl_ntlm_core_mk_lmv2_resp(const unsigned char *ntlmv2hash,
+                                     const unsigned char *challenge_client,
+                                     const unsigned char *challenge_server,
                                      unsigned char *lmresp)
 {
   unsigned char data[16];

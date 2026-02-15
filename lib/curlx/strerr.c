@@ -43,17 +43,15 @@
  */
 static const char *get_winsock_error(int err, char *buf, size_t len)
 {
-#ifndef CURL_DISABLE_VERBOSE_STRINGS
-  const char *p;
-  size_t alen;
-#endif
+  VERBOSE(const char *p);
+  VERBOSE(size_t alen);
 
   if(!len)
     return NULL;
 
   *buf = '\0';
 
-#ifdef CURL_DISABLE_VERBOSE_STRINGS
+#ifndef CURLVERBOSE
   (void)err;
   return NULL;
 #else
@@ -294,7 +292,7 @@ const char *curlx_strerror(int err, char *buf, size_t buflen)
    */
   {
     char buffer[256];
-    char *msg = strerror_r(err, buffer, sizeof(buffer));
+    const char *msg = strerror_r(err, buffer, sizeof(buffer));
     if(msg && buflen > 1)
       SNPRINTF(buf, buflen, "%s", msg);
     else if(buflen > sizeof("Unknown error ") + 20)

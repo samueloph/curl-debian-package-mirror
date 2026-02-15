@@ -51,7 +51,7 @@
 #include "../vtls/vtls.h"
 
 /* HTTP/3 error values defined in RFC 9114, ch. 8.1 */
-#define CURL_H3_NO_ERROR  (0x0100)
+#define CURL_H3_NO_ERROR  0x0100
 
 #define QUIC_MAX_STREAMS              (100)
 
@@ -855,7 +855,23 @@ static CURLcode recv_closed_stream(struct Curl_cfilter *cf,
   DEBUGASSERT(stream);
   *pnread = 0;
   if(stream->reset) {
-    failf(data, "HTTP/3 stream %" PRIu64 " reset by server", stream->id);
+    if(stream->error3 == CURL_H3_ERR_REQUEST_REJECTED) {
+      infof(data, "HTTP/3 stream %" PRIu64 " refused by server, try again "
+            "on a new connection", stream->id);
+      connclose(cf->conn, "REFUSED_STREAM"); /* do not use this anymore */
+      data->state.refused_stream = TRUE;
+      return CURLE_RECV_ERROR; /* trigger Curl_retry_request() later */
+    }
+    else if(stream->resp_hds_complete && data->req.no_body) {
+        CURL_TRC_CF(data, cf, "[%" PRIu64 "] error after response headers, "
+                    "but we did not want a body anyway, ignore error 0x%"
+                    PRIx64 " %s", stream->id, stream->error3,
+                    vquic_h3_err_str(stream->error3));
+        return CURLE_OK;
+    }
+    failf(data, "HTTP/3 stream %" PRId64 " reset by server (error 0x%" PRIx64
+          " %s)", stream->id, stream->error3,
+          vquic_h3_err_str(stream->error3));
     result = data->req.bytecount ? CURLE_PARTIAL_FILE : CURLE_HTTP3;
     CURL_TRC_CF(data, cf, "[%" PRIu64 "] cf_recv, was reset -> %d",
                 stream->id, result);
@@ -1066,7 +1082,7 @@ static CURLcode h3_open_stream(struct Curl_cfilter *cf,
     CURLcode r2 = CURLE_OK;
 
     r2 = cf_quiche_send_body(cf, data, stream, buf, blen, eos, &nwritten);
-    if(r2 && (CURLE_AGAIN != r2)) {  /* real error, fail */
+    if(r2 && (r2 != CURLE_AGAIN)) {  /* real error, fail */
       result = r2;
     }
     else if(nwritten > 0) {
@@ -1418,7 +1434,7 @@ static CURLcode cf_quiche_connect(struct Curl_cfilter *cf,
   }
 
 out:
-#ifndef CURL_DISABLE_VERBOSE_STRINGS
+#ifdef CURLVERBOSE
   if(result && result != CURLE_AGAIN) {
     struct ip_quadruple ip;
 
@@ -1627,8 +1643,6 @@ CURLcode Curl_cf_quiche_create(struct Curl_cfilter **pcf,
   struct Curl_cfilter *cf = NULL;
   CURLcode result;
 
-  (void)data;
-  (void)conn;
   ctx = curlx_calloc(1, sizeof(*ctx));
   if(!ctx) {
     result = CURLE_OUT_OF_MEMORY;

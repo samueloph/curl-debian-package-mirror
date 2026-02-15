@@ -35,9 +35,6 @@
 #endif
 
 #include <ConditionalMacros.h>
-#if TYPE_LONGLONG
-#define HAVE_LONGLONG           1
-#endif
 
 /* Define if you want the built-in manual */
 #define USE_MANUAL              1
@@ -69,11 +66,7 @@
 #define SIZEOF_INT              4
 #define SIZEOF_LONG             4
 #define SIZEOF_SIZE_T           4
-#ifdef HAVE_LONGLONG
 #define SIZEOF_CURL_OFF_T       8
-#else
-#define SIZEOF_CURL_OFF_T       4
-#endif
 
 #define HAVE_RECV 1
 #define RECV_TYPE_ARG1 int
@@ -84,7 +77,6 @@
 
 #define HAVE_SEND 1
 #define SEND_TYPE_ARG1 int
-#define SEND_QUAL_ARG2 const
 #define SEND_TYPE_ARG2 void *
 #define SEND_TYPE_ARG3 size_t
 #define SEND_TYPE_ARG4 int

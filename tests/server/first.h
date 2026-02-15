@@ -39,7 +39,7 @@
 
 #include "curl_setup.h"
 
-typedef int (*entry_func_t)(int, char **);
+typedef int (*entry_func_t)(int, const char **);
 
 struct entry_s {
   const char *name;
@@ -67,10 +67,6 @@ extern const struct entry_s s_entries[];
 /* adjust for old MSVC */
 #if defined(_MSC_VER) && (_MSC_VER < 1900)
 #  define snprintf _snprintf
-#endif
-
-#ifdef _WIN32
-#  define strdup _strdup
 #endif
 
 #ifdef _WIN32
@@ -125,9 +121,8 @@ extern int getpart(char **outbuf, size_t *outlen,
                    const char *main, const char *sub, FILE *stream);
 
 /* utility functions */
-extern char *data_to_hex(char *data, size_t len);
-extern void logmsg(const char *msg, ...);
-extern void loghex(unsigned char *buffer, ssize_t len);
+extern void logmsg(const char *msg, ...) CURL_PRINTF(1, 2);
+extern void loghex(const unsigned char *buffer, ssize_t len);
 extern int win32_init(void);
 extern FILE *test2fopen(long testno, const char *logdir2);
 extern curl_off_t our_getpid(void);

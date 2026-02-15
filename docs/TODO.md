@@ -21,7 +21,7 @@ document](https://curl.se/docs/knownbugs.html) are subject for fixing.
 
 ## Consult `%APPDATA%` also for `.netrc`
 
-`%APPDATA%\.netrc` is not considered when running on Windows. Should not it?
+`%APPDATA%\.netrc` is not considered when running on Windows. Should it not?
 
 See [curl issue 4016](https://github.com/curl/curl/issues/4016)
 
@@ -427,7 +427,7 @@ context information ourselves.
 `CURLOPT_SSL_CTX_FUNCTION` works perfectly for HTTPS and email protocols, but
 it has no effect for LDAPS connections.
 
- [curl issue 4108](https://github.com/curl/curl/issues/4108)
+[curl issue 4108](https://github.com/curl/curl/issues/4108)
 
 ## Paged searches on LDAP server
 
@@ -818,25 +818,6 @@ possible) so that it does not have to transfer the same data again that was
 already transferred before the retry.
 
 See [curl issue 1084](https://github.com/curl/curl/issues/1084)
-
-## consider filename from the redirected URL with `-O` ?
-
-When a user gives a URL and uses `-O`, and curl follows a redirect to a new
-URL, the filename is not extracted and used from the newly redirected-to URL
-even if the new URL may have a much more sensible filename.
-
-This is clearly documented and helps for security since there is no surprise
-to users which filename that might get overwritten, but maybe a new option
-could allow for this or maybe `-J` should imply such a treatment as well as
-`-J` already allows for the server to decide what filename to use so it
-already provides the "may overwrite any file" risk.
-
-This is extra tricky if the original URL has no filename part at all since
-then the current code path does error out with an error message, and we cannot
-*know* already at that point if curl is redirected to a URL that has a
-filename...
-
-See [curl issue 1241](https://github.com/curl/curl/issues/1241)
 
 ## retry on network is unreachable
 

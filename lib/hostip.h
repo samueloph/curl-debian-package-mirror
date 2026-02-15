@@ -26,14 +26,7 @@
 #include "curl_setup.h"
 
 #include "hash.h"
-#include "curl_addrinfo.h"
 #include "curlx/timeval.h" /* for curltime, timediff_t */
-#include "asyn.h"
-#include "httpsrr.h"
-
-#ifdef USE_HTTPSRR
-# include <stdint.h>
-#endif
 
 /* Allocate enough memory to hold the full name information structs and
  * everything. OSF1 is known to require at least 8872 bytes. The buffer
@@ -50,6 +43,8 @@ struct hostent;
 struct Curl_easy;
 struct connectdata;
 struct easy_pollset;
+struct Curl_https_rrinfo;
+struct Curl_multi;
 
 enum alpnid {
   ALPN_none = 0,
@@ -106,11 +101,15 @@ CURLcode Curl_resolv_timeout(struct Curl_easy *data,
                              timediff_t timeoutms);
 
 #ifdef USE_IPV6
+
+/* probe if it seems to work */
+CURLcode Curl_probeipv6(struct Curl_multi *multi);
 /*
  * Curl_ipv6works() returns TRUE if IPv6 seems to work.
  */
 bool Curl_ipv6works(struct Curl_easy *data);
 #else
+#define Curl_probeipv6(x) CURLE_OK
 #define Curl_ipv6works(x) FALSE
 #endif
 
@@ -152,13 +151,14 @@ void Curl_printable_address(const struct Curl_addrinfo *ip,
  * The entry is created with a reference count of 1.
  * Use `Curl_resolv_unlink()` to release your hold on it.
  *
- * The call takes ownership of `addr`and makes a copy of `hostname`.
+ * The call takes ownership of `addr`, even in case of failure, and always
+ * clears `*paddr`. It makes a copy of `hostname`.
  *
  * Returns entry or NULL on OOM.
  */
 struct Curl_dns_entry *
 Curl_dnscache_mk_entry(struct Curl_easy *data,
-                       struct Curl_addrinfo *addr,
+                       struct Curl_addrinfo **paddr,
                        const char *hostname,
                        size_t hostlen, /* length or zero */
                        int port,

@@ -50,7 +50,7 @@
 #include "../parsedate.h"
 #include "../connect.h" /* for the connect timeout */
 #include "../progress.h"
-#include "../strdup.h"
+#include "../curlx/strdup.h"
 #include "../curlx/fopen.h"
 #include "x509asn1.h"
 
@@ -97,7 +97,7 @@ static ssize_t gtls_push(void *s, const void *buf, size_t blen)
   if(result) {
     /* !checksrc! disable ERRNOVAR 1 */
     gnutls_transport_set_errno(backend->gtls.session,
-                               (CURLE_AGAIN == result) ? EAGAIN : EINVAL);
+                               (result == CURLE_AGAIN) ? EAGAIN : EINVAL);
     return -1;
   }
   return (ssize_t)nwritten;
@@ -130,7 +130,7 @@ static ssize_t gtls_pull(void *s, void *buf, size_t blen)
   if(result) {
     /* !checksrc! disable ERRNOVAR 1 */
     gnutls_transport_set_errno(backend->gtls.session,
-                               (CURLE_AGAIN == result) ? EAGAIN : EINVAL);
+                               (result == CURLE_AGAIN) ? EAGAIN : EINVAL);
     return -1;
   }
   else if(nread == 0)
@@ -166,7 +166,7 @@ static void gtls_cleanup(void)
   Curl_tls_keylog_close();
 }
 
-#ifndef CURL_DISABLE_VERBOSE_STRINGS
+#ifdef CURLVERBOSE
 static void showtime(struct Curl_easy *data, const char *text, time_t stamp)
 {
   struct tm buffer;
@@ -323,8 +323,8 @@ gnutls_set_ssl_version_min_max(struct Curl_easy *data,
   long ssl_version = conn_config->version;
   long ssl_version_max = conn_config->version_max;
 
-  if((ssl_version == CURL_SSLVERSION_DEFAULT) ||
-     (ssl_version == CURL_SSLVERSION_TLSv1))
+  DEBUGASSERT(ssl_version != CURL_SSLVERSION_DEFAULT);
+  if(ssl_version <= CURL_SSLVERSION_TLSv1)
     ssl_version = CURL_SSLVERSION_TLSv1_0;
   if((ssl_version_max == CURL_SSLVERSION_MAX_NONE) ||
      (ssl_version_max == CURL_SSLVERSION_MAX_DEFAULT))
@@ -723,7 +723,7 @@ CURLcode Curl_gtls_cache_session(struct Curl_cfilter *cf,
               "and store in cache", sdata_len, alpn ? alpn : "-",
               earlydata_max);
   if(quic_tp && quic_tp_len) {
-    qtp_clone = Curl_memdup0((char *)quic_tp, quic_tp_len);
+    qtp_clone = curlx_memdup0((char *)quic_tp, quic_tp_len);
     if(!qtp_clone) {
       curlx_free(sdata);
       return CURLE_OUT_OF_MEMORY;
@@ -1079,29 +1079,14 @@ static CURLcode gtls_on_session_reuse(struct Curl_cfilter *cf,
   struct ssl_connect_data *connssl = cf->ctx;
   struct gtls_ssl_backend_data *backend =
     (struct gtls_ssl_backend_data *)connssl->backend;
-  CURLcode result = CURLE_OK;
 
-  *do_early_data = FALSE;
   connssl->earlydata_max =
     gnutls_record_get_max_early_data_size(backend->gtls.session);
-  if((!connssl->earlydata_max || connssl->earlydata_max == 0xFFFFFFFFUL)) {
-    /* Seems to be no GnuTLS way to signal no EarlyData in session */
-    CURL_TRC_CF(data, cf, "SSL session does not allow earlydata");
-  }
-  else if(!Curl_alpn_contains_proto(alpns, scs->alpn)) {
-    CURL_TRC_CF(data, cf, "SSL session has different ALPN, no early data");
-  }
-  else {
-    infof(data, "SSL session allows %zu bytes of early data, "
-          "reusing ALPN '%s'", connssl->earlydata_max, scs->alpn);
-    connssl->earlydata_state = ssl_earlydata_await;
-    connssl->state = ssl_connection_deferred;
-    result = Curl_alpn_set_negotiated(cf, data, connssl,
-                                      (const unsigned char *)scs->alpn,
-                                      scs->alpn ? strlen(scs->alpn) : 0);
-    *do_early_data = !result;
-  }
-  return result;
+
+  /* Seems to be no GnuTLS way to signal no EarlyData in session */
+  return Curl_on_session_reuse(cf, data, alpns, scs, do_early_data,
+                               connssl->earlydata_max &&
+                               connssl->earlydata_max != 0xFFFFFFFFUL);
 }
 #endif
 
@@ -1326,7 +1311,7 @@ static CURLcode pkp_pin_peer_pubkey(struct Curl_easy *data,
 
 void Curl_gtls_report_handshake(struct Curl_easy *data, struct gtls_ctx *gctx)
 {
-#ifndef CURL_DISABLE_VERBOSE_STRINGS
+#ifdef CURLVERBOSE
   if(Curl_trc_is_verbose(data)) {
     const char *ptr;
     gnutls_protocol_t version = gnutls_protocol_get_version(gctx->session);
@@ -1379,7 +1364,7 @@ static void gtls_msg_verify_result(struct Curl_easy *data,
 static void gtls_infof_cert(struct Curl_easy *data,
                             gnutls_x509_crt_t x509_cert)
 {
-#ifndef CURL_DISABLE_VERBOSE_STRINGS
+#ifdef CURLVERBOSE
   if(Curl_trc_is_verbose(data)) {
     gnutls_datum_t certfields;
     int rc, algo;
@@ -1572,8 +1557,6 @@ static CURLcode glts_apple_verify(struct Curl_cfilter *cf,
   result = Curl_vtls_apple_verify(cf, data, peer, chain->num_certs,
                                   gtls_chain_get_der, chain, NULL, 0);
   *pverified = !result;
-  if(*pverified)
-    infof(data, "  SSL certificate verified by Apple SecTrust.");
   return result;
 }
 #endif /* USE_APPLE_SECTRUST */
@@ -2069,7 +2052,6 @@ static CURLcode gtls_send(struct Curl_cfilter *cf,
   ssize_t nwritten;
   size_t remain = blen;
 
-  (void)data;
   DEBUGASSERT(backend);
   *pnwritten = 0;
 
@@ -2186,7 +2168,6 @@ static void gtls_close(struct Curl_cfilter *cf,
   struct gtls_ssl_backend_data *backend =
     (struct gtls_ssl_backend_data *)connssl->backend;
 
-  (void)data;
   DEBUGASSERT(backend);
   CURL_TRC_CF(data, cf, "close");
   if(backend->gtls.session) {
@@ -2215,7 +2196,6 @@ static CURLcode gtls_recv(struct Curl_cfilter *cf,
   CURLcode result = CURLE_OK;
   ssize_t nread;
 
-  (void)data;
   DEBUGASSERT(backend);
 
   nread = gnutls_record_recv(backend->gtls.session, buf, blen);
@@ -2299,7 +2279,9 @@ const struct Curl_ssl Curl_ssl_gnutls = {
   SSLSUPP_HTTPS_PROXY |
   SSLSUPP_CAINFO_BLOB |
   SSLSUPP_CIPHER_LIST |
-  SSLSUPP_CA_CACHE,
+  SSLSUPP_CA_CACHE |
+  SSLSUPP_ISSUERCERT |
+  SSLSUPP_CRLFILE,
 
   sizeof(struct gtls_ssl_backend_data),
 

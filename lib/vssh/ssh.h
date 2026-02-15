@@ -1,5 +1,5 @@
-#ifndef HEADER_CURL_SSH_H
-#define HEADER_CURL_SSH_H
+#ifndef HEADER_CURL_VSSH_SSH_H
+#define HEADER_CURL_VSSH_SSH_H
 /***************************************************************************
  *                                  _   _ ____  _
  *  Project                     ___| | | |  _ \| |
@@ -24,6 +24,12 @@
  *
  ***************************************************************************/
 #include "../curl_setup.h"
+
+extern const struct Curl_protocol Curl_protocol_sftp;
+extern const struct Curl_protocol Curl_protocol_scp;
+
+extern const struct Curl_scheme Curl_scheme_sftp;
+extern const struct Curl_scheme Curl_scheme_scp;
 
 #ifdef USE_LIBSSH2
 #include <libssh2.h>
@@ -232,8 +238,16 @@ struct ssh_conn {
 
 #ifdef USE_SSH
 
-extern const struct Curl_handler Curl_handler_scp;
-extern const struct Curl_handler Curl_handler_sftp;
+#ifdef CURLVERBOSE
+const char *Curl_ssh_statename(sshstate state);
+#else
+#define Curl_ssh_statename(x) ""
+#endif
+void Curl_ssh_set_state(struct Curl_easy *data,
+                        struct ssh_conn *sshc,
+                        sshstate nowstate);
+
+#define myssh_to(x, y, z) Curl_ssh_set_state(x, y, z)
 
 /* generic SSH backend functions */
 CURLcode Curl_ssh_init(void);

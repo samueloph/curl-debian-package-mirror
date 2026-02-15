@@ -36,7 +36,7 @@
 #include "curl_get_line.h"
 #include "curl_memrchr.h"
 #include "parsedate.h"
-#include "strdup.h"
+#include "curlx/strdup.h"
 #include "llist.h"
 #include "bufref.h"
 #include "curlx/strparse.h"
@@ -245,7 +245,7 @@ static char *sanitize_cookie_path(const char *cookie_path, size_t len)
   if(len > 1 && cookie_path[len - 1] == '/')
     len--;
 
-  return Curl_memdup0(cookie_path, len);
+  return curlx_memdup0(cookie_path, len);
 }
 
 /*
@@ -264,7 +264,7 @@ static CURLcode strstore(char **str, const char *newstr, size_t len)
     len++;
     newstr = "";
   }
-  *str = Curl_memdup0(newstr, len);
+  *str = curlx_memdup0(newstr, len);
   if(!*str)
     return CURLE_OUT_OF_MEMORY;
   return CURLE_OK;
@@ -331,7 +331,7 @@ static bool bad_domain(const char *domain, size_t len)
     return FALSE;
   else {
     /* there must be a dot present, but that dot must not be a trailing dot */
-    char *dot = memchr(domain, '.', len);
+    const char *dot = memchr(domain, '.', len);
     if(dot) {
       size_t i = dot - domain;
       if((len - i) > 1)
@@ -372,10 +372,10 @@ static bool invalid_octets(const char *ptr, size_t len)
 */
 #define MAX_DATE_LENGTH 80
 
-#define COOKIE_NAME 0
-#define COOKIE_VALUE 1
+#define COOKIE_NAME   0
+#define COOKIE_VALUE  1
 #define COOKIE_DOMAIN 2
-#define COOKIE_PATH 3
+#define COOKIE_PATH   3
 
 #define COOKIE_PIECES 4 /* the list above */
 
@@ -694,7 +694,7 @@ static CURLcode parse_netscape(struct Cookie *co,
         ptr++;
         len--;
       }
-      co->domain = Curl_memdup0(ptr, len);
+      co->domain = curlx_memdup0(ptr, len);
       if(!co->domain)
         return CURLE_OUT_OF_MEMORY;
       break;
@@ -737,7 +737,7 @@ static CURLcode parse_netscape(struct Cookie *co,
         return CURLE_OK;
       break;
     case 5:
-      co->name = Curl_memdup0(ptr, len);
+      co->name = curlx_memdup0(ptr, len);
       if(!co->name)
         return CURLE_OUT_OF_MEMORY;
       else {
@@ -749,7 +749,7 @@ static CURLcode parse_netscape(struct Cookie *co,
       }
       break;
     case 6:
-      co->value = Curl_memdup0(ptr, len);
+      co->value = curlx_memdup0(ptr, len);
       if(!co->value)
         return CURLE_OUT_OF_MEMORY;
       break;
@@ -783,7 +783,7 @@ static bool is_public_suffix(struct Curl_easy *data,
    * dereference it.
    */
   DEBUGF(infof(data, "PSL check set-cookie '%s' for domain=%s in %s",
-         co->name, co->domain, domain));
+               co->name, co->domain, domain));
   if(data && (domain && co->domain && !Curl_host_is_ipnum(co->domain))) {
     bool acceptable = FALSE;
     char lcase[256];
@@ -814,7 +814,7 @@ static bool is_public_suffix(struct Curl_easy *data,
   (void)co;
   (void)domain;
   DEBUGF(infof(data, "NO PSL to check set-cookie '%s' for domain=%s in %s",
-         co->name, co->domain, domain));
+               co->name, co->domain, domain));
 #endif
   return FALSE;
 }
@@ -1008,7 +1008,7 @@ Curl_cookie_add(struct Curl_easy *data,
     goto fail;
 
   /* clone the stack struct into heap */
-  co = Curl_memdup(&comem, sizeof(comem));
+  co = curlx_memdup(&comem, sizeof(comem));
   if(!co) {
     co = &comem;
     result = CURLE_OUT_OF_MEMORY;
@@ -1169,7 +1169,7 @@ CURLcode Curl_cookie_loadfiles(struct Curl_easy *data)
       data->state.cookie_engine = TRUE;
       while(list) {
         result = cookie_load(data, list->data, data->cookies,
-                             data->set.cookiesession);
+                             (bool)data->set.cookiesession);
         if(result)
           break;
         list = list->next;
@@ -1234,7 +1234,7 @@ static int cookie_sort_ct(const void *p1, const void *p2)
 
 bool Curl_secure_context(struct connectdata *conn, const char *host)
 {
-  return conn->handler->protocol & (CURLPROTO_HTTPS | CURLPROTO_WSS) ||
+  return conn->scheme->protocol & (CURLPROTO_HTTPS | CURLPROTO_WSS) ||
     curl_strequal("localhost", host) ||
     !strcmp(host, "127.0.0.1") ||
     !strcmp(host, "::1");

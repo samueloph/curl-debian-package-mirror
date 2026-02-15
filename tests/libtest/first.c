@@ -122,7 +122,7 @@ int cgetopt(int argc, const char * const argv[], const char *optstring)
   }
 }
 
-#ifdef CURLDEBUG
+#ifdef CURL_MEMDEBUG
 static void memory_tracking_init(void)
 {
   const char *env;
@@ -215,7 +215,7 @@ int main(int argc, const char **argv)
   const char *env;
   size_t tmp;
 
-  CURLX_SET_BINMODE(stdout);
+  CURL_BINMODE(stdout);
 
   memory_tracking_init();
 #ifdef _WIN32

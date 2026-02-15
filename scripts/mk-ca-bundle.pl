@@ -51,8 +51,8 @@ eval "require LWP::UserAgent";
 
 my %urls = (
     'autoland' => 'https://raw.githubusercontent.com/mozilla-firefox/firefox/refs/heads/autoland/security/nss/lib/ckfw/builtins/certdata.txt',
-    'beta'    => 'https://raw.githubusercontent.com/mozilla-firefox/firefox/refs/heads/beta/security/nss/lib/ckfw/builtins/certdata.txt',
-    'release' => 'https://raw.githubusercontent.com/mozilla-firefox/firefox/refs/heads/release/security/nss/lib/ckfw/builtins/certdata.txt',
+    'beta'     => 'https://raw.githubusercontent.com/mozilla-firefox/firefox/refs/heads/beta/security/nss/lib/ckfw/builtins/certdata.txt',
+    'release'  => 'https://raw.githubusercontent.com/mozilla-firefox/firefox/refs/heads/release/security/nss/lib/ckfw/builtins/certdata.txt',
 );
 
 $opt_d = 'release';
@@ -60,7 +60,7 @@ $opt_d = 'release';
 # If the OpenSSL commandline is not in search path you can configure it here!
 my $openssl = 'openssl';
 
-my $version = '1.30';
+my $version = '1.31';
 
 $opt_w = 76; # default base64 encoded lines length
 
@@ -103,8 +103,6 @@ my @valid_mozilla_trust_levels = (
 my $default_signature_algorithms = $opt_s = "SHA256";
 
 my @valid_signature_algorithms = (
-    "MD5",
-    "SHA1",
     "SHA256",
     "SHA384",
     "SHA512"
@@ -150,12 +148,12 @@ sub warning_message() {
     if($opt_d =~ m/^risk$/i) { # Long Form Warning and Exit
         print "Warning: Use of this script may pose some risk:\n";
         print "\n";
-        print "  1) If you use HTTP URLs they are subject to a man in the middle attack\n";
-        print "  2) Default to 'release', but more recent updates may be found in other trees\n";
-        print "  3) certdata.txt file format may change, lag time to update this script\n";
-        print "  4) Generally unwise to blindly trust CAs without manual review & verification\n";
-        print "  5) Mozilla apps use additional security checks are not represented in certdata\n";
-        print "  6) Use of this script will make a security engineer grind his teeth and\n";
+        print "  1. If you use HTTP URLs they are subject to a man in the middle attack\n";
+        print "  2. Default to 'release', but more recent updates may be found in other trees\n";
+        print "  3. certdata.txt file format may change, lag time to update this script\n";
+        print "  4. Generally unwise to blindly trust CAs without manual review & verification\n";
+        print "  5. Mozilla apps use additional security checks are not represented in certdata\n";
+        print "  6. Use of this script will make a security engineer grind his teeth and\n";
         print "     swear at you.  ;)\n";
         exit;
     } else { # Short Form Warning
