@@ -1,3 +1,42 @@
+curl (8.19.0-1) unstable; urgency=medium
+
+  * New upstream version 8.19.0.
+      - Fix CVE-2026-1965, CVE-2026-3783, CVE-2026-3784 and CVE-2026-3805.
+  * debian/control: drop leftover quilt build-dep. (Closes: #1129269)
+
+ -- Carlos Henrique Lima Melara <charlesmelara@riseup.net>  Wed, 11 Mar 2026 19:40:54 -0300
+
+curl (8.19.0~rc3-1) unstable; urgency=medium
+
+  * New upstream version 8.19.0~rc3.
+  * debian/patches: refresh patches.
+      - revert-to-recursive-macros.patch: drop, in the release.
+
+ -- Carlos Henrique Lima Melara <charlesmelara@riseup.net>  Fri, 27 Feb 2026 19:06:29 -0300
+
+curl (8.19.0~rc2-2) unstable; urgency=medium
+
+  * debian/patches/revert-to-recursive-macros.patch: cherry-pick from
+    upstream. (Closes: #1128884)
+
+ -- Carlos Henrique Lima Melara <charlesmelara@riseup.net>  Mon, 23 Feb 2026 21:12:59 -0300
+
+curl (8.19.0~rc2-1) unstable; urgency=medium
+
+  * New upstream version 8.19.0~rc2
+  * Refresh patches
+  * d/copyright: Drop removed files
+
+ -- Samuel Henrique <samueloph@debian.org>  Sat, 21 Feb 2026 09:44:52 -0800
+
+curl (8.18.0-2) unstable; urgency=medium
+
+  [ Simon McVittie ]
+  * debian/rules: Replace LDFLAGS in curl-config(1) for multiarch
+    co-installability. (Closes: #1124987)
+
+ -- Carlos Henrique Lima Melara <charlesmelara@riseup.net>  Wed, 14 Jan 2026 23:10:10 -0300
+
 curl (8.18.0-1~bpo13+1) trixie-backports; urgency=medium
 
   * Rebuild for trixie-backports.

@@ -35,39 +35,6 @@ Copyright: 2019 Ryan Tandy <ryan@nardis.ca>
  2023 John Scott <jscott@posteo.net>
 License: OLDAP-2.8
 
-Files: packages/vms/backup_gnv_curl_src.com
- packages/vms/build_curl-config_script.com
- packages/vms/build_gnv_curl.com
- packages/vms/build_gnv_curl_pcsi_desc.com
- packages/vms/build_gnv_curl_pcsi_text.com
- packages/vms/build_gnv_curl_release_notes.com
- packages/vms/build_libcurl_pc.com
- packages/vms/clean_gnv_curl.com
- packages/vms/config_h.com
- packages/vms/curl_gnv_build_steps.txt
- packages/vms/curl_startup.com
- packages/vms/generate_config_vms_h_curl.com
- packages/vms/generate_vax_transfer.com
- packages/vms/gnv_conftest.c_first
- packages/vms/gnv_curl_configure.sh
- packages/vms/gnv_libcurl_symbols.opt
- packages/vms/gnv_link_curl.com
- packages/vms/make_gnv_curl_install.sh
- packages/vms/make_pcsi_curl_kit_name.com
- packages/vms/pcsi_gnv_curl_file_list.txt
- packages/vms/pcsi_product_gnv_curl.com
- packages/vms/report_openssl_version.c
- packages/vms/setup_gnv_curl_build.com
- packages/vms/stage_curl_install.com
- packages/vms/vms_eco_level.h
-Copyright: 2009-2022, John Malmberg
-License: ISC
-
-Files: packages/vms/curl_crtl_init.c
-Copyright: Daniel Stenberg <daniel@haxx.se>, et al.
-           John Malmberg
-License: curl or ISC
-
 Files: lib/system_win32.c
  lib/system_win32.h
  lib/vauth/krb5_sspi.c
@@ -75,7 +42,6 @@ Files: lib/system_win32.c
  lib/vauth/vauth.h
  lib/curlx/version_win32.c
  lib/curlx/version_win32.h
- projects/generate.bat
  tests/libtest/lib1520.c
 Copyright: 2012-2022, Steve Holme, <steve_holme@hotmail.com>
 License: curl

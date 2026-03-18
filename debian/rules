@@ -188,6 +188,7 @@ endif
 	    -e "/CFLAGS/s|CFLAGS=.\+\(-DCURL_PATCHSTAMP\)|CFLAGS=\\\`dpkg-buildflags --get CFLAGS \| sed -e \"/-ffile-prefix-map=/s\|\\\\(-ffile-prefix-map=\\\\)/[^ ]*=.\|\|\"\\\` \1|" \
 	    -e "/-D_DEB_HOST_ARCH=/s|-D_DEB_HOST_ARCH=\\\\\"[^ ']*\\\\\"||" \
 	    -e "/CPPFLAGS/s|CPPFLAGS=.\+\'|CPPFLAGS=\\\`dpkg-buildflags --get CPPFLAGS\\\`'\"|" \
+	    -e "/LDFLAGS/s|LDFLAGS=.\+\('CPPFLAGS\)|LDFLAGS=\\\`dpkg-buildflags --get LDFLAGS\\\`' \1|" \
 	    -i `find . -name curl-config`
 # When we get here, everything has been properly installed.  Because
 # of debhelper-compat 13, we have to remove some files that are
