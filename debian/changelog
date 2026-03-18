@@ -1,3 +1,9 @@
+curl (8.19.0-1~bpo13+1) trixie-backports; urgency=medium
+
+  * Rebuild for trixie-backports.
+
+ -- Samuel Henrique <samueloph@debian.org>  Wed, 18 Mar 2026 00:06:28 -0700
+
 curl (8.19.0-1) unstable; urgency=medium
 
   * New upstream version 8.19.0.
