@@ -107,7 +107,7 @@ CURLcode Curl_setblobopt(struct curl_blob **blobp,
 
   if(blob) {
     struct curl_blob *nblob;
-    if(blob->len > CURL_MAX_INPUT_LENGTH)
+    if(!blob->len || (blob->len > CURL_MAX_INPUT_LENGTH))
       return CURLE_BAD_FUNCTION_ARGUMENT;
     nblob = (struct curl_blob *)
       curlx_malloc(sizeof(struct curl_blob) +
@@ -128,7 +128,8 @@ CURLcode Curl_setblobopt(struct curl_blob **blobp,
   return CURLE_OK;
 }
 
-static CURLcode setstropt_userpwd(char *option, char **userp, char **passwdp)
+static CURLcode setstropt_userpwd(const char *option, char **userp,
+                                  char **passwdp)
 {
   char *user = NULL;
   char *passwd = NULL;
@@ -188,8 +189,10 @@ static CURLcode setstropt_interface(char *option, char **devp,
   return CURLE_OK;
 }
 
-#define C_SSLVERSION_VALUE(x)     (x & 0xffff)
-#define C_SSLVERSION_MAX_VALUE(x) ((unsigned long)x & 0xffff0000)
+#ifdef USE_SSL
+#define C_SSLVERSION_VALUE(x)     ((x) & 0xffff)
+#define C_SSLVERSION_MAX_VALUE(x) ((unsigned long)(x) & 0xffff0000)
+#endif
 
 static CURLcode protocol2num(const char *str, curl_prot_t *val)
 {
@@ -356,8 +359,8 @@ CURLcode Curl_setopt_SSLVERSION(struct Curl_easy *data, CURLoption option,
 static CURLcode setopt_RTSP_REQUEST(struct Curl_easy *data, long arg)
 {
   /*
-   * Set the RTSP request method (OPTIONS, SETUP, PLAY, etc...)
-   * Would this be better if the RTSPREQ_* were just moved into here?
+   * Set the RTSP request method (OPTIONS, SETUP, PLAY, etc...) Would this be
+   * better if the RTSPREQ_* were moved into here?
    */
   Curl_RtspReq rtspreq = RTSPREQ_NONE;
   switch(arg) {
@@ -1371,7 +1374,7 @@ static CURLcode setopt_slist(struct Curl_easy *data, CURLoption option,
      * Entries added this way will remain in the cache until explicitly
      * removed or the handle is cleaned up.
      *
-     * Prefix the HOST with plus sign (+) to have the entry expire just like
+     * Prefix the HOST with plus sign (+) to have the entry expire like
      * automatically added entries.
      *
      * Prefix the HOST with dash (-) to _remove_ the entry from the cache.
@@ -1415,7 +1418,7 @@ static CURLcode setopt_slist(struct Curl_easy *data, CURLoption option,
 
 #if !defined(CURL_DISABLE_HTTP) || !defined(CURL_DISABLE_SMTP) ||       \
   !defined(CURL_DISABLE_IMAP)
-# ifndef CURL_DISABLE_MIME
+#ifndef CURL_DISABLE_MIME
 static CURLcode setopt_mimepost(struct Curl_easy *data, curl_mime *mimep)
 {
   /*
@@ -1469,7 +1472,7 @@ static CURLcode setopt_pointers(struct Curl_easy *data, CURLoption option,
 #endif /* !CURL_DISABLE_HTTP */
 #if !defined(CURL_DISABLE_HTTP) || !defined(CURL_DISABLE_SMTP) ||       \
   !defined(CURL_DISABLE_IMAP)
-# ifndef CURL_DISABLE_MIME
+#ifndef CURL_DISABLE_MIME
   case CURLOPT_MIMEPOST:
     result = setopt_mimepost(data, va_arg(param, curl_mime *));
     break;
@@ -1662,7 +1665,7 @@ static CURLcode cookiefile(struct Curl_easy *data, const char *ptr)
 
 #ifndef CURL_DISABLE_PROXY
 static CURLcode setopt_cptr_proxy(struct Curl_easy *data, CURLoption option,
-                                  char *ptr)
+                                  const char *ptr)
 {
   CURLcode result = CURLE_OK;
   struct UserDefined *s = &data->set;
@@ -1830,6 +1833,46 @@ static CURLcode setopt_cptr_proxy(struct Curl_easy *data, CURLoption option,
 }
 #endif
 
+#if !defined(CURL_DISABLE_HTTP) || !defined(CURL_DISABLE_MQTT)
+/*
+ * A string with POST data. Makes curl HTTP POST. Even if it is NULL. If
+ * needed, CURLOPT_POSTFIELDSIZE must have been set prior to
+ * CURLOPT_COPYPOSTFIELDS and not altered later.
+ */
+static CURLcode setopt_copypostfields(const char *ptr, struct UserDefined *s)
+{
+  CURLcode result = CURLE_OK;
+  if(!ptr || s->postfieldsize == -1)
+    result = Curl_setstropt(&s->str[STRING_COPYPOSTFIELDS], ptr);
+  else {
+    size_t pflen;
+
+    if(s->postfieldsize < 0)
+      return CURLE_BAD_FUNCTION_ARGUMENT;
+    pflen = curlx_sotouz_range(s->postfieldsize, 0, SIZE_MAX);
+    if(pflen == SIZE_MAX)
+      return CURLE_OUT_OF_MEMORY;
+    else {
+      /* Allocate even when size == 0. This satisfies the need of possible
+         later address compare to detect the COPYPOSTFIELDS mode, and to mark
+         that postfields is used rather than read function or form data.
+      */
+      char *p = curlx_memdup0(ptr, pflen);
+      if(!p)
+        return CURLE_OUT_OF_MEMORY;
+      else {
+        curlx_free(s->str[STRING_COPYPOSTFIELDS]);
+        s->str[STRING_COPYPOSTFIELDS] = p;
+      }
+    }
+  }
+
+  s->postfields = s->str[STRING_COPYPOSTFIELDS];
+  s->method = HTTPREQ_POST;
+  return result;
+}
+#endif
+
 static CURLcode setopt_cptr(struct Curl_easy *data, CURLoption option,
                             char *ptr)
 {
@@ -1899,40 +1942,7 @@ static CURLcode setopt_cptr(struct Curl_easy *data, CURLoption option,
 
 #if !defined(CURL_DISABLE_HTTP) || !defined(CURL_DISABLE_MQTT)
   case CURLOPT_COPYPOSTFIELDS:
-    /*
-     * A string with POST data. Makes curl HTTP POST. Even if it is NULL.
-     * If needed, CURLOPT_POSTFIELDSIZE must have been set prior to
-     * CURLOPT_COPYPOSTFIELDS and not altered later.
-     */
-    if(!ptr || s->postfieldsize == -1)
-      result = Curl_setstropt(&s->str[STRING_COPYPOSTFIELDS], ptr);
-    else {
-      size_t pflen;
-
-      if(s->postfieldsize < 0)
-        return CURLE_BAD_FUNCTION_ARGUMENT;
-      pflen = curlx_sotouz_range(s->postfieldsize, 0, SIZE_MAX);
-      if(pflen == SIZE_MAX)
-        return CURLE_OUT_OF_MEMORY;
-      else {
-        /* Allocate even when size == 0. This satisfies the need of possible
-           later address compare to detect the COPYPOSTFIELDS mode, and to
-           mark that postfields is used rather than read function or form
-           data.
-        */
-        char *p = curlx_memdup0(ptr, pflen);
-        if(!p)
-          return CURLE_OUT_OF_MEMORY;
-        else {
-          curlx_free(s->str[STRING_COPYPOSTFIELDS]);
-          s->str[STRING_COPYPOSTFIELDS] = p;
-        }
-      }
-    }
-
-    s->postfields = s->str[STRING_COPYPOSTFIELDS];
-    s->method = HTTPREQ_POST;
-    break;
+    return setopt_copypostfields(ptr, s);
 
   case CURLOPT_POSTFIELDS:
     /*
@@ -2040,10 +2050,9 @@ static CURLcode setopt_cptr(struct Curl_easy *data, CURLoption option,
      */
     return Curl_setstropt(&s->str[STRING_CUSTOMREQUEST], ptr);
 
-    /* we do not set
-       s->method = HTTPREQ_CUSTOM;
-       here, we continue as if we were using the already set type
-       and this just changes the actual request keyword */
+    /* we do not set s->method = HTTPREQ_CUSTOM; here, we continue as if we
+       were using the already set type and this changes the actual request
+       keyword */
   case CURLOPT_SERVICE_NAME:
     /*
      * Set authentication service name for DIGEST-MD5, Kerberos 5 and SPNEGO
@@ -2356,7 +2365,7 @@ static CURLcode setopt_cptr(struct Curl_easy *data, CURLoption option,
     }
     else
       /* make a NULL argument reset to default */
-      s->allowed_protocols = (curl_prot_t)CURLPROTO_ALL;
+      s->allowed_protocols = (curl_prot_t)CURLPROTO_64ALL;
     break;
   case CURLOPT_REDIR_PROTOCOLS_STR:
     if(ptr) {

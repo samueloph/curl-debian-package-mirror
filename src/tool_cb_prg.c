@@ -78,13 +78,13 @@ static void fly(struct ProgressData *bar, bool moved)
 
   memcpy(&buf[bar->bar + 1], "-=O=-", 5);
 
-  pos = sinus[bar->tick % 200] / (1000000 / check) + 1;
+  pos = (sinus[bar->tick % 200] / (1000000 / check)) + 1;
   buf[pos] = '#';
-  pos = sinus[(bar->tick + 5) % 200] / (1000000 / check) + 1;
+  pos = (sinus[(bar->tick + 5) % 200] / (1000000 / check)) + 1;
   buf[pos] = '#';
-  pos = sinus[(bar->tick + 10) % 200] / (1000000 / check) + 1;
+  pos = (sinus[(bar->tick + 10) % 200] / (1000000 / check)) + 1;
   buf[pos] = '#';
-  pos = sinus[(bar->tick + 15) % 200] / (1000000 / check) + 1;
+  pos = (sinus[(bar->tick + 15) % 200] / (1000000 / check)) + 1;
   buf[pos] = '#';
 
   fputs(buf, bar->out);
@@ -113,7 +113,7 @@ static void update_width(struct ProgressData *bar)
   if(cols > MAX_BARLENGTH)
     bar->width = MAX_BARLENGTH;
   else if(cols > MIN_BARLENGTH)
-    bar->width = (int)cols;
+    bar->width = cols;
   else
     bar->width = MIN_BARLENGTH;
 }
@@ -176,7 +176,7 @@ int tool_progress_cb(void *clientp,
     }
   }
 
-  /* simply count invokes */
+  /* count invokes */
   bar->calls++;
 
   update_width(bar);
@@ -226,7 +226,7 @@ void progressbarinit(struct ProgressData *bar, struct OperationConfig *config)
   memset(bar, 0, sizeof(struct ProgressData));
 
   /* pass the resume from value through to the progress function so it can
-   * display progress towards total file not just the part that is left. */
+   * display progress towards total file not the part that is left. */
   if(config->use_resume)
     bar->initial_size = config->resume_from;
 

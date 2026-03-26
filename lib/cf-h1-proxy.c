@@ -31,7 +31,6 @@
 #include "http.h"
 #include "http1.h"
 #include "http_proxy.h"
-#include "url.h"
 #include "select.h"
 #include "progress.h"
 #include "cfilters.h"
@@ -39,7 +38,6 @@
 #include "connect.h"
 #include "curl_trc.h"
 #include "strcase.h"
-#include "transfer.h"
 #include "curlx/strparse.h"
 
 
@@ -208,9 +206,8 @@ static CURLcode start_CONNECT(struct Curl_cfilter *cf,
   int http_minor;
   CURLcode result;
 
-  /* This only happens if we have looped here due to authentication
-     reasons, and we do not really use the newly cloned URL here
-     then. Just free it. */
+  /* This only happens if we have looped here due to authentication reasons,
+     and we do not really use the newly cloned URL here then. Free it. */
   Curl_safefree(data->req.newurl);
 
   result = Curl_http_proxy_create_CONNECT(&req, cf, data, 1);
@@ -342,8 +339,8 @@ static CURLcode on_resp_header(struct Curl_cfilter *cf,
           ISDIGIT(header[9]) && ISDIGIT(header[10]) && ISDIGIT(header[11]) &&
           !ISDIGIT(header[12])) {
     /* store the HTTP code from the proxy */
-    data->info.httpproxycode = k->httpcode = (header[9] - '0') * 100 +
-      (header[10] - '0') * 10 + (header[11] - '0');
+    data->info.httpproxycode = k->httpcode = ((header[9] - '0') * 100) +
+      ((header[10] - '0') * 10) + (header[11] - '0');
   }
   return result;
 }
@@ -470,7 +467,7 @@ static CURLcode recv_CONNECT_resp(struct Curl_cfilter *cf,
       /* This means we are currently ignoring a response-body */
 
       if(ts->cl) {
-        /* A Content-Length based body: simply count down the counter
+        /* A Content-Length based body: count down the counter
            and make sure to break out of the loop when we are done! */
         ts->cl--;
         if(ts->cl <= 0) {

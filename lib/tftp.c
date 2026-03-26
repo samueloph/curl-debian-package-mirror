@@ -23,6 +23,7 @@
  ***************************************************************************/
 #include "curl_setup.h"
 #include "urldata.h"
+#include "tftp.h"
 
 #ifndef CURL_DISABLE_TFTP
 
@@ -51,7 +52,6 @@
 #include "transfer.h"
 #include "sendf.h"
 #include "curl_trc.h"
-#include "tftp.h"
 #include "progress.h"
 #include "connect.h"
 #include "sockaddr.h" /* required for Curl_sockaddr_storage */
@@ -451,7 +451,7 @@ static CURLcode tftp_tx(struct tftp_conn *state, tftp_event_t event)
     /* Increment the retry counter and log the timeout */
     state->retries++;
     infof(data, "Timeout waiting for block %d ACK. "
-          " Retries = %d", NEXT_BLOCKNUM(state->block), state->retries);
+          "Retries = %d", NEXT_BLOCKNUM(state->block), state->retries);
     /* Decide if we have had enough */
     if(state->retries > state->retry_max) {
       state->error = TFTP_ERR_TIMEOUT;
@@ -486,7 +486,7 @@ static CURLcode tftp_tx(struct tftp_conn *state, tftp_event_t event)
     break;
 
   default:
-    failf(data, "tftp_tx: internal error, event: %i", (int)(event));
+    failf(data, "tftp_tx: internal error, event: %i", (int)event);
     break;
   }
 
@@ -536,7 +536,7 @@ static CURLcode tftp_rx(struct tftp_conn *state, tftp_event_t event)
       infof(data, "Received last DATA packet block %d again.", rblock);
     }
     else {
-      /* totally unexpected, just log it */
+      /* totally unexpected, log it */
       infof(data,
             "Received unexpected DATA packet block %d, expecting block %d",
             rblock, NEXT_BLOCKNUM(state->block));
@@ -935,8 +935,8 @@ static CURLcode tftp_connect(struct Curl_easy *data, bool *done)
       return CURLE_OUT_OF_MEMORY;
   }
 
-  /* we do not keep TFTP connections up basically because there is none or
-   * little gain for UDP */
+  /* we do not keep TFTP connections up because there is none or little gain
+   * for UDP */
   connclose(conn, "TFTP");
 
   state->data = data;

@@ -120,6 +120,11 @@ AC_SUBST([AR])
 
 AC_SUBST(libext)
 
+if test -z "$CLANG_TIDY"; then
+  CLANG_TIDY=clang-tidy
+fi
+AC_SUBST(CLANG_TIDY)
+
 dnl figure out the libcurl version
 CURLVERSION=`$SED -ne 's/^#define LIBCURL_VERSION "\(.*\)".*/\1/p' ${srcdir}/include/curl/curlver.h`
 XC_CHECK_PROG_CC
@@ -480,7 +485,7 @@ Select from these:
   --with-amissl
   --with-gnutls
   --with-mbedtls
-  --with-openssl (also works for BoringSSL and LibreSSL)
+  --with-openssl (also works for AWS-LC, BoringSSL and LibreSSL)
   --with-rustls
   --with-schannel
   --with-wolfssl
@@ -680,6 +685,8 @@ case $host_os in
     CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE"
     ;;
 esac
+
+AM_CONDITIONAL(CLANG, test "$compiler_id" = "APPLECLANG" || test "$compiler_id" = "CLANG")
 
 dnl **********************************************************************
 dnl Compilation based checks should not be done before this point.
@@ -1260,30 +1267,28 @@ if test "$HAVE_GETHOSTBYNAME" != "1" || test "$curl_cv_winuwp" = "yes"; then
     if test "$curl_cv_winuwp" != "yes"; then
       winsock_LIB="$winsock_LIB -liphlpapi"
     fi
-    if test -n "$winsock_LIB"; then
-      my_ac_save_LIBS=$LIBS
-      LIBS="$winsock_LIB $LIBS"
-      AC_MSG_CHECKING([for gethostbyname in $winsock_LIB])
-      AC_LINK_IFELSE([
-        AC_LANG_PROGRAM([[
-          #ifdef _WIN32
-          #ifndef WIN32_LEAN_AND_MEAN
-          #define WIN32_LEAN_AND_MEAN
-          #endif
-          #include <winsock2.h>
-          #endif
-        ]],[[
-          gethostbyname("localhost");
-        ]])
-      ],[
-        AC_MSG_RESULT([yes])
-        HAVE_GETHOSTBYNAME="1"
-      ],[
-        AC_MSG_RESULT([no])
-        winsock_LIB=""
-        LIBS=$my_ac_save_LIBS
-      ])
-    fi
+    my_ac_save_LIBS=$LIBS
+    LIBS="$winsock_LIB $LIBS"
+    AC_MSG_CHECKING([for gethostbyname in $winsock_LIB])
+    AC_LINK_IFELSE([
+      AC_LANG_PROGRAM([[
+        #ifdef _WIN32
+        #ifndef WIN32_LEAN_AND_MEAN
+        #define WIN32_LEAN_AND_MEAN
+        #endif
+        #include <winsock2.h>
+        #endif
+      ]],[[
+        gethostbyname("localhost");
+      ]])
+    ],[
+      AC_MSG_RESULT([yes])
+      HAVE_GETHOSTBYNAME="1"
+    ],[
+      AC_MSG_RESULT([no])
+      winsock_LIB=""
+      LIBS=$my_ac_save_LIBS
+    ])
   fi
 fi
 
@@ -1784,7 +1789,7 @@ int main(int argc, char **argv)
 #else
   (void)argc;
   argv[0][0] = ' ';
-  return (argv[0][0] == ' ')?0:1;
+  return (argv[0][0] == ' ') ? 0 : 1;
 #endif
 }
 ]],[
@@ -2040,8 +2045,8 @@ if test "$USE_WIN32_CRYPTO" = "1" || test "$SCHANNEL_ENABLED" = "1"; then
   LIBS="-ladvapi32 -lcrypt32 $LIBS"
 fi
 
-dnl link bcrypt for BCryptGenRandom() (used when building for Vista or newer)
 if test "$curl_cv_native_windows" = "yes"; then
+  dnl for BCryptGenRandom()
   LIBS="-lbcrypt $LIBS"
 fi
 
@@ -4183,7 +4188,6 @@ AC_CHECK_FUNCS([\
   sendmsg \
   setlocale \
   setrlimit \
-  snprintf \
   utime \
   utimes \
 ])
@@ -4193,6 +4197,7 @@ if test "$curl_cv_native_windows" != "yes"; then
     if_nametoindex \
     realpath \
     sched_yield \
+    snprintf \
   ])
   CURL_CHECK_FUNC_INET_NTOP
   CURL_CHECK_FUNC_INET_PTON
@@ -4331,7 +4336,8 @@ AS_HELP_STRING([--disable-typecheck],[Disable type checking]),
 [ case "$enableval" in
   no)
     AC_MSG_RESULT(no)
-    AC_DEFINE(CURL_DISABLE_TYPECHECK, 1, [to disable type checking])
+    dnl Set it via the command-line to make it apply to examples also.
+    CPPFLAGS="$CPPFLAGS -DCURL_DISABLE_TYPECHECK"
     curl_typecheck_msg="no"
     ;;
   *)

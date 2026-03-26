@@ -50,7 +50,7 @@ static void cshutdn_run_conn_handler(struct Curl_easy *data,
        * default 120 seconds. */
       if(data->state.internal) {
         data->set.timeout = DEFAULT_SHUTDOWN_TIMEOUT_MS;
-        (void)Curl_pgrsTime(data, TIMER_STARTOP);
+        Curl_pgrsTime(data, TIMER_STARTOP);
       }
 
       /* This is set if protocol-specific cleanups should be made */
@@ -331,7 +331,7 @@ void Curl_cshutdn_destroy(struct cshutdn *cshutdn,
 {
   if(cshutdn->initialised && data) {
     int timeout_ms = 0;
-    /* Just for testing, run graceful shutdown */
+    /* for testing, run graceful shutdown */
 #ifdef DEBUGBUILD
     {
       const char *p = getenv("CURL_GRACEFUL_SHUTDOWN");

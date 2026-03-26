@@ -61,7 +61,7 @@
  * enough for the purpose of this program.
  *
  * For the above reason and the specific needs of this program signals SIGHUP,
- * SIGPIPE and SIGALRM will be simply ignored on systems where this can be
+ * SIGPIPE and SIGALRM will be ignored on systems where this can be
  * done.  If possible, signals SIGINT and SIGTERM will be handled by this
  * program as an indication to cleanup and finish execution as soon as
  * possible.  This will be achieved with a single signal handler
@@ -585,7 +585,7 @@ static HANDLE select_ws_wait(HANDLE handle, HANDLE signal, HANDLE abort)
 
 struct select_ws_data {
   int fd;                /* provided file descriptor  (indexed by nfd) */
-  long wsastate;         /* internal pre-select state (indexed by nfd) */
+  long wsastate;         /* internal preselect state  (indexed by nfd) */
   curl_socket_t wsasock; /* internal socket handle    (indexed by nws) */
   WSAEVENT wsaevent;     /* internal select event     (indexed by nws) */
   HANDLE signal;         /* internal thread signal    (indexed by nth) */
@@ -597,12 +597,10 @@ static int select_ws(int nfds, fd_set *readfds, fd_set *writefds,
 {
   DWORD timeout_ms, wait, nfd, nth, nws, i;
   HANDLE abort, signal, handle, *handles;
-  fd_set readsock, writesock, exceptsock;
   struct select_ws_data *data;
   WSANETWORKEVENTS wsaevents;
   curl_socket_t wsasock;
-  int error, ret, fd;
-  WSAEVENT wsaevent;
+  int ret, fd;
 
   /* check if the input value is valid */
   if(nfds < 0) {
@@ -653,6 +651,8 @@ static int select_ws(int nfds, fd_set *readfds, fd_set *writefds,
   nth = 0; /* number of internal waiting threads */
   nws = 0; /* number of handled Winsock sockets */
   for(fd = 0; fd < nfds; fd++) {
+    fd_set readsock, writesock, exceptsock;
+
     wsasock = (curl_socket_t)fd;
     wsaevents.lNetworkEvents = 0;
     handles[nfd] = 0;
@@ -705,19 +705,22 @@ static int select_ws(int nfds, fd_set *readfds, fd_set *writefds,
         nfd++;
       }
       else {
+        WSAEVENT wsaevent;
         wsaevent = WSACreateEvent();
         if(wsaevent != WSA_INVALID_EVENT) {
           if(wsaevents.lNetworkEvents & FD_WRITE) {
             swrite(wsasock, NULL, 0); /* reset FD_WRITE */
           }
-          error = WSAEventSelect(wsasock, wsaevent, wsaevents.lNetworkEvents);
-          if(error != SOCKET_ERROR) {
+          if(WSAEventSelect(wsasock, wsaevent, wsaevents.lNetworkEvents)
+             == 0) {
             handles[nfd] = (HANDLE)wsaevent;
             data[nws].wsasock = wsasock;
             data[nws].wsaevent = wsaevent;
             data[nfd].wsastate = 0;
-            tv->tv_sec = 0;
-            tv->tv_usec = 0;
+            if(tv) {
+              tv->tv_sec = 0;
+              tv->tv_usec = 0;
+            }
             /* check if the socket is already ready */
             if(select(fd + 1, &readsock, &writesock, &exceptsock, tv) == 1) {
               logmsg("[select_ws] socket %d is ready", fd);
@@ -799,8 +802,7 @@ static int select_ws(int nfds, fd_set *readfds, fd_set *writefds,
       else {
         /* try to handle the event with the Winsock2 functions */
         wsaevents.lNetworkEvents = 0;
-        error = WSAEnumNetworkEvents(wsasock, handle, &wsaevents);
-        if(error != SOCKET_ERROR) {
+        if(WSAEnumNetworkEvents(wsasock, handle, &wsaevents) == 0) {
           /* merge result from pre-check using select */
           wsaevents.lNetworkEvents |= data[i].wsastate;
 
@@ -1010,16 +1012,13 @@ static bool juggle(curl_socket_t *sockfdp,
   } /* switch(*mode) */
 
   do {
-
     /* select() blocking behavior call on blocking descriptors please */
-
     rc = SOCKFILT_select(maxfd + 1, &fds_read, &fds_write, &fds_err, &timeout);
 
     if(got_exit_signal) {
       logmsg("signalled to die, exiting...");
       return FALSE;
     }
-
   } while((rc == -1) && ((error = SOCKERRNO) == SOCKEINTR));
 
   if(rc < 0) {

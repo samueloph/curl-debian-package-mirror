@@ -59,7 +59,7 @@ static const struct tool_var *varcontent(const char *name, size_t nlen)
 
 #define ENDOFFUNC(x) (((x) == '}') || ((x) == ':'))
 #define FUNCMATCH(ptr, name, len)                   \
-  (!strncmp(ptr, name, len) && ENDOFFUNC(ptr[len]))
+  (!strncmp(ptr, name, len) && ENDOFFUNC((ptr)[len]))
 
 #define FUNC_TRIM      "trim"
 #define FUNC_TRIM_LEN  (sizeof(FUNC_TRIM) - 1)
@@ -368,8 +368,6 @@ static ParameterError addvariable(const char *name,
   }
   return PARAM_NO_MEM;
 }
-
-#define MAX_FILENAME 10000
 
 ParameterError setvariable(const char *input)
 {

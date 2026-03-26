@@ -294,6 +294,7 @@ CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
 CFLAG_CURL_SYMBOL_HIDING = @CFLAG_CURL_SYMBOL_HIDING@
+CLANG_TIDY = @CLANG_TIDY@
 CONFIGURE_OPTIONS = @CONFIGURE_OPTIONS@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
@@ -481,9 +482,10 @@ CMAKE_DIST = \
   CMakeLists.txt                                 \
   tests/cmake/CMakeLists.txt                     \
   tests/cmake/test.c                             \
+  tests/cmake/test.cpp                           \
   tests/cmake/test.sh
 
-EXTRA_DIST = CHANGES.md COPYING RELEASE-NOTES Dockerfile .editorconfig $(CMAKE_DIST)
+EXTRA_DIST = CHANGES.md COPYING RELEASE-NOTES Dockerfile .clang-tidy.yml .editorconfig $(CMAKE_DIST)
 DISTCLEANFILES = buildinfo.txt
 bin_SCRIPTS = curl-config
 SUBDIRS = lib docs src scripts
@@ -1133,6 +1135,9 @@ tidy:
 
 clean-local:
 	(cd tests && $(MAKE) clean)
+
+badwords:
+	$(top_srcdir)/scripts/badwords-all
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

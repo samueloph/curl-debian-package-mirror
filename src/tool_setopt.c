@@ -175,7 +175,7 @@ static const struct NameValue setopt_nv_CURLNONZERODEFAULTS[] = {
 
 /* Escape string to C string syntax. Return NULL if out of memory. */
 #define MAX_STRING_LENGTH_OUTPUT 2000
-#define ZERO_TERMINATED          -1
+#define ZERO_TERMINATED          (-1)
 
 static char *c_escape(const char *str, curl_off_t len)
 {
@@ -184,7 +184,7 @@ static char *c_escape(const char *str, curl_off_t len)
   CURLcode result;
   struct dynbuf escaped;
 
-  curlx_dyn_init(&escaped, 4 * MAX_STRING_LENGTH_OUTPUT + 3);
+  curlx_dyn_init(&escaped, (4 * MAX_STRING_LENGTH_OUTPUT) + 3);
 
   if(len == ZERO_TERMINATED)
     len = strlen(str);
@@ -211,7 +211,7 @@ static char *c_escape(const char *str, curl_off_t len)
 
     if(!result) {
       if(p && *p)
-        result = curlx_dyn_addn(&escaped, to + 2 * (p - from), 2);
+        result = curlx_dyn_addn(&escaped, to + (2 * (p - from)), 2);
       else {
         result = curlx_dyn_addf(&escaped,
                                 /* Octal escape to avoid >2 digit hex. */
@@ -465,10 +465,10 @@ static CURLcode libcurl_generate_mime_part(CURL *curl,
   case TOOLMIME_STDINDATA:
     /* Can only be reading stdin in the current context. */
     result = easysrc_addf(&easysrc_code, "curl_mime_data_cb(part%d, -1, "
-                          "(curl_read_callback) fread, \\", mimeno);
+                          "(curl_read_callback)fread, \\", mimeno);
     if(!result)
       result = easysrc_addf(&easysrc_code, "                  "
-                            "(curl_seek_callback) fseek, NULL, stdin);");
+                            "(curl_seek_callback)fseek, NULL, stdin);");
     break;
   default:
     /* Other cases not possible in this context. */

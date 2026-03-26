@@ -247,7 +247,7 @@ else
     xc_tst_auto_separator=':'
   fi
   if test -z "$PATH_SEPARATOR"; then
-    # Simply use the auto-detected one when not already set.
+    # Use the auto-detected one when not already set.
     PATH_SEPARATOR=$xc_tst_auto_separator
   elif test "x$PATH_SEPARATOR" != "x$xc_tst_auto_separator"; then
     echo "$xc_msg_warn 'PATH_SEPARATOR' does not match auto-detected one." >&2
@@ -955,6 +955,8 @@ USE_UNITY_FALSE
 USE_UNITY_TRUE
 HAVE_WINDRES_FALSE
 HAVE_WINDRES_TRUE
+CLANG_FALSE
+CLANG_TRUE
 BUILD_UNITTESTS_FALSE
 BUILD_UNITTESTS_TRUE
 CURL_WERROR_FALSE
@@ -1063,6 +1065,7 @@ CC
 INSTALL_DATA
 INSTALL_SCRIPT
 INSTALL_PROGRAM
+CLANG_TIDY
 libext
 AR
 EGREP
@@ -2453,9 +2456,9 @@ else $as_nop
 
 #define $2 innocuous_$2
 #ifdef __STDC__
-# include <limits.h>
+#  include <limits.h>
 #else
-# include <assert.h>
+#  include <assert.h>
 #endif
 #undef $2
 #ifdef __cplusplus
@@ -4165,6 +4168,11 @@ fi
 fi
 
 
+
+
+if test -z "$CLANG_TIDY"; then
+  CLANG_TIDY=clang-tidy
+fi
 
 
 CURLVERSION=`$SED -ne 's/^#define LIBCURL_VERSION "\(.*\)".*/\1/p' ${srcdir}/include/curl/curlver.h`
@@ -7377,7 +7385,7 @@ Select from these:
   --with-amissl
   --with-gnutls
   --with-mbedtls
-  --with-openssl (also works for BoringSSL and LibreSSL)
+  --with-openssl (also works for AWS-LC, BoringSSL and LibreSSL)
   --with-rustls
   --with-schannel
   --with-wolfssl
@@ -7891,9 +7899,9 @@ rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
 
 #define gmtime_r innocuous_gmtime_r
 #ifdef __STDC__
-# include <limits.h>
+#  include <limits.h>
 #else
-# include <assert.h>
+#  include <assert.h>
 #endif
 #undef gmtime_r
 #ifdef __cplusplus
@@ -7972,9 +7980,9 @@ rm -rf conftest*
 
 #define localtime_r innocuous_localtime_r
 #ifdef __STDC__
-# include <limits.h>
+#  include <limits.h>
 #else
-# include <assert.h>
+#  include <assert.h>
 #endif
 #undef localtime_r
 #ifdef __cplusplus
@@ -8053,9 +8061,9 @@ rm -rf conftest*
 
 #define strerror_r innocuous_strerror_r
 #ifdef __STDC__
-# include <limits.h>
+#  include <limits.h>
 #else
-# include <assert.h>
+#  include <assert.h>
 #endif
 #undef strerror_r
 #ifdef __cplusplus
@@ -8134,9 +8142,9 @@ rm -rf conftest*
 
 #define gethostbyname_r innocuous_gethostbyname_r
 #ifdef __STDC__
-# include <limits.h>
+#  include <limits.h>
 #else
-# include <assert.h>
+#  include <assert.h>
 #endif
 #undef gethostbyname_r
 #ifdef __cplusplus
@@ -8215,9 +8223,9 @@ rm -rf conftest*
 
 #define getprotobyname_r innocuous_getprotobyname_r
 #ifdef __STDC__
-# include <limits.h>
+#  include <limits.h>
 #else
-# include <assert.h>
+#  include <assert.h>
 #endif
 #undef getprotobyname_r
 #ifdef __cplusplus
@@ -17844,7 +17852,8 @@ printf %s "checking compiler version... " >&6; }
     compiler_ver="$clangver"
     compiler_num=`(expr $clangvhi "*" 100 + $clangvlo) 2>/dev/null`
     if test "$appleclang" = "1" && test "$oldapple" = "0"; then
-            if   test "$compiler_num" -ge '1700'; then compiler_num='1901'
+            if   test "$compiler_num" -ge '2604'; then compiler_num='2101'
+      elif test "$compiler_num" -ge '1700'; then compiler_num='1901'
       elif test "$compiler_num" -ge '1600'; then compiler_num='1700'
       elif test "$compiler_num" -ge '1500'; then compiler_num='1600'
       elif test "$compiler_num" -ge '1400'; then compiler_num='1400'
@@ -19628,6 +19637,26 @@ printf "%s\n" "$as_me: WARNING: compiler options rejected: $tmp_options" >&2;}
 
 
     ac_var_added_warnings=""
+  for warning in cast-qual; do
+
+  ac_var_match_word="no"
+  for word1 in $CFLAGS; do
+    for word2 in -Wno-$warning -W$warning; do
+      if test "$word1" = "$word2"; then
+        ac_var_match_word="yes"
+      fi
+    done
+  done
+
+    if test "$ac_var_match_word" = "no"; then
+      ac_var_added_warnings="$ac_var_added_warnings -W$warning"
+    fi
+  done
+    tmp_CFLAGS="$tmp_CFLAGS $ac_var_added_warnings"
+  squeeze tmp_CFLAGS
+
+
+    ac_var_added_warnings=""
   for warning in conversion; do
 
   ac_var_match_word="no"
@@ -19686,6 +19715,7 @@ printf "%s\n" "$as_me: WARNING: compiler options rejected: $tmp_options" >&2;}
     tmp_CFLAGS="$tmp_CFLAGS $ac_var_added_warnings"
   squeeze tmp_CFLAGS
 
+            tmp_CFLAGS="$tmp_CFLAGS -Wformat=2"
 
     ac_var_added_warnings=""
   for warning in missing-field-initializers; do
@@ -19858,6 +19888,7 @@ printf "%s\n" "$as_me: WARNING: compiler options rejected: $tmp_options" >&2;}
                     if test "$compiler_num" -ge "209"; then
             tmp_CFLAGS="$tmp_CFLAGS -Wno-sign-conversion"
             tmp_CFLAGS="$tmp_CFLAGS -Wno-padded"                         # Not used because we cannot change public structs
+            tmp_CFLAGS="$tmp_CFLAGS -Wno-used-but-marked-unused"         # Triggered by typecheck-gcc.h with clang 14+, dependency headers
 
     ac_var_added_warnings=""
   for warning in shift-sign-overflow; do
@@ -19881,26 +19912,6 @@ printf "%s\n" "$as_me: WARNING: compiler options rejected: $tmp_options" >&2;}
           fi
           #
                     if test "$compiler_num" -ge "300"; then
-
-    ac_var_added_warnings=""
-  for warning in cast-qual; do
-
-  ac_var_match_word="no"
-  for word1 in $CFLAGS; do
-    for word2 in -Wno-$warning -W$warning; do
-      if test "$word1" = "$word2"; then
-        ac_var_match_word="yes"
-      fi
-    done
-  done
-
-    if test "$ac_var_match_word" = "no"; then
-      ac_var_added_warnings="$ac_var_added_warnings -W$warning"
-    fi
-  done
-    tmp_CFLAGS="$tmp_CFLAGS $ac_var_added_warnings"
-  squeeze tmp_CFLAGS
-
 
     ac_var_added_warnings=""
   for warning in conditional-uninitialized; do
@@ -19941,8 +19952,6 @@ printf "%s\n" "$as_me: WARNING: compiler options rejected: $tmp_options" >&2;}
     tmp_CFLAGS="$tmp_CFLAGS $ac_var_added_warnings"
   squeeze tmp_CFLAGS
 
-            tmp_CFLAGS="$tmp_CFLAGS -Wformat=2"
-            tmp_CFLAGS="$tmp_CFLAGS -Wno-used-but-marked-unused"    # Triggered by typecheck-gcc.h (with clang 14+)
           fi
                     if test "$compiler_num" -ge "301"; then
 
@@ -19966,7 +19975,7 @@ printf "%s\n" "$as_me: WARNING: compiler options rejected: $tmp_options" >&2;}
   squeeze tmp_CFLAGS
 
             tmp_CFLAGS="$tmp_CFLAGS -Wno-covered-switch-default"    # Annoying to fix or silence
-            tmp_CFLAGS="$tmp_CFLAGS -Wno-disabled-macro-expansion"  # Triggered by typecheck-gcc.h (with clang 14+)
+            tmp_CFLAGS="$tmp_CFLAGS -Wno-disabled-macro-expansion"  # Triggered by curl/curl.h, standard headers
           fi
           #
                     if test "$compiler_num" -ge "302"; then
@@ -20320,6 +20329,26 @@ printf "%s\n" "$as_me: WARNING: compiler options rejected: $tmp_options" >&2;}
 
     ac_var_added_warnings=""
   for warning in c++-hidden-decl; do
+
+  ac_var_match_word="no"
+  for word1 in $CFLAGS; do
+    for word2 in -Wno-$warning -W$warning; do
+      if test "$word1" = "$word2"; then
+        ac_var_match_word="yes"
+      fi
+    done
+  done
+
+    if test "$ac_var_match_word" = "no"; then
+      ac_var_added_warnings="$ac_var_added_warnings -W$warning"
+    fi
+  done
+    tmp_CFLAGS="$tmp_CFLAGS $ac_var_added_warnings"
+  squeeze tmp_CFLAGS
+
+
+    ac_var_added_warnings=""
+  for warning in jump-misses-init; do
 
   ac_var_match_word="no"
   for word1 in $CFLAGS; do
@@ -22124,6 +22153,15 @@ case $host_os in
     ;;
 esac
 
+ if test "$compiler_id" = "APPLECLANG" || test "$compiler_id" = "CLANG"; then
+  CLANG_TRUE=
+  CLANG_FALSE='#'
+else
+  CLANG_TRUE='#'
+  CLANG_FALSE=
+fi
+
+
 
 
     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether build target supports Win32 crypto API" >&5
@@ -23193,26 +23231,25 @@ if test "$HAVE_GETHOSTBYNAME" != "1" || test "$curl_cv_winuwp" = "yes"; then
     if test "$curl_cv_winuwp" != "yes"; then
       winsock_LIB="$winsock_LIB -liphlpapi"
     fi
-    if test -n "$winsock_LIB"; then
-      my_ac_save_LIBS=$LIBS
-      LIBS="$winsock_LIB $LIBS"
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for gethostbyname in $winsock_LIB" >&5
+    my_ac_save_LIBS=$LIBS
+    LIBS="$winsock_LIB $LIBS"
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for gethostbyname in $winsock_LIB" >&5
 printf %s "checking for gethostbyname in $winsock_LIB... " >&6; }
-      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
 
-          #ifdef _WIN32
-          #ifndef WIN32_LEAN_AND_MEAN
-          #define WIN32_LEAN_AND_MEAN
-          #endif
-          #include <winsock2.h>
-          #endif
+        #ifdef _WIN32
+        #ifndef WIN32_LEAN_AND_MEAN
+        #define WIN32_LEAN_AND_MEAN
+        #endif
+        #include <winsock2.h>
+        #endif
 
 int main(void)
 {
 
-          gethostbyname("localhost");
+        gethostbyname("localhost");
 
   return 0;
 }
@@ -23221,21 +23258,20 @@ _ACEOF
 if ac_fn_c_try_link "$LINENO"
 then :
 
-        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
-        HAVE_GETHOSTBYNAME="1"
+      HAVE_GETHOSTBYNAME="1"
 
 else $as_nop
 
-        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-        winsock_LIB=""
-        LIBS=$my_ac_save_LIBS
+      winsock_LIB=""
+      LIBS=$my_ac_save_LIBS
 
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.beam \
     conftest$ac_exeext conftest.$ac_ext
-    fi
   fi
 fi
 
@@ -25022,7 +25058,7 @@ int main(int argc, char **argv)
 #else
   (void)argc;
   argv[0][0] = ' ';
-  return (argv[0][0] == ' ')?0:1;
+  return (argv[0][0] == ' ') ? 0 : 1;
 #endif
 }
 
@@ -25064,7 +25100,7 @@ int main(int argc, char **argv)
 #else
   (void)argc;
   argv[0][0] = ' ';
-  return (argv[0][0] == ' ')?0:1;
+  return (argv[0][0] == ' ') ? 0 : 1;
 #endif
 }
 
@@ -25857,9 +25893,9 @@ printf %s "checking if we can link against GSS-API library... " >&6; }
 
 #define gss_init_sec_context innocuous_gss_init_sec_context
 #ifdef __STDC__
-# include <limits.h>
+#  include <limits.h>
 #else
-# include <assert.h>
+#  include <assert.h>
 #endif
 #undef gss_init_sec_context
 #ifdef __cplusplus
@@ -27847,6 +27883,7 @@ printf "%s\n" "$as_me: Check directory $wolfpkg" >&6;}
     fi
 
     if test "$USE_WOLFSSL" != "yes"; then
+      CPPFLAGS="$CPPFLAGS -DWOLFSSL_OPTIONS_IGNORE_SYS"
 
       LDFLAGS="$LDFLAGS $addld"
       LDFLAGSPC="$LDFLAGSPC $addld"
@@ -28392,7 +28429,7 @@ if test "$USE_WIN32_CRYPTO" = "1" || test "$SCHANNEL_ENABLED" = "1"; then
 fi
 
 if test "$curl_cv_native_windows" = "yes"; then
-  LIBS="-lbcrypt $LIBS"
+    LIBS="-lbcrypt $LIBS"
 fi
 
 case "x$SSL_DISABLED$OPENSSL_ENABLED$GNUTLS_ENABLED$MBEDTLS_ENABLED$WOLFSSL_ENABLED$SCHANNEL_ENABLED$RUSTLS_ENABLED" in
@@ -31414,9 +31451,9 @@ printf %s "checking if idn2_lookup_ul can be linked... " >&6; }
 
 #define idn2_lookup_ul innocuous_idn2_lookup_ul
 #ifdef __STDC__
-# include <limits.h>
+#  include <limits.h>
 #else
-# include <assert.h>
+#  include <assert.h>
 #endif
 #undef idn2_lookup_ul
 #ifdef __cplusplus
@@ -36724,9 +36761,9 @@ printf %s "checking if alarm can be linked... " >&6; }
 
 #define alarm innocuous_alarm
 #ifdef __STDC__
-# include <limits.h>
+#  include <limits.h>
 #else
-# include <assert.h>
+#  include <assert.h>
 #endif
 #undef alarm
 #ifdef __cplusplus
@@ -36925,9 +36962,9 @@ printf %s "checking if basename can be linked... " >&6; }
 
 #define basename innocuous_basename
 #ifdef __STDC__
-# include <limits.h>
+#  include <limits.h>
 #else
-# include <assert.h>
+#  include <assert.h>
 #endif
 #undef basename
 #ifdef __cplusplus
@@ -37380,9 +37417,9 @@ printf %s "checking if fcntl can be linked... " >&6; }
 
 #define fcntl innocuous_fcntl
 #ifdef __STDC__
-# include <limits.h>
+#  include <limits.h>
 #else
-# include <assert.h>
+#  include <assert.h>
 #endif
 #undef fcntl
 #ifdef __cplusplus
@@ -37864,9 +37901,9 @@ printf %s "checking if fsetxattr can be linked... " >&6; }
 
 #define fsetxattr innocuous_fsetxattr
 #ifdef __STDC__
-# include <limits.h>
+#  include <limits.h>
 #else
-# include <assert.h>
+#  include <assert.h>
 #endif
 #undef fsetxattr
 #ifdef __cplusplus
@@ -38071,9 +38108,9 @@ printf %s "checking if ftruncate can be linked... " >&6; }
 
 #define ftruncate innocuous_ftruncate
 #ifdef __STDC__
-# include <limits.h>
+#  include <limits.h>
 #else
-# include <assert.h>
+#  include <assert.h>
 #endif
 #undef ftruncate
 #ifdef __cplusplus
@@ -38602,9 +38639,9 @@ printf %s "checking if gethostbyname_r can be linked... " >&6; }
 
 #define gethostbyname_r innocuous_gethostbyname_r
 #ifdef __STDC__
-# include <limits.h>
+#  include <limits.h>
 #else
-# include <assert.h>
+#  include <assert.h>
 #endif
 #undef gethostbyname_r
 #ifdef __cplusplus
@@ -39100,9 +39137,9 @@ printf %s "checking if getifaddrs can be linked... " >&6; }
 
 #define getifaddrs innocuous_getifaddrs
 #ifdef __STDC__
-# include <limits.h>
+#  include <limits.h>
 #else
-# include <assert.h>
+#  include <assert.h>
 #endif
 #undef getifaddrs
 #ifdef __cplusplus
@@ -39673,9 +39710,9 @@ printf %s "checking if gmtime_r can be linked... " >&6; }
 
 #define gmtime_r innocuous_gmtime_r
 #ifdef __STDC__
-# include <limits.h>
+#  include <limits.h>
 #else
-# include <assert.h>
+#  include <assert.h>
 #endif
 #undef gmtime_r
 #ifdef __cplusplus
@@ -39987,9 +40024,9 @@ printf %s "checking if ioctl can be linked... " >&6; }
 
 #define ioctl innocuous_ioctl
 #ifdef __STDC__
-# include <limits.h>
+#  include <limits.h>
 #else
-# include <assert.h>
+#  include <assert.h>
 #endif
 #undef ioctl
 #ifdef __cplusplus
@@ -40668,9 +40705,9 @@ printf %s "checking if localtime_r can be linked... " >&6; }
 
 #define localtime_r innocuous_localtime_r
 #ifdef __STDC__
-# include <limits.h>
+#  include <limits.h>
 #else
-# include <assert.h>
+#  include <assert.h>
 #endif
 #undef localtime_r
 #ifdef __cplusplus
@@ -40934,9 +40971,9 @@ printf %s "checking if memrchr can be linked... " >&6; }
 
 #define memrchr innocuous_memrchr
 #ifdef __STDC__
-# include <limits.h>
+#  include <limits.h>
 #else
-# include <assert.h>
+#  include <assert.h>
 #endif
 #undef memrchr
 #ifdef __cplusplus
@@ -41137,9 +41174,9 @@ printf %s "checking if sigaction can be linked... " >&6; }
 
 #define sigaction innocuous_sigaction
 #ifdef __STDC__
-# include <limits.h>
+#  include <limits.h>
 #else
-# include <assert.h>
+#  include <assert.h>
 #endif
 #undef sigaction
 #ifdef __cplusplus
@@ -41285,9 +41322,9 @@ printf %s "checking if siginterrupt can be linked... " >&6; }
 
 #define siginterrupt innocuous_siginterrupt
 #ifdef __STDC__
-# include <limits.h>
+#  include <limits.h>
 #else
-# include <assert.h>
+#  include <assert.h>
 #endif
 #undef siginterrupt
 #ifdef __cplusplus
@@ -41433,9 +41470,9 @@ printf %s "checking if signal can be linked... " >&6; }
 
 #define signal innocuous_signal
 #ifdef __STDC__
-# include <limits.h>
+#  include <limits.h>
 #else
-# include <assert.h>
+#  include <assert.h>
 #endif
 #undef signal
 #ifdef __cplusplus
@@ -41599,9 +41636,9 @@ printf %s "checking if sigsetjmp can be linked... " >&6; }
 
 #define sigsetjmp innocuous_sigsetjmp
 #ifdef __STDC__
-# include <limits.h>
+#  include <limits.h>
 #else
-# include <assert.h>
+#  include <assert.h>
 #endif
 #undef sigsetjmp
 #ifdef __cplusplus
@@ -41931,9 +41968,9 @@ printf %s "checking if socketpair can be linked... " >&6; }
 
 #define socketpair innocuous_socketpair
 #ifdef __STDC__
-# include <limits.h>
+#  include <limits.h>
 #else
-# include <assert.h>
+#  include <assert.h>
 #endif
 #undef socketpair
 #ifdef __cplusplus
@@ -42086,9 +42123,9 @@ printf %s "checking if strerror_r can be linked... " >&6; }
 
 #define strerror_r innocuous_strerror_r
 #ifdef __STDC__
-# include <limits.h>
+#  include <limits.h>
 #else
-# include <assert.h>
+#  include <assert.h>
 #endif
 #undef strerror_r
 #ifdef __cplusplus
@@ -42703,12 +42740,6 @@ then :
   printf "%s\n" "#define HAVE_SETRLIMIT 1" >>confdefs.h
 
 fi
-ac_fn_c_check_func "$LINENO" "snprintf" "ac_cv_func_snprintf"
-if test "x$ac_cv_func_snprintf" = xyes
-then :
-  printf "%s\n" "#define HAVE_SNPRINTF 1" >>confdefs.h
-
-fi
 ac_fn_c_check_func "$LINENO" "utime" "ac_cv_func_utime"
 if test "x$ac_cv_func_utime" = xyes
 then :
@@ -42740,6 +42771,12 @@ ac_fn_c_check_func "$LINENO" "sched_yield" "ac_cv_func_sched_yield"
 if test "x$ac_cv_func_sched_yield" = xyes
 then :
   printf "%s\n" "#define HAVE_SCHED_YIELD 1" >>confdefs.h
+
+fi
+ac_fn_c_check_func "$LINENO" "snprintf" "ac_cv_func_snprintf"
+if test "x$ac_cv_func_snprintf" = xyes
+then :
+  printf "%s\n" "#define HAVE_SNPRINTF 1" >>confdefs.h
 
 fi
 
@@ -42801,9 +42838,9 @@ printf %s "checking if inet_ntop can be linked... " >&6; }
 
 #define inet_ntop innocuous_inet_ntop
 #ifdef __STDC__
-# include <limits.h>
+#  include <limits.h>
 #else
-# include <assert.h>
+#  include <assert.h>
 #endif
 #undef inet_ntop
 #ifdef __cplusplus
@@ -43148,9 +43185,9 @@ printf %s "checking if inet_pton can be linked... " >&6; }
 
 #define inet_pton innocuous_inet_pton
 #ifdef __STDC__
-# include <limits.h>
+#  include <limits.h>
 #else
-# include <assert.h>
+#  include <assert.h>
 #endif
 #undef inet_pton
 #ifdef __cplusplus
@@ -43480,9 +43517,9 @@ printf %s "checking if strcasecmp can be linked... " >&6; }
 
 #define strcasecmp innocuous_strcasecmp
 #ifdef __STDC__
-# include <limits.h>
+#  include <limits.h>
 #else
-# include <assert.h>
+#  include <assert.h>
 #endif
 #undef strcasecmp
 #ifdef __cplusplus
@@ -43628,9 +43665,9 @@ printf %s "checking if strcmpi can be linked... " >&6; }
 
 #define strcmpi innocuous_strcmpi
 #ifdef __STDC__
-# include <limits.h>
+#  include <limits.h>
 #else
-# include <assert.h>
+#  include <assert.h>
 #endif
 #undef strcmpi
 #ifdef __cplusplus
@@ -43776,9 +43813,9 @@ printf %s "checking if stricmp can be linked... " >&6; }
 
 #define stricmp innocuous_stricmp
 #ifdef __STDC__
-# include <limits.h>
+#  include <limits.h>
 #else
-# include <assert.h>
+#  include <assert.h>
 #endif
 #undef stricmp
 #ifdef __cplusplus
@@ -44730,9 +44767,7 @@ then :
   no)
     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-
-printf "%s\n" "#define CURL_DISABLE_TYPECHECK 1" >>confdefs.h
-
+        CPPFLAGS="$CPPFLAGS -DCURL_DISABLE_TYPECHECK"
     curl_typecheck_msg="no"
     ;;
   *)
@@ -46421,6 +46456,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${BUILD_UNITTESTS_TRUE}" && test -z "${BUILD_UNITTESTS_FALSE}"; then
   as_fn_error $? "conditional \"BUILD_UNITTESTS\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${CLANG_TRUE}" && test -z "${CLANG_FALSE}"; then
+  as_fn_error $? "conditional \"CLANG\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${HAVE_WINDRES_TRUE}" && test -z "${HAVE_WINDRES_FALSE}"; then

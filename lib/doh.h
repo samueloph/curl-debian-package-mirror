@@ -29,14 +29,14 @@
 
 typedef enum {
   DOH_OK,
-  DOH_DNS_BAD_LABEL,    /* 1 */
-  DOH_DNS_OUT_OF_RANGE, /* 2 */
-  DOH_DNS_LABEL_LOOP,   /* 3 */
-  DOH_TOO_SMALL_BUFFER, /* 4 */
-  DOH_OUT_OF_MEM,       /* 5 */
-  DOH_DNS_RDATA_LEN,    /* 6 */
-  DOH_DNS_MALFORMAT,    /* 7 */
-  DOH_DNS_BAD_RCODE,    /* 8 - no such name */
+  DOH_DNS_BAD_LABEL,        /* 1 */
+  DOH_DNS_OUT_OF_RANGE,     /* 2 */
+  DOH_DNS_LABEL_LOOP,       /* 3 */
+  DOH_TOO_SMALL_BUFFER,     /* 4 */
+  DOH_OUT_OF_MEM,           /* 5 */
+  DOH_DNS_RDATA_LEN,        /* 6 */
+  DOH_DNS_MALFORMAT,        /* 7 */
+  DOH_DNS_BAD_RCODE,        /* 8 - no such name */
   DOH_DNS_UNEXPECTED_TYPE,  /* 9 */
   DOH_DNS_UNEXPECTED_CLASS, /* 10 */
   DOH_NO_CONTENT,           /* 11 */
@@ -114,7 +114,7 @@ CURLcode Curl_doh(struct Curl_easy *data, const char *hostname,
                   int port, int ip_version);
 
 CURLcode Curl_doh_is_resolved(struct Curl_easy *data,
-                              struct Curl_dns_entry **dns);
+                              struct Curl_dns_entry **dnsp);
 
 #define DOH_MAX_ADDR  24
 #define DOH_MAX_CNAME 4

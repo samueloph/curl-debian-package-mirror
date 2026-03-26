@@ -386,7 +386,7 @@ static int sws_ProcessRequest(struct sws_httprequest *req)
     if(fine) {
       const char *ptr;
 
-      req->prot_version = prot_major * 10 + prot_minor;
+      req->prot_version = (prot_major * 10) + prot_minor;
 
       /* find the last slash */
       ptr = &httppath[npath];
@@ -1855,10 +1855,10 @@ static curl_socket_t accept_connection(curl_socket_t sock)
 #endif
 
   /*
-  ** As soon as this server accepts a connection from the test harness it
-  ** must set the server logs advisor read lock to indicate that server
-  ** logs should not be read until this lock is removed by this server.
-  */
+   * As soon as this server accepts a connection from the test harness it
+   * must set the server logs advisor read lock to indicate that server
+   * logs should not be read until this lock is removed by this server.
+   */
 
   if(!serverlogslocked)
     set_advisor_read_lock(loglockfile);
@@ -1984,7 +1984,7 @@ static int test_sws(int argc, const char *argv[])
   int keepalive_secs = 5;
   const char *protocol_type = "HTTP";
 
-  /* a default CONNECT port is basically pointless but still ... */
+  /* a default CONNECT port is pointless, but still ... */
   size_t socket_idx;
 
   pidname = ".http.pid";
@@ -2214,6 +2214,7 @@ static int test_sws(int argc, const char *argv[])
        port we actually got and update the listener port value with it. */
     curl_socklen_t la_size;
     srvr_sockaddr_union_t localaddr;
+    memset(&localaddr, 0, sizeof(localaddr));
 #ifdef USE_IPV6
     if(socket_domain != AF_INET6)
 #endif
@@ -2222,7 +2223,6 @@ static int test_sws(int argc, const char *argv[])
     else
       la_size = sizeof(localaddr.sa6);
 #endif
-    memset(&localaddr.sa, 0, (size_t)la_size);
     if(getsockname(sock, &localaddr.sa, &la_size) < 0) {
       error = SOCKERRNO;
       logmsg("getsockname() failed with error (%d) %s",
@@ -2275,9 +2275,9 @@ static int test_sws(int argc, const char *argv[])
 #endif
 
   /*
-  ** As soon as this server writes its pid file the test harness will
-  ** attempt to connect to this server and initiate its verification.
-  */
+   * As soon as this server writes its pid file the test harness will
+   * attempt to connect to this server and initiate its verification.
+   */
 
   wrotepidfile = write_pidfile(pidname);
   if(!wrotepidfile)

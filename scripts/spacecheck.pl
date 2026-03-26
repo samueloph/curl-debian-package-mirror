@@ -148,26 +148,56 @@ while(my $filename = <$git_ls_files>) {
         push @err, "content: has multiple EOL at EOF";
     }
 
-    if(!fn_match($filename, @double_empty_lines)) {
-        if($content =~ /\n\n\n/ ||
-           $content =~ /\r\n\r\n\r\n/) {
-            my $line = 0;
-            my $blank = 0;
-            for my $l (split(/\n/, $content)) {
-                chomp $l;
-                $line++;
-                if($l =~ /^$/) {
-                    if($blank) {
-                        my $lineno = sprintf("duplicate empty line @ line %d", $line);
-                        push @err, $lineno;
-                    }
-                    $blank = 1;
+    if((!fn_match($filename, @double_empty_lines) &&
+        ($content =~ /\n\n\n/ ||
+         $content =~ /\r\n\r\n\r\n/)) ||
+       $content =~ />\n\n\n+[<#]/) {
+        my $line = 0;
+        my $blank = 0;
+        for my $l (split(/\n/, $content)) {
+            chomp $l;
+            $line++;
+            if($l =~ /^$/) {
+                if($blank) {
+                    my $lineno = sprintf("duplicate empty line @ line %d", $line);
+                    push @err, $lineno;
                 }
-                else {
-                    $blank = 0;
-                }
+                $blank = 1;
+            }
+            else {
+                $blank = 0;
             }
         }
+    }
+
+    my $search = $content;
+    my $linepos = 0;
+    while($search =~ / "\n *" /) {
+        my $part = substr($search, 0, $+[0]);
+        $search = substr($search, $+[0]);
+        my $line = ($part =~ tr/\n//);
+        push @err, sprintf("line %d: double spaces in folded string", $linepos + $line);
+        $linepos += $line;
+    }
+
+    $search = $content;
+    $linepos = 0;
+    while($search =~ /\n\n *}\n/) {
+        my $part = substr($search, 0, $+[0] - 1);
+        $search = substr($search, $+[0]);
+        my $line = ($part =~ tr/\n//);
+        push @err, sprintf("line %d: '}' preceded by empty line", $linepos + $line);
+        $linepos += $line + 1;
+    }
+
+    $search = $content;
+    $linepos = 0;
+    while($search =~ /\n\{\n\n/) {
+        my $part = substr($search, 0, $+[0]);
+        $search = substr($search, $+[0]);
+        my $line = ($part =~ tr/\n//);
+        push @err, sprintf("line %d: top-level '{' followed by empty line", $linepos + $line);
+        $linepos += $line;
     }
 
     if($content =~ /([\x00-\x08\x0b\x0c\x0e-\x1f\x7f])/) {

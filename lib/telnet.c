@@ -51,7 +51,6 @@
 #include "transfer.h"
 #include "sendf.h"
 #include "curl_trc.h"
-#include "connect.h"
 #include "progress.h"
 #include "arpa_telnet.h"
 #include "select.h"
@@ -59,20 +58,20 @@
 
 #define SUBBUFSIZE 512
 
-#define CURL_SB_CLEAR(x) x->subpointer = x->subbuffer
-#define CURL_SB_TERM(x)        \
-  do {                         \
-    x->subend = x->subpointer; \
-    CURL_SB_CLEAR(x);          \
+#define CURL_SB_CLEAR(x) x->subpointer = (x)->subbuffer
+#define CURL_SB_TERM(x)            \
+  do {                             \
+    (x)->subend = (x)->subpointer; \
+    CURL_SB_CLEAR(x);              \
   } while(0)
-#define CURL_SB_ACCUM(x, c)                                   \
-  do {                                                        \
-    if(x->subpointer < (x->subbuffer + sizeof(x->subbuffer))) \
-      *x->subpointer++ = (c);                                 \
+#define CURL_SB_ACCUM(x, c)                                         \
+  do {                                                              \
+    if((x)->subpointer < ((x)->subbuffer + sizeof((x)->subbuffer))) \
+      *(x)->subpointer++ = (c);                                     \
   } while(0)
 
-#define CURL_SB_GET(x) ((*x->subpointer++) & 0xff)
-#define CURL_SB_LEN(x) (x->subend - x->subpointer)
+#define CURL_SB_GET(x) ((*(x)->subpointer++) & 0xff)
+#define CURL_SB_LEN(x) ((x)->subend - (x)->subpointer)
 
 /* For posterity:
 #define  CURL_SB_PEEK(x) ((*x->subpointer)&0xff)
@@ -212,8 +211,8 @@ static CURLcode init_telnet(struct Curl_easy *data)
   */
   tn->him_preferred[CURL_TELOPT_ECHO] = CURL_YES;
 
-  /* Set the subnegotiation fields to send information
-    just after negotiation passed (do/will)
+  /* Set the subnegotiation fields to send information after negotiation
+     passed (do/will)
 
      Default values are (0,0) initialized by calloc.
      According to the RFC1013 it is valid:
@@ -962,7 +961,7 @@ static CURLcode check_telnet_options(struct Curl_easy *data,
 
 /* if the option contains an IAC code, it should be escaped in the output, but
    as we cannot think of any legit way to send that as part of the content we
-   rather just ban its use instead */
+   rather ban its use instead */
 static bool bad_option(const char *data)
 {
   return !data || !!strchr(data, CURL_IAC);
@@ -1279,8 +1278,7 @@ static CURLcode telnet_do(struct Curl_easy *data, bool *done)
   }
 
   /* Tell Winsock what events we want to listen to */
-  if(WSAEventSelect(sockfd, event_handle, FD_READ | FD_CLOSE) ==
-     SOCKET_ERROR) {
+  if(WSAEventSelect(sockfd, event_handle, FD_READ | FD_CLOSE) != 0) {
     WSACloseEvent(event_handle);
     return CURLE_RECV_ERROR;
   }
@@ -1295,7 +1293,7 @@ static CURLcode telnet_do(struct Curl_easy *data, bool *done)
   /* If stdin_handle is a pipe, use PeekNamedPipe() method to check it,
      else use the old WaitForMultipleObjects() way */
   if(GetFileType(stdin_handle) == FILE_TYPE_PIPE || data->set.is_fread_set) {
-    /* Do not wait for stdin_handle, just wait for event_handle */
+    /* Do not wait for stdin_handle, wait for event_handle */
     obj_count = 1;
     /* Check stdin_handle per 100 milliseconds */
     wait_timeout = 100;
@@ -1378,7 +1376,7 @@ static CURLcode telnet_do(struct Curl_easy *data, bool *done)
 
     case WAIT_OBJECT_0: {
       events.lNetworkEvents = 0;
-      if(WSAEnumNetworkEvents(sockfd, event_handle, &events) == SOCKET_ERROR) {
+      if(WSAEnumNetworkEvents(sockfd, event_handle, &events) != 0) {
         err = SOCKERRNO;
         if(err != SOCKEINPROGRESS) {
           infof(data, "WSAEnumNetworkEvents failed (%d)", err);

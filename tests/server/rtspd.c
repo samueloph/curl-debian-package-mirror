@@ -180,7 +180,7 @@ static int rtspd_ProcessRequest(struct rtspd_httprequest *req)
       return 1;
     }
 
-    req->prot_version = prot_major * 10 + prot_minor;
+    req->prot_version = (prot_major * 10) + prot_minor;
 
     /* find the last slash */
     ptr = strrchr(doc, '/');
@@ -317,6 +317,7 @@ static int rtspd_ProcessRequest(struct rtspd_httprequest *req)
 
                 /* Fill it with junk data */
                 for(i = 0; i < rtp_size; i += RTP_DATA_SIZE) {
+                  /* NOLINTNEXTLINE(bugprone-not-null-terminated-result) */
                   memcpy(rtp_scratch + 4 + i, RTP_DATA, RTP_DATA_SIZE);
                 }
 
@@ -325,12 +326,17 @@ static int rtspd_ProcessRequest(struct rtspd_httprequest *req)
                   req->rtp_buffersize = rtp_size + 4;
                 }
                 else {
-                  req->rtp_buffer = realloc(req->rtp_buffer,
-                                            req->rtp_buffersize +
-                                            rtp_size + 4);
-                  memcpy(req->rtp_buffer + req->rtp_buffersize, rtp_scratch,
-                         rtp_size + 4);
-                  req->rtp_buffersize += rtp_size + 4;
+                  char *rtp_buffer = realloc(req->rtp_buffer,
+                                             req->rtp_buffersize +
+                                             rtp_size + 4);
+                  if(rtp_buffer) {
+                    req->rtp_buffer = rtp_buffer;
+                    memcpy(req->rtp_buffer + req->rtp_buffersize, rtp_scratch,
+                           rtp_size + 4);
+                    req->rtp_buffersize += rtp_size + 4;
+                  }
+                  else
+                    logmsg("failed resizing buffer.");
                   free(rtp_scratch);
                 }
                 logmsg("rtp_buffersize is %zu, rtp_size is %d.",
@@ -613,7 +619,7 @@ static int rtspd_get_request(curl_socket_t sock, struct rtspd_httprequest *req)
     pipereq_length = req->offset - req->checkindex;
   }
 
-  /*** Init the httprequest structure properly for the upcoming request ***/
+  /* Init the httprequest structure properly for the upcoming request */
 
   req->checkindex = 0;
   req->offset = 0;
@@ -634,7 +640,7 @@ static int rtspd_get_request(curl_socket_t sock, struct rtspd_httprequest *req)
   req->rtp_buffer = NULL;
   req->rtp_buffersize = 0;
 
-  /*** end of httprequest init ***/
+  /* end of httprequest init */
 
   while(!done_processing && (req->offset < sizeof(req->reqbuf) - 1)) {
     if(pipereq_length && pipereq) {
@@ -1156,6 +1162,7 @@ static int test_rtspd(int argc, const char *argv[])
        port we actually got and update the listener port value with it. */
     curl_socklen_t la_size;
     srvr_sockaddr_union_t localaddr;
+    memset(&localaddr, 0, sizeof(localaddr));
 #ifdef USE_IPV6
     if(!use_ipv6)
 #endif
@@ -1164,7 +1171,6 @@ static int test_rtspd(int argc, const char *argv[])
     else
       la_size = sizeof(localaddr.sa6);
 #endif
-    memset(&localaddr.sa, 0, (size_t)la_size);
     if(getsockname(sock, &localaddr.sa, &la_size) < 0) {
       error = SOCKERRNO;
       logmsg("getsockname() failed with error (%d) %s",
@@ -1206,9 +1212,9 @@ static int test_rtspd(int argc, const char *argv[])
   }
 
   /*
-  ** As soon as this server writes its pid file the test harness will
-  ** attempt to connect to this server and initiate its verification.
-  */
+   * As soon as this server writes its pid file the test harness will
+   * attempt to connect to this server and initiate its verification.
+   */
 
   wrotepidfile = write_pidfile(pidname);
   if(!wrotepidfile)
@@ -1233,10 +1239,10 @@ static int test_rtspd(int argc, const char *argv[])
     }
 
     /*
-    ** As soon as this server accepts a connection from the test harness it
-    ** must set the server logs advisor read lock to indicate that server
-    ** logs should not be read until this lock is removed by this server.
-    */
+     * As soon as this server accepts a connection from the test harness it
+     * must set the server logs advisor read lock to indicate that server
+     * logs should not be read until this lock is removed by this server.
+     */
 
     set_advisor_read_lock(loglockfile);
     serverlogslocked = 1;
@@ -1250,7 +1256,7 @@ static int test_rtspd(int argc, const char *argv[])
      */
     flag = 1;
     if(setsockopt(msgsock, IPPROTO_TCP, TCP_NODELAY,
-                   (void *)&flag, sizeof(flag)) == -1) {
+                  (void *)&flag, sizeof(flag)) == -1) {
       logmsg("====> TCP_NODELAY failed");
     }
 #endif

@@ -51,10 +51,6 @@
 #error too old nghttp2 version, upgrade!
 #endif
 
-#ifndef CURLVERBOSE
-#define nghttp2_session_callbacks_set_error_callback(x, y)
-#endif
-
 #if (NGHTTP2_VERSION_NUM >= 0x010c00)
 #define NGHTTP2_HAS_SET_LOCAL_WINDOW_SIZE 1
 #endif
@@ -67,9 +63,9 @@
 #define H2_CONN_WINDOW_SIZE     (10 * 1024 * 1024)
 /* on receiving from TLS, we prep for holding a full stream window */
 #define H2_NW_RECV_CHUNKS       (H2_CONN_WINDOW_SIZE / H2_CHUNK_SIZE)
-/* on send into TLS, we just want to accumulate small frames */
+/* on send into TLS, we want to accumulate small frames */
 #define H2_NW_SEND_CHUNKS       1
-/* this is how much we want "in flight" for a stream, unthrottled  */
+/* this is how much we want "in flight" for a stream, unthrottled */
 #define H2_STREAM_WINDOW_SIZE_MAX   (10 * 1024 * 1024)
 /* this is how much we want "in flight" for a stream, initially, IFF
  * nghttp2 allows us to tweak the local window size. */
@@ -264,9 +260,9 @@ static CURLcode cf_h2_update_settings(struct cf_h2_ctx *ctx,
   return CURLE_OK;
 }
 
-#define H2_STREAM_CTX(ctx, data)                                        \
-  ((struct h2_stream_ctx *)(                                            \
-    data? Curl_uint32_hash_get(&(ctx)->streams, (data)->mid) : NULL))
+#define H2_STREAM_CTX(ctx, data)                                         \
+  ((struct h2_stream_ctx *)(                                             \
+    (data) ? Curl_uint32_hash_get(&(ctx)->streams, (data)->mid) : NULL))
 
 static struct h2_stream_ctx *h2_stream_ctx_create(struct cf_h2_ctx *ctx)
 {
@@ -529,8 +525,8 @@ static CURLcode h2_process_pending_input(struct Curl_cfilter *cf,
 }
 
 /*
- * The server may send us data at any point (e.g. PING frames). Therefore,
- * we cannot assume that an HTTP/2 socket is dead just because it is readable.
+ * The server may send us data at any point (e.g. PING frames). Therefore, we
+ * cannot assume that an HTTP/2 socket is dead because it is readable.
  *
  * Check the lower filters first and, if successful, peek at the socket
  * and distinguish between closed and data.
@@ -674,28 +670,28 @@ char *curl_pushheader_bynum(struct curl_pushheaders *h, size_t num)
 /*
  * push header access function. Only to be used from within the push callback
  */
-char *curl_pushheader_byname(struct curl_pushheaders *h, const char *header)
+char *curl_pushheader_byname(struct curl_pushheaders *h, const char *name)
 {
   struct h2_stream_ctx *stream;
   size_t len;
   size_t i;
   /* Verify that we got a good easy handle in the push header struct,
      mostly to detect rubbish input fast(er). Also empty header name
-     is just a rubbish too. We have to allow ":" at the beginning of
+     is rubbish too. We have to allow ":" at the beginning of
      the header, but header == ":" must be rejected. If we have ':' in
      the middle of header, it could be matched in middle of the value,
      this is because we do prefix match.*/
-  if(!h || !GOOD_EASY_HANDLE(h->data) || !header || !header[0] ||
-     !strcmp(header, ":") || strchr(header + 1, ':'))
+  if(!h || !GOOD_EASY_HANDLE(h->data) || !name || !name[0] ||
+     !strcmp(name, ":") || strchr(name + 1, ':'))
     return NULL;
 
   stream = h->stream;
   if(!stream)
     return NULL;
 
-  len = strlen(header);
+  len = strlen(name);
   for(i = 0; i < stream->push_headers_used; i++) {
-    if(!strncmp(header, stream->push_headers[i], len)) {
+    if(!strncmp(name, stream->push_headers[i], len)) {
       /* sub-match, make sure that it is followed by a colon */
       if(stream->push_headers[i][len] != ':')
         continue;
@@ -892,7 +888,6 @@ static void h2_xfer_write_resp_hd(struct Curl_cfilter *cf,
                                   struct h2_stream_ctx *stream,
                                   const char *buf, size_t blen, bool eos)
 {
-
   /* If we already encountered an error, skip further writes */
   if(!stream->xfer_result) {
     stream->xfer_result = Curl_xfer_write_resp_hd(data, buf, blen, eos);
@@ -909,7 +904,6 @@ static void h2_xfer_write_resp(struct Curl_cfilter *cf,
                                struct h2_stream_ctx *stream,
                                const char *buf, size_t blen, bool eos)
 {
-
   /* If we already encountered an error, skip further writes */
   if(!stream->xfer_result)
     stream->xfer_result = Curl_xfer_write_resp(data, buf, blen, eos);
@@ -1130,7 +1124,7 @@ static int on_frame_send(nghttp2_session *session, const nghttp2_frame *frame,
 
   (void)session;
   DEBUGASSERT(data);
-  if(data && Curl_trc_cf_is_verbose(cf, data)) {
+  if(Curl_trc_cf_is_verbose(cf, data)) {
     char buffer[256];
     int len;
     len = Curl_nghttp2_fr_print(frame, buffer, sizeof(buffer) - 1);
@@ -1706,7 +1700,7 @@ static CURLcode http2_handle_stream_close(struct Curl_cfilter *cf,
   }
   else if(!stream->bodystarted) {
     failf(data, "HTTP/2 stream %d was closed cleanly, but before getting "
-          " all response header fields, treated as error", stream->id);
+          "all response header fields, treated as error", stream->id);
     return CURLE_HTTP2_STREAM;
   }
 
@@ -1895,10 +1889,9 @@ static CURLcode h2_progress_ingress(struct Curl_cfilter *cf,
   while(!ctx->conn_closed && Curl_bufq_is_empty(&ctx->inbufq)) {
     stream = H2_STREAM_CTX(ctx, data);
     if(stream && (stream->closed || !data_max_bytes)) {
-      /* We would like to abort here and stop processing, so that
-       * the transfer loop can handle the data/close here. However,
-       * this may leave data in underlying buffers that will not
-       * be consumed. */
+      /* We would like to abort here and stop processing, so that the transfer
+       * loop can handle the data/close here. This may leave data in
+       * underlying buffers that will not be consumed. */
       if(!cf->next || !cf->next->cft->has_data_pending(cf->next, data))
         Curl_multi_mark_dirty(data);
       break;
@@ -3005,10 +2998,10 @@ char *curl_pushheader_bynum(struct curl_pushheaders *h, size_t num)
   return NULL;
 }
 
-char *curl_pushheader_byname(struct curl_pushheaders *h, const char *header)
+char *curl_pushheader_byname(struct curl_pushheaders *h, const char *name)
 {
   (void)h;
-  (void)header;
+  (void)name;
   return NULL;
 }
 

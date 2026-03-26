@@ -21,7 +21,7 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-#include "../curl_setup.h"
+#include "curl_setup.h"
 
 #ifdef USE_SSL
 
@@ -29,21 +29,21 @@
 #include <sys/types.h>
 #endif
 
-#include "../urldata.h"
-#include "../cfilters.h"
+#include "urldata.h"
+#include "cfilters.h"
 
-#include "vtls.h" /* generic SSL protos etc */
-#include "vtls_int.h"
-#include "vtls_scache.h"
-#include "vtls_spack.h"
+#include "vtls/vtls.h" /* generic SSL protos etc */
+#include "vtls/vtls_int.h"
+#include "vtls/vtls_scache.h"
+#include "vtls/vtls_spack.h"
 
-#include "../strcase.h"
-#include "../url.h"
-#include "../llist.h"
-#include "../curl_share.h"
-#include "../curl_trc.h"
-#include "../curl_sha256.h"
-#include "../rand.h"
+#include "strcase.h"
+#include "url.h"
+#include "llist.h"
+#include "curl_share.h"
+#include "curl_trc.h"
+#include "curl_sha256.h"
+#include "rand.h"
 
 
 /* a peer+tls-config we cache sessions for */
@@ -58,7 +58,7 @@ struct Curl_ssl_scache_peer {
   unsigned char key_salt[CURL_SHA256_DIGEST_LENGTH]; /* for entry export */
   unsigned char key_hmac[CURL_SHA256_DIGEST_LENGTH]; /* for entry export */
   size_t max_sessions;
-  long age;                /* just a number, the higher the more recent */
+  long age;                /* a number, the higher the more recent */
   BIT(hmac_set);           /* if key_salt and key_hmac are present */
   BIT(exportable);         /* sessions for this peer can be exported */
 };
@@ -73,10 +73,9 @@ static CURLcode cf_ssl_peer_key_add_path(struct dynbuf *buf,
                                          bool *is_local)
 {
   if(path && path[0]) {
-    /* We try to add absolute paths, so that the session key can stay
-     * valid when used in another process with different CWD. However,
-     * when a path does not exist, this does not work. Then, we add
-     * the path as is. */
+    /* We try to add absolute paths, so that the session key can stay valid
+     * when used in another process with different CWD. When a path does not
+     * exist, this does not work. Then, we add the path as is. */
 #ifdef _WIN32
     char abspath[_MAX_PATH];
     if(_fullpath(abspath, path, _MAX_PATH))
@@ -288,7 +287,7 @@ CURLcode Curl_ssl_peer_key_make(struct Curl_cfilter *cf,
     goto out;
 
   *ppeer_key = curlx_dyn_take(&buf, &key_len);
-  /* we just added printable char, and dynbuf always null-terminates, no need
+  /* we added printable char, and dynbuf always null-terminates, no need
    * to track length */
 
 out:
@@ -561,7 +560,7 @@ CURLcode Curl_ssl_scache_create(size_t max_peers,
 
 void Curl_ssl_scache_destroy(struct Curl_ssl_scache *scache)
 {
-  if(scache && GOOD_SCACHE(scache)) {
+  if(GOOD_SCACHE(scache)) {
     size_t i;
     scache->magic = 0;
     for(i = 0; i < scache->peer_count; ++i) {
@@ -914,7 +913,7 @@ CURLcode Curl_ssl_scache_add_obj(struct Curl_cfilter *cf,
                                  struct Curl_easy *data,
                                  const char *ssl_peer_key,
                                  void *sobj,
-                                 Curl_ssl_scache_obj_dtor *sobj_free)
+                                 Curl_ssl_scache_obj_dtor *sobj_dtor_cb)
 {
   struct Curl_ssl_scache *scache = cf_ssl_scache_get(data);
   struct ssl_primary_config *conn_config = Curl_ssl_cf_get_primary_config(cf);
@@ -922,7 +921,7 @@ CURLcode Curl_ssl_scache_add_obj(struct Curl_cfilter *cf,
   CURLcode result;
 
   DEBUGASSERT(sobj);
-  DEBUGASSERT(sobj_free);
+  DEBUGASSERT(sobj_dtor_cb);
 
   if(!scache) {
     result = CURLE_BAD_FUNCTION_ARGUMENT;
@@ -935,12 +934,12 @@ CURLcode Curl_ssl_scache_add_obj(struct Curl_cfilter *cf,
     goto out;
   }
 
-  cf_ssl_scache_peer_set_obj(peer, sobj, sobj_free);
+  cf_ssl_scache_peer_set_obj(peer, sobj, sobj_dtor_cb);
   sobj = NULL;  /* peer took ownership */
 
 out:
-  if(sobj && sobj_free)
-    sobj_free(sobj);
+  if(sobj && sobj_dtor_cb)
+    sobj_dtor_cb(sobj);
   return result;
 }
 
@@ -1148,9 +1147,12 @@ CURLcode Curl_ssl_session_export(struct Curl_easy *data,
   struct Curl_ssl_scache_peer *peer;
   struct dynbuf sbuf, hbuf;
   struct Curl_llist_node *n;
-  size_t i, npeers = 0, ntickets = 0;
+  size_t i;
   curl_off_t now = time(NULL);
   CURLcode r = CURLE_OK;
+#ifdef CURLVERBOSE
+  size_t npeers = 0, ntickets = 0;
+#endif
 
   if(!export_fn)
     return CURLE_BAD_FUNCTION_ARGUMENT;
@@ -1173,7 +1175,7 @@ CURLcode Curl_ssl_session_export(struct Curl_easy *data,
     cf_scache_peer_remove_expired(peer, now);
     n = Curl_llist_head(&peer->sessions);
     if(n)
-      ++npeers;
+      VERBOSE(++npeers);
     while(n) {
       struct Curl_ssl_session *s = Curl_node_elem(n);
       if(!peer->hmac_set) {
@@ -1201,10 +1203,9 @@ CURLcode Curl_ssl_session_export(struct Curl_easy *data,
                     s->alpn, s->earlydata_max);
       if(r)
         goto out;
-      ++ntickets;
+      VERBOSE(++ntickets);
       n = Curl_node_next(n);
     }
-
   }
   r = CURLE_OK;
   CURL_TRC_SSLS(data, "exported %zu session tickets for %zu peers",

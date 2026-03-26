@@ -379,6 +379,8 @@ static CURLcode mqtt_recv_atleast(struct Curl_easy *data, size_t nbytes)
     result = Curl_xfer_recv(data, (char *)readbuf, nbytes - rlen, &nread);
     if(result)
       return result;
+    if(!nread) /* EOF */
+       return CURLE_RECV_ERROR;
     if(curlx_dyn_addn(&mq->recvbuf, readbuf, nread))
       return CURLE_OUT_OF_MEMORY;
     rlen = curlx_dyn_len(&mq->recvbuf);
@@ -962,7 +964,6 @@ static CURLcode mqtts_connecting(struct Curl_easy *data, bool *done)
 /*
  * MQTTS protocol.
  */
-
 static const struct Curl_protocol Curl_protocol_mqtts = {
   mqtt_setup_conn,                    /* setup_connection */
   mqtt_do,                            /* do_it */
@@ -988,7 +989,6 @@ static const struct Curl_protocol Curl_protocol_mqtts = {
 /*
  * MQTT protocol.
  */
-
 static const struct Curl_protocol Curl_protocol_mqtt = {
   mqtt_setup_conn,                    /* setup_connection */
   mqtt_do,                            /* do_it */
@@ -1011,7 +1011,6 @@ static const struct Curl_protocol Curl_protocol_mqtt = {
 
 #endif /* CURL_DISABLE_MQTT */
 
-
 const struct Curl_scheme Curl_scheme_mqtts = {
   "mqtts",                            /* scheme */
 #if defined(CURL_DISABLE_MQTT) || !defined(USE_SSL)
@@ -1028,7 +1027,6 @@ const struct Curl_scheme Curl_scheme_mqtts = {
 /*
  * MQTT protocol.
  */
-
 const struct Curl_scheme Curl_scheme_mqtt = {
   "mqtt",                             /* scheme */
 #ifdef CURL_DISABLE_MQTT

@@ -21,7 +21,7 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-#include "../curl_setup.h"
+#include "curl_setup.h"
 
 #ifdef USE_LIBSSH2
 
@@ -41,23 +41,23 @@
 #include <inet.h>
 #endif
 
-#include "../urldata.h"
-#include "../sendf.h"
-#include "../curl_trc.h"
-#include "../hostip.h"
-#include "../progress.h"
-#include "../transfer.h"
-#include "ssh.h"
-#include "../url.h"
-#include "../cfilters.h"
-#include "../connect.h"
-#include "../parsedate.h" /* for the week day and month names */
-#include "../multiif.h"
-#include "../select.h"
-#include "../curlx/fopen.h"
-#include "vssh.h"
-#include "../curlx/strparse.h"
-#include "../curlx/base64.h" /* for base64 encoding/decoding */
+#include "urldata.h"
+#include "sendf.h"
+#include "curl_trc.h"
+#include "hostip.h"
+#include "progress.h"
+#include "transfer.h"
+#include "vssh/ssh.h"
+#include "url.h"
+#include "cfilters.h"
+#include "connect.h"
+#include "parsedate.h" /* for the week day and month names */
+#include "multiif.h"
+#include "select.h"
+#include "curlx/fopen.h"
+#include "vssh/vssh.h"
+#include "curlx/strparse.h"
+#include "curlx/base64.h" /* for base64 encoding/decoding */
 
 static const char *sftp_libssh2_strerror(unsigned long err)
 {
@@ -699,10 +699,10 @@ static CURLcode ssh_force_knownhost_key_type(struct Curl_easy *data,
       rc = libssh2_session_method_pref(sshc->ssh_session,
                                        LIBSSH2_METHOD_HOSTKEY, hostkey_method);
       if(rc) {
-        char *errmsg = NULL;
+        char *err_msg = NULL;
         int errlen;
-        libssh2_session_last_error(sshc->ssh_session, &errmsg, &errlen, 0);
-        failf(data, "libssh2 method '%s' failed: %s", hostkey_method, errmsg);
+        libssh2_session_last_error(sshc->ssh_session, &err_msg, &errlen, 0);
+        failf(data, "libssh2 method '%s' failed: %s", hostkey_method, err_msg);
         result = libssh2_session_error_to_CURLE(rc);
       }
     }
@@ -967,11 +967,11 @@ static CURLcode sftp_upload_init(struct Curl_easy *data,
             sftp_libssh2_strerror(sftperr));
       return sftp_libssh2_error_to_CURLE(sftperr);
     }
-    if(((sftperr == LIBSSH2_FX_NO_SUCH_FILE) ||
-        (sftperr == LIBSSH2_FX_FAILURE) ||
-        (sftperr == LIBSSH2_FX_NO_SUCH_PATH)) &&
-       (data->set.ftp_create_missing_dirs &&
-        (strlen(sshp->path) > 1))) {
+    if((sftperr == LIBSSH2_FX_NO_SUCH_FILE ||
+        sftperr == LIBSSH2_FX_FAILURE ||
+        sftperr == LIBSSH2_FX_NO_SUCH_PATH) &&
+       data->set.ftp_create_missing_dirs &&
+       (strlen(sshp->path) > 1)) {
       /* try to create the path remotely */
       sshc->secondCreateDirs = 1;
       myssh_to(data, sshc, SSH_SFTP_CREATE_DIRS_INIT);
@@ -1127,7 +1127,7 @@ static CURLcode ssh_state_pkey_init(struct Curl_easy *data,
     /*
      * Unless the user explicitly specifies a public key file, let
      * libssh2 extract the public key from the private key file.
-     * This is done by simply passing sshc->rsa_pub = NULL.
+     * This is done by passing sshc->rsa_pub = NULL.
      */
     if(!out_of_memory && data->set.str[STRING_SSH_PUBLIC_KEY] &&
        /* treat empty string the same way as NULL */
@@ -1289,7 +1289,7 @@ static CURLcode sftp_download_stat(struct Curl_easy *data,
      (attrs.filesize == 0)) {
     /*
      * libssh2_sftp_open() did not return an error, so maybe the server
-     * just does not support stat()
+     * does not support stat()
      * OR the server does not return a file size with a stat()
      * OR file size is 0
      */
@@ -2297,7 +2297,7 @@ static CURLcode ssh_state_sftp_close(struct Curl_easy *data,
 
   /* Check if nextstate is set and move .nextstate could be POSTQUOTE_INIT
      After nextstate is executed, the control should come back to
-     SSH_SFTP_CLOSE to pass the correct result back  */
+     SSH_SFTP_CLOSE to pass the correct result back */
   if(sshc->nextstate != SSH_NO_STATE &&
      sshc->nextstate != SSH_SFTP_CLOSE) {
     myssh_to(data, sshc, sshc->nextstate);
@@ -3218,7 +3218,7 @@ static ssize_t ssh_tls_recv(libssh2_socket_t sock, void *buffer,
     return -EAGAIN; /* magic return code for libssh2 */
   else if(result)
     return -1; /* generic error */
-  Curl_debug(data, CURLINFO_DATA_IN, (const char *)buffer, (size_t)nread);
+  Curl_debug(data, CURLINFO_DATA_IN, (const char *)buffer, nread);
   return (ssize_t)nread;
 }
 
@@ -3791,7 +3791,7 @@ CURLcode Curl_ssh_init(void)
 
 void Curl_ssh_cleanup(void)
 {
-  (void)libssh2_exit();
+  libssh2_exit();
 }
 
 void Curl_ssh_version(char *buffer, size_t buflen)

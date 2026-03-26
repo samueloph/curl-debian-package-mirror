@@ -55,7 +55,6 @@
 #endif
 
 #include "urldata.h"
-#include "bufq.h"
 #include "curl_trc.h"
 #include "if2ip.h"
 #include "cfilters.h"
@@ -97,15 +96,19 @@ static void tcpnodelay(struct Curl_cfilter *cf,
 #endif
 }
 
+#if defined(USE_WINSOCK) || defined(TCP_KEEPIDLE) || \
+  defined(TCP_KEEPALIVE) || defined(TCP_KEEPALIVE_THRESHOLD) || \
+  defined(TCP_KEEPINTVL) || defined(TCP_KEEPALIVE_ABORT_THRESHOLD)
 #if defined(USE_WINSOCK) || \
    (defined(__sun) && !defined(TCP_KEEPIDLE)) || \
    (defined(__DragonFly__) && __DragonFly_version < 500702) || \
    (defined(_WIN32) && !defined(TCP_KEEPIDLE))
 /* Solaris < 11.4, DragonFlyBSD < 500702 and Windows < 10.0.16299
  * use millisecond units. */
-#define KEEPALIVE_FACTOR(x) (x *= 1000)
+#define KEEPALIVE_FACTOR(x) ((x) *= 1000)
 #else
 #define KEEPALIVE_FACTOR(x)
+#endif
 #endif
 
 static void tcpkeepalive(struct Curl_cfilter *cf,
@@ -263,11 +266,11 @@ static CURLcode sock_assign_addr(struct Curl_sockaddr_ex *dest,
                                  uint8_t transport)
 {
   /*
-   * The Curl_sockaddr_ex structure is basically libcurl's external API
-   * curl_sockaddr structure with enough space available to directly hold
-   * any protocol-specific address structures. The variable declared here
-   * will be used to pass / receive data to/from the fopensocket callback
-   * if this has been set, before that, it is initialized from parameters.
+   * The Curl_sockaddr_ex structure is libcurl's external API curl_sockaddr
+   * structure with enough space available to directly hold any
+   * protocol-specific address structures. The variable declared here will be
+   * used to pass / receive data to/from the fopensocket callback if this has
+   * been set, before that, it is initialized from parameters.
    */
   dest->family = ai->ai_family;
   switch(transport) {
@@ -332,7 +335,13 @@ static CURLcode socket_open(struct Curl_easy *data,
     Curl_set_in_callback(data, FALSE);
   }
   else {
-    /* opensocket callback not set, so simply create the socket now */
+    /* opensocket callback not set, so create the socket now */
+#ifdef DEBUGBUILD
+    if((addr->family == AF_INET6) && getenv("CURL_DBG_SOCK_FAIL_IPV6")) {
+      failf(data, "CURL_DBG_SOCK_FAIL_IPV6: failed to open socket");
+      return CURLE_COULDNT_CONNECT;
+    }
+#endif
     *sockfd = CURL_SOCKET(addr->family, addr->socktype, addr->protocol);
     if((*sockfd == CURL_SOCKET_BAD) && (SOCKERRNO == SOCKENOMEM))
       return CURLE_OUT_OF_MEMORY;
@@ -571,10 +580,10 @@ static CURLcode bindlocal(struct Curl_easy *data, struct connectdata *conn,
        * This binds the local socket to a particular interface. This will
        * force even requests to other local interfaces to go out the external
        * interface. Only bind to the interface when specified as interface,
-       * not just as a hostname or ip address.
+       * not as a hostname or ip address.
        *
        * The interface might be a VRF, eg: vrf-blue, which means it cannot be
-       * converted to an IP address and would fail Curl_if2ip. Simply try to
+       * converted to an IP address and would fail Curl_if2ip. Try to
        * use it straight away.
        */
       if(setsockopt(sockfd, SOL_SOCKET, SO_BINDTODEVICE,
@@ -789,7 +798,7 @@ static bool verifyconnect(curl_socket_t sockfd, int *error)
    *
    *    "I do not have Rational Quantify, but the hint from his post was
    *    ntdll::NtRemoveIoCompletion(). I would assume the SleepEx (or maybe
-   *    just Sleep(0) would be enough?) would release whatever
+   *    Sleep(0) would be enough?) would release whatever
    *    mutex/critical-section the ntdll call is waiting on.
    *
    *    Someone got to verify this on Win-NT 4.0, 2000."
@@ -1031,6 +1040,19 @@ static CURLcode set_remote_ip(struct Curl_cfilter *cf,
   return CURLE_OK;
 }
 
+/* to figure out the type of the socket safely, remove the possibly ORed
+   bits before comparing */
+static int cf_socktype(int x)
+{
+#ifdef SOCK_CLOEXEC
+  x &= ~SOCK_CLOEXEC;
+#endif
+#ifdef SOCK_NONBLOCK
+  x &= ~SOCK_NONBLOCK;
+#endif
+  return x;
+}
+
 static CURLcode cf_socket_open(struct Curl_cfilter *cf,
                                struct Curl_easy *data)
 {
@@ -1086,10 +1108,10 @@ static CURLcode cf_socket_open(struct Curl_cfilter *cf,
 #ifdef USE_IPV6
   is_tcp = (ctx->addr.family == AF_INET ||
             ctx->addr.family == AF_INET6) &&
-           ctx->addr.socktype == SOCK_STREAM;
+    cf_socktype(ctx->addr.socktype) == SOCK_STREAM;
 #else
   is_tcp = (ctx->addr.family == AF_INET) &&
-           ctx->addr.socktype == SOCK_STREAM;
+    cf_socktype(ctx->addr.socktype) == SOCK_STREAM;
 #endif
   if(is_tcp && data->set.tcp_nodelay)
     tcpnodelay(cf, data, ctx->sock);
@@ -1154,7 +1176,7 @@ static CURLcode cf_socket_open(struct Curl_cfilter *cf,
     }
   }
 #endif
-  ctx->sock_connected = (ctx->addr.socktype != SOCK_DGRAM);
+  ctx->sock_connected = (cf_socktype(ctx->addr.socktype) != SOCK_DGRAM);
 out:
   if(result) {
     if(ctx->sock != CURL_SOCKET_BAD) {
@@ -1259,7 +1281,7 @@ static CURLcode cf_tcp_connect(struct Curl_cfilter *cf,
     set_local_ip(cf, data);
     CURL_TRC_CF(data, cf, "local address %s port %d...",
                 ctx->ip.local_ip, ctx->ip.local_port);
-    if(-1 == rc) {
+    if(rc == -1) {
       result = socket_connect_result(data, ctx->ip.remote_ip, error);
       goto out;
     }
@@ -1436,7 +1458,7 @@ static CURLcode cf_socket_send(struct Curl_cfilter *cf, struct Curl_easy *data,
       (SOCKEINPROGRESS == sockerr)
 #endif
       ) {
-      /* this is just a case of EWOULDBLOCK */
+      /* EWOULDBLOCK */
       result = CURLE_AGAIN;
     }
     else {
@@ -1501,7 +1523,7 @@ static CURLcode cf_socket_recv(struct Curl_cfilter *cf, struct Curl_easy *data,
       (EAGAIN == sockerr) || (SOCKEINTR == sockerr)
 #endif
       ) {
-      /* this is just a case of EWOULDBLOCK */
+      /* EWOULDBLOCK */
       result = CURLE_AGAIN;
     }
     else {
@@ -1779,7 +1801,7 @@ static CURLcode cf_udp_setup_quic(struct Curl_cfilter *cf,
      NOLINTNEXTLINE(clang-analyzer-unix.StdCLibraryFunctions) */
   rc = connect(ctx->sock, &ctx->addr.curl_sa_addr,
                (curl_socklen_t)ctx->addr.addrlen);
-  if(-1 == rc) {
+  if(rc == -1) {
     return socket_connect_result(data, ctx->ip.remote_ip, SOCKERRNO);
   }
   ctx->sock_connected = TRUE;

@@ -24,7 +24,7 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-#include "../curl_setup.h"
+#include "curl_setup.h"
 
 #ifdef USE_LIBSSH
 
@@ -42,21 +42,21 @@
 #include <inet.h>
 #endif
 
-#include "../urldata.h"
-#include "../sendf.h"
-#include "../curl_trc.h"
-#include "../hostip.h"
-#include "../progress.h"
-#include "../transfer.h"
-#include "ssh.h"
-#include "../url.h"
-#include "../cfilters.h"
-#include "../connect.h"
-#include "../parsedate.h"          /* for the week day and month names */
-#include "../curlx/strparse.h"
-#include "../multiif.h"
-#include "../select.h"
-#include "vssh.h"
+#include "urldata.h"
+#include "sendf.h"
+#include "curl_trc.h"
+#include "hostip.h"
+#include "progress.h"
+#include "transfer.h"
+#include "vssh/ssh.h"
+#include "url.h"
+#include "cfilters.h"
+#include "connect.h"
+#include "parsedate.h"          /* for the week day and month names */
+#include "curlx/strparse.h"
+#include "multiif.h"
+#include "select.h"
+#include "vssh/vssh.h"
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -152,7 +152,7 @@ static int myssh_is_known(struct Curl_easy *data, struct ssh_conn *sshc)
     }
 
     for(i = 0; i < 16; i++)
-      curl_msnprintf(&md5buffer[i * 2], 3, "%02x", (unsigned char)hash[i]);
+      curl_msnprintf(&md5buffer[i * 2], 3, "%02x", hash[i]);
 
     infof(data, "SSH MD5 fingerprint: %s", md5buffer);
 
@@ -749,13 +749,13 @@ static int myssh_in_AUTHLIST(struct Curl_easy *data,
   if(sshc->auth_methods)
     infof(data, "SSH authentication methods available: %s%s%s%s",
           sshc->auth_methods & SSH_AUTH_METHOD_PUBLICKEY ?
-          "public key, ": "",
+          "public key, " : "",
           sshc->auth_methods & SSH_AUTH_METHOD_GSSAPI_MIC ?
           "GSSAPI, " : "",
           sshc->auth_methods & SSH_AUTH_METHOD_INTERACTIVE ?
           "keyboard-interactive, " : "",
           sshc->auth_methods & SSH_AUTH_METHOD_PASSWORD ?
-          "password": "");
+          "password" : "");
   /* For public key auth we need either the private key or
      CURLSSH_AUTH_AGENT. */
   if((sshc->auth_methods & SSH_AUTH_METHOD_PUBLICKEY) &&
@@ -1000,10 +1000,11 @@ static int myssh_in_UPLOAD_INIT(struct Curl_easy *data,
   if(!sshc->sftp_file) {
     int err = sftp_get_error(sshc->sftp_session);
 
-    if(((err == SSH_FX_NO_SUCH_FILE || err == SSH_FX_FAILURE ||
-         err == SSH_FX_NO_SUCH_PATH)) &&
-       (data->set.ftp_create_missing_dirs &&
-        (strlen(sshp->path) > 1))) {
+    if((err == SSH_FX_NO_SUCH_FILE ||
+        err == SSH_FX_FAILURE ||
+        err == SSH_FX_NO_SUCH_PATH) &&
+       data->set.ftp_create_missing_dirs &&
+       (strlen(sshp->path) > 1)) {
       /* try to create the path remotely */
       rc = 0;
       sshc->secondCreateDirs = 1;
@@ -1128,7 +1129,7 @@ static int myssh_in_SFTP_DOWNLOAD_STAT(struct Curl_easy *data,
      (attrs->size == 0)) {
     /*
      * sftp_fstat did not return an error, so maybe the server
-     * just does not support stat()
+     * does not support stat()
      * OR the server does not return a file size with a stat()
      * OR file size is 0
      */
@@ -1168,7 +1169,7 @@ static int myssh_in_SFTP_DOWNLOAD_STAT(struct Curl_easy *data,
   if(data->state.resume_from) {
     if(data->state.resume_from < 0) {
       /* We are supposed to download the last abs(from) bytes */
-      if((curl_off_t)size < -data->state.resume_from) {
+      if(size < -data->state.resume_from) {
         failf(data, "Offset (%" FMT_OFF_T ") was beyond file size (%"
               FMT_OFF_T ")", data->state.resume_from, size);
         return myssh_to_ERROR(data, sshc, CURLE_BAD_DOWNLOAD_RESUME);
@@ -1177,7 +1178,7 @@ static int myssh_in_SFTP_DOWNLOAD_STAT(struct Curl_easy *data,
       data->state.resume_from += size;
     }
     else {
-      if((curl_off_t)size < data->state.resume_from) {
+      if(size < data->state.resume_from) {
         failf(data, "Offset (%" FMT_OFF_T
               ") was beyond file size (%" FMT_OFF_T ")",
               data->state.resume_from, size);
@@ -1227,7 +1228,7 @@ static int myssh_in_SFTP_CLOSE(struct Curl_easy *data,
 
   /* Check if nextstate is set and move .nextstate could be POSTQUOTE_INIT
      After nextstate is executed, the control should come back to
-     SSH_SFTP_CLOSE to pass the correct result back  */
+     SSH_SFTP_CLOSE to pass the correct result back */
   if(sshc->nextstate != SSH_NO_STATE &&
      sshc->nextstate != SSH_SFTP_CLOSE) {
     myssh_to(data, sshc, sshc->nextstate);
@@ -1732,7 +1733,7 @@ static int myssh_SSH_SCP_DOWNLOAD(struct Curl_easy *data,
 
   /* download data */
   bytecount = ssh_scp_request_get_size(sshc->scp_session);
-  data->req.maxdownload = (curl_off_t)bytecount;
+  data->req.maxdownload = bytecount;
   Curl_xfer_setup_recv(data, FIRSTSOCKET, bytecount);
 
   /* not set by Curl_xfer_setup to preserve keepon bits */

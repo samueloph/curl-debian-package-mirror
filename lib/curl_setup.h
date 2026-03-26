@@ -90,7 +90,7 @@
 /* Disable Visual Studio warnings: 4127 "conditional expression is constant" */
 #pragma warning(disable:4127)
 #ifndef _CRT_SECURE_NO_WARNINGS
-#define _CRT_SECURE_NO_WARNINGS  /* for getenv(), tests: sscanf() */
+#define _CRT_SECURE_NO_WARNINGS  /* for getenv(), sscanf() */
 #endif
 #endif /* _MSC_VER */
 
@@ -286,16 +286,36 @@
  * When HTTP is disabled, disable HTTP-only features
  */
 #ifdef CURL_DISABLE_HTTP
-#  define CURL_DISABLE_ALTSVC 1
-#  define CURL_DISABLE_COOKIES 1
-#  define CURL_DISABLE_BASIC_AUTH 1
-#  define CURL_DISABLE_BEARER_AUTH 1
-#  define CURL_DISABLE_AWS 1
-#  define CURL_DISABLE_DOH 1
-#  define CURL_DISABLE_FORM_API 1
-#  define CURL_DISABLE_HEADERS_API 1
-#  define CURL_DISABLE_HSTS 1
-#  define CURL_DISABLE_HTTP_AUTH 1
+#  ifndef CURL_DISABLE_ALTSVC
+#  define CURL_DISABLE_ALTSVC
+#  endif
+#  ifndef CURL_DISABLE_COOKIES
+#  define CURL_DISABLE_COOKIES
+#  endif
+#  ifndef CURL_DISABLE_BASIC_AUTH
+#  define CURL_DISABLE_BASIC_AUTH
+#  endif
+#  ifndef CURL_DISABLE_BEARER_AUTH
+#  define CURL_DISABLE_BEARER_AUTH
+#  endif
+#  ifndef CURL_DISABLE_AWS
+#  define CURL_DISABLE_AWS
+#  endif
+#  ifndef CURL_DISABLE_DOH
+#  define CURL_DISABLE_DOH
+#  endif
+#  ifndef CURL_DISABLE_FORM_API
+#  define CURL_DISABLE_FORM_API
+#  endif
+#  ifndef CURL_DISABLE_HEADERS_API
+#  define CURL_DISABLE_HEADERS_API
+#  endif
+#  ifndef CURL_DISABLE_HSTS
+#  define CURL_DISABLE_HSTS
+#  endif
+#  ifndef CURL_DISABLE_HTTP_AUTH
+#  define CURL_DISABLE_HTTP_AUTH
+#  endif
 #  ifndef CURL_DISABLE_WEBSOCKETS
 #  define CURL_DISABLE_WEBSOCKETS /* no WebSockets without HTTP present */
 #  endif
@@ -688,7 +708,7 @@
 #elif defined(USE_ARES)
 #  define CURLRES_ASYNCH
 #  define CURLRES_ARES
-/* now undef the stock libc functions just to avoid them being used */
+/* now undef the stock libc functions to avoid them being used */
 #  undef HAVE_GETADDRINFO
 #  undef HAVE_FREEADDRINFO
 #else
@@ -714,14 +734,9 @@
 #endif
 
 #if defined(USE_OPENSSL) && defined(USE_WOLFSSL)
-#  include <wolfssl/version.h>
-#  if LIBWOLFSSL_VERSION_HEX >= 0x05007006
-#    ifndef OPENSSL_COEXIST
-#    define OPENSSL_COEXIST
-#    endif
-#  else
-#    error "OpenSSL can only coexist with wolfSSL v5.7.6 or upper"
-#  endif
+#ifndef OPENSSL_COEXIST
+#define OPENSSL_COEXIST
+#endif
 #endif
 
 #if defined(USE_WOLFSSL) && defined(USE_GNUTLS)
@@ -793,7 +808,7 @@
     (defined(__clang__) && __clang_major__ >= 10)
 #  define FALLTHROUGH()  __attribute__((fallthrough))
 #else
-#  define FALLTHROUGH()  do {} while (0)
+#  define FALLTHROUGH()  do {} while(0)
 #endif
 #endif
 
@@ -1085,7 +1100,9 @@ typedef unsigned int curl_bit;
 #define SOCKEINVAL        WSAEINVAL
 #define SOCKEISCONN       WSAEISCONN
 #define SOCKEMSGSIZE      WSAEMSGSIZE
-#define SOCKENOMEM        WSA_NOT_ENOUGH_MEMORY
+/* Use literal value to work around clang-tidy <=20 misreporting
+  'readability-uppercase-literal-suffix' with mingw-w64 headers */
+#define SOCKENOMEM        8L  /* WSA_NOT_ENOUGH_MEMORY */
 #define SOCKETIMEDOUT     WSAETIMEDOUT
 #define SOCKEWOULDBLOCK   WSAEWOULDBLOCK
 #else
@@ -1131,9 +1148,9 @@ typedef unsigned int curl_bit;
 #include "curlx/warnless.h"
 
 #ifdef _WIN32
-#  undef  read
+#  undef read
 #  define read(fd, buf, count)  (ssize_t)_read(fd, buf, curlx_uztoui(count))
-#  undef  write
+#  undef write
 #  define write(fd, buf, count) (ssize_t)_write(fd, buf, curlx_uztoui(count))
 /* Avoid VS2005+ _CRT_NONSTDC_NO_DEPRECATE warnings about non-portable funcs */
 #  undef fileno
@@ -1212,7 +1229,7 @@ typedef unsigned int curl_bit;
 #elif defined(_WIN32) || defined(__CYGWIN__)
 #define CURL_BINMODE(stream) (void)_setmode(fileno(stream), CURL_O_BINARY)
 #else
-#define CURL_BINMODE(stream) (void)stream
+#define CURL_BINMODE(stream) (void)(stream)
 #endif
 
 /* In Windows the default file mode is text but an application can override it.
@@ -1389,10 +1406,10 @@ CURL_EXTERN ALLOC_FUNC FILE *curl_dbg_fdopen(int filedes, const char *mode,
 #define CURL_FREEADDRINFO(data) \
   curl_dbg_freeaddrinfo(data, __LINE__, __FILE__)
 #define CURL_SOCKET(domain, type, protocol) \
-  curl_dbg_socket((int)domain, type, protocol, __LINE__, __FILE__)
+  curl_dbg_socket((int)(domain), type, protocol, __LINE__, __FILE__)
 #ifdef HAVE_SOCKETPAIR
 #define CURL_SOCKETPAIR(domain, type, protocol, socket_vector) \
-  curl_dbg_socketpair((int)domain, type, protocol, socket_vector, \
+  curl_dbg_socketpair((int)(domain), type, protocol, socket_vector, \
                       __LINE__, __FILE__)
 #endif
 #define CURL_ACCEPT(sock, addr, len) \
@@ -1528,8 +1545,11 @@ typedef struct sockaddr_un {
 #endif
 
 #ifdef USE_OPENSSL
-/* OpenSSLv3 marks DES, MD5 and ENGINE functions deprecated but we have no
-   replacements (yet) so tell the compiler to not warn for them. */
+/* OpenSSL 3 marks these functions deprecated but we have no replacements (yet)
+   so tell the compiler to not warn for them:
+   - DES_* (for NTLM), SSL_CTX_set_srp_* (for TLS-SRP)
+   - EVP_PKEY_get1_RSA, MD5_*, RSA_flags, RSA_free (auto-skipped for OpenSSL
+     built with no-deprecated) */
 #  define OPENSSL_SUPPRESS_DEPRECATED
 #  ifdef _WIN32
 /* Silence LibreSSL warnings about wincrypt.h collision. Works in 3.8.2+ */

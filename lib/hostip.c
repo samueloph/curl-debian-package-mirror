@@ -1015,20 +1015,20 @@ CURLcode Curl_resolv_blocking(struct Curl_easy *data,
                               const char *hostname,
                               int port,
                               int ip_version,
-                              struct Curl_dns_entry **dnsentry)
+                              struct Curl_dns_entry **entry)
 {
   CURLcode result;
   DEBUGASSERT(hostname && *hostname);
-  *dnsentry = NULL;
-  result = Curl_resolv(data, hostname, port, ip_version, FALSE, dnsentry);
+  *entry = NULL;
+  result = Curl_resolv(data, hostname, port, ip_version, FALSE, entry);
   switch(result) {
   case CURLE_OK:
-    DEBUGASSERT(*dnsentry);
+    DEBUGASSERT(*entry);
     return CURLE_OK;
   case CURLE_AGAIN:
-    DEBUGASSERT(!*dnsentry);
-    result = Curl_async_await(data, dnsentry);
-    if(result || !*dnsentry) {
+    DEBUGASSERT(!*entry);
+    result = Curl_async_await(data, entry);
+    if(result || !*entry) {
       /* close the connection, since we cannot return failure here without
          cleaning up this connection properly. */
       connclose(data->conn, "async resolve failed");
@@ -1366,7 +1366,7 @@ CURLcode Curl_loadhostpairs(struct Curl_easy *data)
           if(curlx_str_until(&host, &target, 4096, ',')) {
             if(curlx_str_single(&host, ','))
               goto err;
-            /* survive nothing but just a comma */
+            /* survive nothing but a comma */
             continue;
           }
         }

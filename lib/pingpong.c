@@ -27,6 +27,10 @@
 #include "curl_setup.h"
 
 #include "urldata.h"
+#include "pingpong.h"
+
+#ifdef USE_PINGPONG
+
 #include "cfilters.h"
 #include "connect.h"
 #include "multiif.h"
@@ -34,9 +38,6 @@
 #include "curl_trc.h"
 #include "select.h"
 #include "progress.h"
-#include "pingpong.h"
-
-#ifdef USE_PINGPONG
 
 /* Returns timeout in ms. 0 or negative number means the timeout has already
    triggered */
@@ -93,7 +94,7 @@ CURLcode Curl_pp_statemach(struct Curl_easy *data,
   if(Curl_conn_data_pending(data, FIRSTSOCKET))
     rc = 1;
   else if(pp->overflow)
-    /* We are receiving and there is data in the cache so just read it */
+    /* We are receiving and there is data in the cache so read it */
     rc = 1;
   else if(!pp->sendleft && Curl_conn_data_pending(data, FIRSTSOCKET))
     /* We are receiving and there is data ready in the SSL library */

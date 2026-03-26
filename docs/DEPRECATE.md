@@ -34,6 +34,27 @@ We remove support for CMake <3.18 in April 2026.
 
 CMake 3.18 was released on 2020-07-15.
 
+## TLS-SRP Authentication
+
+Transport Layer Security Secure Remote Password is a TLS feature that does not
+work with TLS 1.3 or QUIC and is virtually unused by curl users and in
+general.
+
+TLS-SRP support gets removed in August 2026.
+
+## SMB goes opt-in
+
+The SMB protocol has weak security and is rarely used these days. After curl
+8.19.0 SMB support becomes opt-in.
+
+## NTLM goes opt-in
+
+The NTLM authentication method has weak security and is rarely used these
+days. It has been deprecated by Microsoft and does not work over HTTP/2 or
+HTTP/3.
+
+After curl 8.19.0 NTLM support becomes opt-in.
+
 ## Past removals
 
 - axTLS (removed in 7.63.0)

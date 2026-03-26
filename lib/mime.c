@@ -310,7 +310,7 @@ static curl_off_t encoder_nop_size(curl_mimepart *part)
   return part->datasize;
 }
 
-/* 7-bit encoder: the encoder is just a data validity check. */
+/* 7-bit encoder: the encoder is a data validity check. */
 static size_t encoder_7bit_read(char *buffer, size_t size, bool ateof,
                                 curl_mimepart *part)
 {
@@ -423,10 +423,10 @@ static curl_off_t encoder_base64_size(curl_mimepart *part)
     return size;    /* Unknown size or no data. */
 
   /* Compute base64 character count. */
-  size = 4 * (1 + (size - 1) / 3);
+  size = 4 * (1 + ((size - 1) / 3));
 
   /* Effective character count must include CRLFs. */
-  return size + 2 * ((size - 1) / MAX_ENCODED_LINE_LENGTH);
+  return size + (2 * ((size - 1) / MAX_ENCODED_LINE_LENGTH));
 }
 
 /* Quoted-printable lookahead.
@@ -464,7 +464,7 @@ static size_t encoder_qp_read(char *buffer, size_t size, bool ateof,
   while(st->bufbeg < st->bufend) {
     size_t len = 1;
     size_t consumed = 1;
-    int i = st->buf[st->bufbeg];
+    int i = (unsigned char)st->buf[st->bufbeg];
     buf[0] = (char)i;
     buf[1] = aschex[(i >> 4) & 0xF];
     buf[2] = aschex[i & 0xF];
@@ -1270,18 +1270,18 @@ CURLcode curl_mime_filename(curl_mimepart *part, const char *filename)
 }
 
 /* Set mime part content from memory data. */
-CURLcode curl_mime_data(curl_mimepart *part, const char *ptr, size_t datasize)
+CURLcode curl_mime_data(curl_mimepart *part, const char *data, size_t datasize)
 {
   if(!part)
     return CURLE_BAD_FUNCTION_ARGUMENT;
 
   cleanup_part_content(part);
 
-  if(ptr) {
+  if(data) {
     if(datasize == CURL_ZERO_TERMINATED)
-      datasize = strlen(ptr);
+      datasize = strlen(data);
 
-    part->data = curlx_memdup0(ptr, datasize);
+    part->data = curlx_memdup0(data, datasize);
     if(!part->data)
       return CURLE_OUT_OF_MEMORY;
 

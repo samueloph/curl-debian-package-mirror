@@ -155,8 +155,8 @@ assumes that CMake generates `Makefile`:
 
 # CMake usage
 
-Just as curl can be built and installed using CMake, it can also be used from
-CMake.
+This section describes how to locate and use curl/libcurl from CMake-based
+projects.
 
 ## Using `find_package`
 
@@ -229,7 +229,8 @@ target_link_libraries(my_target PRIVATE CURL::libcurl)
                                             Set `QUICK` to build examples quickly with the `curl-examples-build` target (for build tests).
                                             Set `NOEXAMPLES` to not build examples.
 - `CURL_CLANG_TIDY`:                        Run the build through `clang-tidy`. Default: `OFF`
-                                            If enabled, it implies `CMAKE_UNITY_BUILD=OFF` and `CURL_DISABLE_TYPECHECK=ON`.
+                                            If enabled, it implies `CURL_DISABLE_TYPECHECK=ON` and force-disables unity mode
+                                            for libcurl and the curl tool.
 - `CURL_CLANG_TIDYFLAGS`:                   Custom options to pass to `clang-tidy`. Default: (empty)
 - `CURL_CODE_COVERAGE`:                     Enable code coverage build options. Default: `OFF`
 - `CURL_COMPLETION_FISH`:                   Install fish completions. Default: `OFF`
@@ -239,6 +240,7 @@ target_link_libraries(my_target PRIVATE CURL::libcurl)
 - `CURL_DEFAULT_SSL_BACKEND`:               Override default TLS backend in MultiSSL builds.
                                             Accepted values in order of default priority:
                                             `wolfssl`, `gnutls`, `mbedtls`, `openssl`, `schannel`, `rustls`
+- `CURL_DROP_UNUSED`:                       Drop unused code and data from built binaries. Default: `OFF`
 - `CURL_ENABLE_EXPORT_TARGET`:              Enable CMake export target. Default: `ON`
 - `CURL_HIDDEN_SYMBOLS`:                    Hide libcurl internal symbols (=hide all symbols that are not officially external). Default: `ON`
 - `CURL_LIBCURL_SOVERSION`:                 Enable libcurl SOVERSION. Default: `ON` for supported platforms
@@ -246,9 +248,9 @@ target_link_libraries(my_target PRIVATE CURL::libcurl)
 - `CURL_LIBCURL_VERSIONED_SYMBOLS_PREFIX`:  Override default versioned symbol prefix. Default: `<TLS-BACKEND>_` or `MULTISSL_`
 - `CURL_LINT`:                              Run lint checks while building. Default: `OFF`
 - `CURL_LTO`:                               Enable compiler Link Time Optimizations. Default: `OFF`
-- `CURL_DROP_UNUSED`:                       Drop unused code and data from built binaries. Default: `OFF`
+- `CURL_PATCHSTAMP`:                        Set security patch string for `curl -V`/`curl --version` output.
 - `CURL_STATIC_CRT`:                        Build libcurl with static CRT with MSVC (`/MT`) (requires UCRT, static libcurl or no curl executable). Default: `OFF`
-- `CURL_TARGET_WINDOWS_VERSION`:            Minimum target Windows version as hex string.
+- `CURL_TARGET_WINDOWS_VERSION`:            Minimum target Windows version as hex string, e.g. `0x0a00` for Windows 10.
 - `CURL_WERROR`:                            Turn compiler warnings into errors. Default: `OFF`
 - `ENABLE_CURL_MANUAL`:                     Build the man page for curl and enable its `-M`/`--manual` option. Default: `ON`
 - `ENABLE_DEBUG`:                           Enable curl debug features (for developing curl itself). Default: `OFF`
@@ -398,14 +400,15 @@ Details via CMake
 
 ## Dependency options (tools)
 
-- `CLANG_TIDY`:                             `clang-tidy` tool used with `CURL_CLANG_TIDY=ON`. Default: `clang-tidy`
-- `PERL_EXECUTABLE`:                        Perl binary used throughout the build and tests.
+- `CLANG_TIDY`:                             Absolute path to `clang-tidy` tool used with `CURL_CLANG_TIDY=ON`. Default: search for `clang-tidy`
+- `PERL_EXECUTABLE`:                        Absolute path to Perl binary used throughout the build and tests. Default: auto-detect
 
 ## Dependency options (libraries)
 
 - `AMISSL_INCLUDE_DIR`:                     Absolute path to AmiSSL include directory.
 - `AMISSL_STUBS_LIBRARY`:                   Absolute path to `amisslstubs` library.
 - `AMISSL_AUTO_LIBRARY`:                    Absolute path to `amisslauto` library.
+- `BORINGSSL_VERSION`:                      Set BoringSSL version for `curl -V`/`curl --version` output.
 - `BROTLI_INCLUDE_DIR`:                     Absolute path to brotli include directory.
 - `BROTLICOMMON_LIBRARY`:                   Absolute path to `brotlicommon` library.
 - `BROTLIDEC_LIBRARY`:                      Absolute path to `brotlidec` library.
@@ -499,15 +502,15 @@ Examples:
 
 ## Test tools
 
-- `APXS`:                                   Default: `apxs`
-- `CADDY`:                                  Default: `caddy`
-- `HTTPD_NGHTTPX`:                          Default: `nghttpx`
-- `HTTPD`:                                  Default: `apache2`
-- `DANTED`:                                 Default: `danted`
-- `TEST_NGHTTPX`:                           Default: `nghttpx`
-- `VSFTPD`:                                 Default: `vsftps`
-- `SSHD`:                                   Default: `sshd`
-- `SFTPD`:                                  Default: `sftp-server`
+- `APXS`:                                   Absolute path. Default: search for `apxs`
+- `CADDY`:                                  Absolute path. Default: search for `caddy`
+- `HTTPD_NGHTTPX`:                          Absolute path. Default: search for `nghttpx`
+- `HTTPD`:                                  Absolute path. Default: search for `apache2`
+- `DANTED`:                                 Absolute path. Default: search for `danted`
+- `TEST_NGHTTPX`:                           Absolute path. Default: search for `nghttpx`
+- `VSFTPD`:                                 Absolute path. Default: search for `vsftps`
+- `SSHD`:                                   Absolute path. Default: search for `sshd`
+- `SFTPD`:                                  Absolute path. Default: search for `sftp-server`
 
 ## Feature detection variables
 
@@ -549,11 +552,12 @@ Note: These variables are internal and subject to change.
 
 ## Useful build targets
 
-- `testdeps`:               Build test dependencies (servers, tools, test certificates).
-                            Individual targets: `curlinfo`, `libtests`, `servers`, `tunits`, `units`
-                            Test certificates: `build-certs`, `clean-certs`
+- `testdeps`:               Build test dependencies (test binaries, test certificates).
+                            Test certificates: `build-certs` (clean with `clean-certs`)
 - `tests`:                  Run tests (`runtests.pl`). Customize via the `TFLAGS` environment variable, e.g. `TFLAGS=1621`.
                             Other flavors: `test-am`, `test-ci`, `test-event`, `test-full`, `test-nonflaky`, `test-quiet`, `test-torture`
+- `tt`:                     Build test binaries (servers, tools).
+                            Individual targets: `curlinfo`, `libtests`, `servers`, `tunits`, `units`
 - `curl-pytest`:            Run tests (pytest).
                             Other flavor: `curl-test-ci`
 - `curl-examples`:          Build examples
@@ -561,6 +565,7 @@ Note: These variables are internal and subject to change.
                             where <name> is the .c filename without extension.
 - `curl-examples-build`:    Build examples quickly but without the ability to run them. (for build tests)
 - `curl-man`:               Build man pages. (built by default unless disabled)
+- `curl`:                   Build curl tool.
 - `curl_uninstall`:         Uninstall curl.
 - `curl-completion-fish`:   Build shell completions for fish. (built by default if enabled)
 - `curl-completion-zsh`:    Build shell completions for zsh. (built by default if enabled)

@@ -301,8 +301,10 @@ struct Curl_multi *Curl_multi_handle(uint32_t xfer_table_size,
   }
 #endif
 
+#ifdef USE_IPV6
   if(Curl_probeipv6(multi))
     goto error;
+#endif
 
   return multi;
 
@@ -372,8 +374,8 @@ static CURLMcode multi_xfers_add(struct Curl_multi *multi,
 
   if(capacity < max_capacity) {
     /* We want `multi->xfers` to have "sufficient" free rows, so that we do
-     * have to reuse the `mid` from a just removed easy right away.
-     * Since uint_tbl and uint_bset are quite memory efficient,
+     * have to reuse the `mid` from a removed easy right away.
+     * Since uint_tbl and uint_bset are memory efficient,
      * regard less than 25% free as insufficient.
      * (for low capacities, e.g. multi_easy, 4 or less). */
     uint32_t used = Curl_uint32_tbl_count(&multi->xfers);
@@ -625,7 +627,7 @@ static void multi_done_locked(struct connectdata *conn,
     return;
   }
 
-  data->state.done = TRUE; /* called just now! */
+  data->state.done = TRUE; /* called now! */
   data->state.recent_conn_id = conn->connection_id;
 
   Curl_resolv_unlink(data, &data->state.dns[0]); /* done with this */
@@ -691,10 +693,10 @@ static CURLcode multi_done(struct Curl_easy *data,
   case CURLE_ABORTED_BY_CALLBACK:
   case CURLE_READ_ERROR:
   case CURLE_WRITE_ERROR:
-    /* When we are aborted due to a callback return code it basically have to
-       be counted as premature as there is trouble ahead if we do not. We have
-       many callbacks and protocols work differently, we could potentially do
-       this more fine-grained in the future. */
+    /* When we are aborted due to a callback return code it has to be counted
+       as premature as there is trouble ahead if we do not. We have many
+       callbacks and protocols work differently, we could potentially do this
+       more fine-grained in the future. */
     premature = TRUE;
     FALLTHROUGH();
   default:
@@ -799,7 +801,7 @@ CURLMcode curl_multi_remove_handle(CURLM *m, CURL *d)
     /* multi_done() clears the association between the easy handle and the
        connection.
 
-       Note that this ignores the return code simply because there is
+       Note that this ignores the return code because there is
        nothing really useful to do with it anyway! */
     (void)multi_done(data, data->result, premature);
   }
@@ -1459,7 +1461,7 @@ static CURLMcode multi_wait(struct Curl_multi *multi,
 #endif
     int pollrc;
 #ifdef USE_WINSOCK
-    if(cpfds.n)         /* just pre-check with Winsock */
+    if(cpfds.n)         /* pre-check with Winsock */
       pollrc = Curl_poll(cpfds.pfds, cpfds.n, 0);
     else
       pollrc = 0;
@@ -1692,9 +1694,9 @@ static CURLcode multi_do(struct Curl_easy *data, bool *done)
 }
 
 /*
- * multi_do_more() is called during the DO_MORE multi state. It is basically a
- * second stage DO state which (wrongly) was introduced to support FTP's
- * second connection.
+ * multi_do_more() is called during the DO_MORE multi state. It is a second
+ * stage DO state which (wrongly) was introduced to support FTP's second
+ * connection.
  *
  * 'complete' can return 0 for incomplete, 1 for done and -1 for go back to
  * DOING state there is more work to do!
@@ -2013,7 +2015,7 @@ static CURLMcode state_performing(struct Curl_easy *data,
     if(data->req.newurl || retry) {
       followtype follow = FOLLOW_NONE;
       if(!retry) {
-        /* if the URL is a follow-location and not just a retried request then
+        /* if the URL is a follow-location and not a retried request then
            figure out the URL here */
         curlx_free(newurl);
         newurl = data->req.newurl;
@@ -2323,11 +2325,111 @@ static CURLMcode state_connect(struct Curl_multi *multi,
   return mresult;
 }
 
+/* returns the possibly updated result */
+static CURLcode is_finished(struct Curl_multi *multi,
+                            struct Curl_easy *data,
+                            bool stream_error,
+                            CURLcode result)
+{
+  if(data->mstate < MSTATE_COMPLETED) {
+    if(result) {
+      /*
+       * If an error was returned, and we are not in completed state now,
+       * then we go to completed and consider this transfer aborted.
+       */
+
+      /* No attempt to disconnect connections must be made before this -
+         connection detach and termination happens only here */
+
+      /* Check if we can move pending requests to send pipe */
+      process_pending_handles(multi); /* connection */
+
+      if(data->conn) {
+        if(stream_error) {
+          /* Do not attempt to send data over a connection that timed out */
+          bool dead_connection = result == CURLE_OPERATION_TIMEDOUT;
+          struct connectdata *conn = data->conn;
+
+          /* This is where we make sure that the conn pointer is reset.
+             We do not have to do this in every case block above where a
+             failure is detected */
+          Curl_detach_connection(data);
+          Curl_conn_terminate(data, conn, dead_connection);
+        }
+      }
+      else if(data->mstate == MSTATE_CONNECT) {
+        /* Curl_connect() failed */
+        multi_posttransfer(data);
+        Curl_pgrsUpdate_nometer(data);
+      }
+
+      multistate(data, MSTATE_COMPLETED);
+      return result;
+    }
+    /* if there is still a connection to use, call the progress function */
+    else if(data->conn) {
+      result = Curl_pgrsUpdate(data);
+      if(result) {
+        /* aborted due to progress callback return code must close the
+           connection */
+        streamclose(data->conn, "Aborted by callback");
+
+        /* if not yet in DONE state, go there, otherwise COMPLETED */
+        multistate(data, (data->mstate < MSTATE_DONE) ?
+                   MSTATE_DONE : MSTATE_COMPLETED);
+        return result;
+      }
+    }
+  }
+  return result;
+}
+
+static void handle_completed(struct Curl_multi *multi,
+                             struct Curl_easy *data,
+                             CURLcode result)
+{
+  if(data->master_mid != UINT32_MAX) {
+    /* A sub transfer, not for msgsent to application */
+    struct Curl_easy *mdata;
+
+    CURL_TRC_M(data, "sub xfer done for master %u", data->master_mid);
+    mdata = Curl_multi_get_easy(multi, data->master_mid);
+    if(mdata) {
+      if(mdata->sub_xfer_done)
+        mdata->sub_xfer_done(mdata, data, result);
+      else
+        CURL_TRC_M(data, "master easy %u without sub_xfer_done callback.",
+                   data->master_mid);
+    }
+    else {
+      CURL_TRC_M(data, "master easy %u already gone.", data->master_mid);
+    }
+  }
+  else {
+    /* now fill in the Curl_message with this info */
+    struct Curl_message *msg = &data->msg;
+
+    msg->extmsg.msg = CURLMSG_DONE;
+    msg->extmsg.easy_handle = data;
+    msg->extmsg.data.result = result;
+
+    multi_addmsg(multi, msg);
+    DEBUGASSERT(!data->conn);
+  }
+  multistate(data, MSTATE_MSGSENT);
+
+  /* remove from the other sets, add to msgsent */
+  Curl_uint32_bset_remove(&multi->process, data->mid);
+  Curl_uint32_bset_remove(&multi->dirty, data->mid);
+  Curl_uint32_bset_remove(&multi->pending, data->mid);
+  Curl_uint32_bset_add(&multi->msgsent, data->mid);
+  --multi->xfers_alive;
+}
+
 static CURLMcode multi_runsingle(struct Curl_multi *multi,
                                  struct Curl_easy *data,
                                  struct Curl_sigpipe_ctx *sigpipe_ctx)
 {
-  struct Curl_message *msg = NULL;
   bool connected;
   bool protocol_connected = FALSE;
   bool dophase_done = FALSE;
@@ -2395,7 +2497,7 @@ static CURLMcode multi_runsingle(struct Curl_multi *multi,
 
       /* after init, go SETUP */
       multistate(data, MSTATE_SETUP);
-      (void)Curl_pgrsTime(data, TIMER_STARTOP);
+      Curl_pgrsTime(data, TIMER_STARTOP);
       FALLTHROUGH();
 
     case MSTATE_SETUP:
@@ -2629,94 +2731,12 @@ static CURLMcode multi_runsingle(struct Curl_multi *multi,
 
 statemachine_end:
 
-    if(data->mstate < MSTATE_COMPLETED) {
-      if(result) {
-        /*
-         * If an error was returned, and we are not in completed state now,
-         * then we go to completed and consider this transfer aborted.
-         */
-
-        /* NOTE: no attempt to disconnect connections must be made
-           in the case blocks above - cleanup happens only here */
-
-        /* Check if we can move pending requests to send pipe */
-        process_pending_handles(multi); /* connection */
-
-        if(data->conn) {
-          if(stream_error) {
-            /* Do not attempt to send data over a connection that timed out */
-            bool dead_connection = result == CURLE_OPERATION_TIMEDOUT;
-            struct connectdata *conn = data->conn;
-
-            /* This is where we make sure that the conn pointer is reset.
-               We do not have to do this in every case block above where a
-               failure is detected */
-            Curl_detach_connection(data);
-            Curl_conn_terminate(data, conn, dead_connection);
-          }
-        }
-        else if(data->mstate == MSTATE_CONNECT) {
-          /* Curl_connect() failed */
-          multi_posttransfer(data);
-          Curl_pgrsUpdate_nometer(data);
-        }
-
-        multistate(data, MSTATE_COMPLETED);
-        mresult = CURLM_CALL_MULTI_PERFORM;
-      }
-      /* if there is still a connection to use, call the progress function */
-      else if(data->conn) {
-        result = Curl_pgrsUpdate(data);
-        if(result) {
-          /* aborted due to progress callback return code must close the
-             connection */
-          streamclose(data->conn, "Aborted by callback");
-
-          /* if not yet in DONE state, go there, otherwise COMPLETED */
-          multistate(data, (data->mstate < MSTATE_DONE) ?
-                     MSTATE_DONE : MSTATE_COMPLETED);
-          mresult = CURLM_CALL_MULTI_PERFORM;
-        }
-      }
-    }
+    result = is_finished(multi, data, stream_error, result);
+    if(result)
+      mresult = CURLM_CALL_MULTI_PERFORM;
 
     if(MSTATE_COMPLETED == data->mstate) {
-      if(data->master_mid != UINT32_MAX) {
-        /* A sub transfer, not for msgsent to application */
-        struct Curl_easy *mdata;
-
-        CURL_TRC_M(data, "sub xfer done for master %u", data->master_mid);
-        mdata = Curl_multi_get_easy(multi, data->master_mid);
-        if(mdata) {
-          if(mdata->sub_xfer_done)
-            mdata->sub_xfer_done(mdata, data, result);
-          else
-            CURL_TRC_M(data, "master easy %u without sub_xfer_done callback.",
-                       data->master_mid);
-        }
-        else {
-          CURL_TRC_M(data, "master easy %u already gone.", data->master_mid);
-        }
-      }
-      else {
-        /* now fill in the Curl_message with this info */
-        msg = &data->msg;
-
-        msg->extmsg.msg = CURLMSG_DONE;
-        msg->extmsg.easy_handle = data;
-        msg->extmsg.data.result = result;
-
-        multi_addmsg(multi, msg);
-        DEBUGASSERT(!data->conn);
-      }
-      multistate(data, MSTATE_MSGSENT);
-
-      /* remove from the other sets, add to msgsent */
-      Curl_uint32_bset_remove(&multi->process, data->mid);
-      Curl_uint32_bset_remove(&multi->dirty, data->mid);
-      Curl_uint32_bset_remove(&multi->pending, data->mid);
-      Curl_uint32_bset_add(&multi->msgsent, data->mid);
-      --multi->xfers_alive;
+      handle_completed(multi, data, result);
       return CURLM_OK;
     }
   } while((mresult == CURLM_CALL_MULTI_PERFORM) ||
@@ -2768,7 +2788,7 @@ static CURLMcode multi_perform(struct Curl_multi *multi,
     returncode = Curl_mntfy_dispatch_all(multi);
 
   /*
-   * Simply remove all expired timers from the splay since handles are dealt
+   * Remove all expired timers from the splay since handles are dealt
    * with unconditionally by this function and curl_multi_timeout() requires
    * that already passed/handled expire times are removed from the splay.
    *
@@ -2965,7 +2985,7 @@ void Curl_multi_will_close(struct Curl_easy *data, curl_socket_t s)
  * add_next_timeout()
  *
  * Each Curl_easy has a list of timeouts. The add_next_timeout() is called
- * when it has just been removed from the splay tree because the timeout has
+ * when it has been removed from the splay tree because the timeout has
  * expired. This function is then to advance in the list to pick the next
  * timeout to use (skip the already expired ones) and add this node back to
  * the splay tree again.
@@ -3362,7 +3382,7 @@ static void multi_timeout(struct Curl_multi *multi,
   }
 
 #ifdef CURLVERBOSE
-  if(data && CURL_TRC_TIMER_is_verbose(data)) {
+  if(CURL_TRC_TIMER_is_verbose(data)) {
     struct Curl_llist_node *e = Curl_llist_head(&data->state.timeoutlist);
     if(e) {
       struct time_node *n = Curl_node_elem(e);
@@ -3531,7 +3551,7 @@ void Curl_expire_ex(struct Curl_easy *data,
     set.tv_usec -= 1000000;
   }
 
-  /* Remove any timer with the same id just in case. */
+  /* Remove any timer with the same id */
   multi_deltimeout(data, id);
 
   /* Add it to the timer list. It must stay in the list until it has expired
@@ -3589,11 +3609,11 @@ void Curl_expire(struct Curl_easy *data, timediff_t milli, expire_id id)
  * Removes the expire timer. Marks it as done.
  *
  */
-void Curl_expire_done(struct Curl_easy *data, expire_id eid)
+void Curl_expire_done(struct Curl_easy *data, expire_id id)
 {
   /* remove the timer, if there */
-  multi_deltimeout(data, eid);
-  CURL_TRC_TIMER(data, eid, "cleared");
+  multi_deltimeout(data, id);
+  CURL_TRC_TIMER(data, id, "cleared");
 }
 
 /*
@@ -3707,7 +3727,7 @@ CURL **curl_multi_get_handles(CURLM *m)
 {
   struct Curl_multi *multi = m;
   void *entry;
-  unsigned int count = Curl_uint32_tbl_count(&multi->xfers);
+  size_t count = Curl_uint32_tbl_count(&multi->xfers);
   CURL **a = curlx_malloc(sizeof(struct Curl_easy *) * (count + 1));
   if(a) {
     unsigned int i = 0;
@@ -3936,7 +3956,7 @@ struct Curl_easy *Curl_multi_get_easy(struct Curl_multi *multi,
                                       uint32_t mid)
 {
   struct Curl_easy *data = Curl_uint32_tbl_get(&multi->xfers, mid);
-  if(data && GOOD_EASY_HANDLE(data))
+  if(GOOD_EASY_HANDLE(data))
     return data;
   CURL_TRC_M(multi->admin, "invalid easy handle in xfer table for mid=%u",
              mid);

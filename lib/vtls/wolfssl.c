@@ -26,16 +26,18 @@
  * but vtls.c should ever call or use these functions.
  *
  */
-#include "../curl_setup.h"
+#include "curl_setup.h"
 
 #ifdef USE_WOLFSSL
 
-#define WOLFSSL_OPTIONS_IGNORE_SYS
 #include <wolfssl/options.h>
 #include <wolfssl/version.h>
 
 #if LIBWOLFSSL_VERSION_HEX < 0x03004006 /* wolfSSL 3.4.6 (2015) */
 #error "wolfSSL version should be at least 3.4.6"
+#endif
+#if defined(OPENSSL_COEXIST) && LIBWOLFSSL_VERSION_HEX < 0x05007006
+#error "wolfSSL 5.7.6 or newer is required to coexist with OpenSSL"
 #endif
 
 /* To determine what functions are available we rely on one or both of:
@@ -51,22 +53,23 @@
 #endif
 #endif
 
-#include "../urldata.h"
-#include "../curl_trc.h"
-#include "../httpsrr.h"
-#include "vtls.h"
-#include "vtls_int.h"
-#include "vtls_scache.h"
-#include "keylog.h"
-#include "../connect.h" /* for the connect timeout */
-#include "../progress.h"
-#include "../curlx/strdup.h"
-#include "../curlx/strcopy.h"
-#include "x509asn1.h"
+#include "urldata.h"
+#include "curl_trc.h"
+#include "httpsrr.h"
+#include "vtls/vtls.h"
+#include "vtls/vtls_int.h"
+#include "vtls/vtls_scache.h"
+#include "vtls/keylog.h"
+#include "connect.h" /* for the connect timeout */
+#include "progress.h"
+#include "curlx/strdup.h"
+#include "curlx/strcopy.h"
+#include "vtls/x509asn1.h"
 
 #include <wolfssl/ssl.h>
 #include <wolfssl/error-ssl.h>
-#include "wolfssl.h"
+
+#include "vtls/wolfssl.h"
 
 /* KEEP_PEER_CERT is a product of the presence of build time symbol
    OPENSSL_EXTRA without NO_CERTS, depending on the version. KEEP_PEER_CERT is
@@ -443,7 +446,7 @@ CURLcode Curl_wssl_cache_session(struct Curl_cfilter *cf,
     goto out;
   }
   if(quic_tp && quic_tp_len) {
-    qtp_clone = curlx_memdup0((char *)quic_tp, quic_tp_len);
+    qtp_clone = curlx_memdup0((const char *)quic_tp, quic_tp_len);
     if(!qtp_clone) {
       curlx_free(sdata);
       return CURLE_OUT_OF_MEMORY;
@@ -655,7 +658,7 @@ static CURLcode wssl_populate_x509_store(struct Curl_cfilter *cf,
         return CURLE_SSL_CACERT_BADFILE;
       }
       else {
-        /* Just continue with a warning if no strict certificate
+        /* continue with a warning if no strict certificate
            verification is required. */
         infof(data, "error setting certificate verify locations,"
                     " continuing anyway:");
@@ -1424,7 +1427,6 @@ CURLcode Curl_wssl_ctx_init(struct wssl_ctx *wctx,
       result = CURLE_SSL_CONNECT_ERROR;
       goto out;
     }
-
   }
 #endif /* HAVE_WOLFSSL_CTX_GENERATEECHCONFIG */
 
@@ -1610,7 +1612,7 @@ static CURLcode wssl_send_earlydata(struct Curl_cfilter *cf,
       int err = wolfSSL_get_error(wssl->ssl, rc);
       char error_buffer[256];
       switch(err) {
-      case WOLFSSL_ERROR_NONE: /* just did not get anything */
+      case WOLFSSL_ERROR_NONE: /* did not get anything */
       case WOLFSSL_ERROR_WANT_READ:
       case WOLFSSL_ERROR_WANT_WRITE:
         return CURLE_AGAIN;
@@ -1739,7 +1741,7 @@ static CURLcode wssl_handshake(struct Curl_cfilter *cf, struct Curl_easy *data)
         failf(data, " CA signer not available for verification");
         return CURLE_SSL_CACERT_BADFILE;
       }
-      /* Just continue with a warning if no strict certificate
+      /* Continue with a warning if no strict certificate
          verification is required. */
       infof(data, "CA signer not available for verification, "
                   "continuing anyway");
@@ -1939,7 +1941,7 @@ static CURLcode wssl_shutdown(struct Curl_cfilter *cf,
     CURL_TRC_CF(data, cf, "SSL shutdown received");
     *done = TRUE;
     break;
-  case WOLFSSL_ERROR_NONE: /* just did not get anything */
+  case WOLFSSL_ERROR_NONE: /* did not get anything */
   case WOLFSSL_ERROR_WANT_READ:
     /* wolfSSL has send its notify and now wants to read the reply
      * from the server. We are not really interested in that. */

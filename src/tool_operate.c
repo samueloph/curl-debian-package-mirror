@@ -86,13 +86,6 @@
 CURL_EXTERN CURLcode curl_easy_perform_ev(CURL *easy);
 #endif
 
-#ifdef CURL_CA_EMBED
-#ifndef CURL_DECLARED_CURL_CA_EMBED
-#define CURL_DECLARED_CURL_CA_EMBED
-extern const unsigned char curl_ca_embed[];
-#endif
-#endif
-
 #define CURL_CA_CERT_ERRORMSG                                              \
   "More details here: https://curl.se/docs/sslcerts.html\n\n"              \
   "curl failed to verify the legitimacy of the server and therefore "      \
@@ -561,17 +554,17 @@ static CURLcode retrycheck(struct OperationConfig *config,
         /* truncate file at the position where we started appending */
 #if defined(HAVE_FTRUNCATE) && !defined(__DJGPP__) && !defined(__AMIGA__)
         if(ftruncate(fileno(outs->stream), outs->init)) {
-          /* when truncate fails, we cannot just append as then we will
+          /* when truncate fails, we cannot append as then we will
              create something strange, bail out */
           errorf("Failed to truncate file");
           return CURLE_WRITE_ERROR;
         }
         /* now seek to the end of the file, the position where we
-           just truncated the file in a large file-safe way */
+           truncated the file in a large file-safe way */
         rc = fseek(outs->stream, 0, SEEK_END);
 #else
-        /* ftruncate is not available, so just reposition the file
-           to the location we would have truncated it. */
+        /* ftruncate is not available, so reposition the file to the location
+           we would have truncated it. */
         rc = curlx_fseek(outs->stream, outs->init, SEEK_SET);
 #endif
         if(rc) {
@@ -958,7 +951,7 @@ static CURLcode setup_headerfile(struct OperationConfig *config,
      * Since every transfer has its own file handle for dumping
      * the headers, we need to open it in append mode, since transfers
      * might finish in any order.
-     * The first transfer just clears the file.
+     * The first transfer clears the file.
      *
      * Consider placing the file handle inside the OperationConfig, so
      * that it does not need to be opened/closed for every transfer.
@@ -1366,8 +1359,8 @@ static CURLcode create_single(struct OperationConfig *config,
       global->isatty = orig_isatty;
     }
 
-    if(state->httpgetfields) {
-      result = append2query(config, per, state->httpgetfields);
+    if(config->httpgetfields) {
+      result = append2query(config, per, config->httpgetfields);
       if(result)
         return result;
     }
@@ -1413,7 +1406,7 @@ static CURLcode single_transfer(struct OperationConfig *config,
 {
   CURLcode result = CURLE_OK;
   struct State *state = &global->state;
-  char *httpgetfields = state->httpgetfields;
+  char *httpgetfields = config->httpgetfields;
 
   *skipped = *added = FALSE; /* not yet */
 
@@ -1421,7 +1414,7 @@ static CURLcode single_transfer(struct OperationConfig *config,
     if(config->use_httpget) {
       if(!httpgetfields) {
         /* Use the postfields data for an HTTP get */
-        httpgetfields = state->httpgetfields = config->postfields;
+        httpgetfields = config->httpgetfields = config->postfields;
         config->postfields = NULL;
         if(SetHTTPrequest((config->no_body ? TOOL_HTTPREQ_HEAD :
                            TOOL_HTTPREQ_GET), &config->httpreq))
@@ -1432,7 +1425,7 @@ static CURLcode single_transfer(struct OperationConfig *config,
       return CURLE_FAILED_INIT;
   }
   if(!httpgetfields)
-    state->httpgetfields = config->query;
+    config->httpgetfields = config->query;
 
   result = set_cert_types(config);
   if(result)
@@ -1795,7 +1788,7 @@ static CURLcode check_finished(struct parastate *s)
       if(retry) {
         ended->added = FALSE; /* add it again */
         /* we delay retries in full integer seconds only */
-        ended->startat = delay ? time(NULL) + delay / 1000 : 0;
+        ended->startat = delay ? time(NULL) + (delay / 1000) : 0;
       }
       else {
         /* result receives this transfer's error unless the transfer was
@@ -2002,7 +1995,7 @@ static CURLcode serial_transfers(CURLSH *share)
       bailout = TRUE;
     else {
       do {
-        /* setup the next one just before we delete this */
+        /* setup the next one before we delete this */
         result = create_transfer(share, &added, &skipped);
         if(result) {
           returncode = result;

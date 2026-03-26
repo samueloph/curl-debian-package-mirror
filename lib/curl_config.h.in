@@ -149,9 +149,6 @@
 /* to disable TFTP */
 #undef CURL_DISABLE_TFTP
 
-/* to disable type checking */
-#undef CURL_DISABLE_TYPECHECK
-
 /* to disable verbose strings */
 #undef CURL_DISABLE_VERBOSE_STRINGS
 

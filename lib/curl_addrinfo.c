@@ -62,9 +62,9 @@
 #if defined(__INTEL_COMPILER) && (__INTEL_COMPILER == 910) && \
   defined(__OPTIMIZE__) && defined(__unix__) && defined(__i386__)
   /* workaround icc 9.1 optimizer issue */
-# define vqualifier volatile
+#  define vqualifier volatile
 #else
-# define vqualifier
+#  define vqualifier
 #endif
 
 void Curl_freeaddrinfo(struct Curl_addrinfo *cahead)
@@ -115,8 +115,8 @@ int Curl_getaddrinfo_ex(const char *nodename,
 
   for(ai = aihead; ai != NULL; ai = ai->ai_next) {
     size_t namelen = ai->ai_canonname ? strlen(ai->ai_canonname) + 1 : 0;
-    /* ignore elements with unsupported address family, */
-    /* settle family-specific sockaddr structure size.  */
+    /* ignore elements with unsupported address family,
+       settle family-specific sockaddr structure size. */
     if(ai->ai_family == AF_INET)
       ss_size = sizeof(struct sockaddr_in);
 #ifdef USE_IPV6
@@ -140,8 +140,8 @@ int Curl_getaddrinfo_ex(const char *nodename,
       break;
     }
 
-    /* copy each structure member individually, member ordering, */
-    /* size, or padding might be different for each platform.    */
+    /* copy each structure member individually, member ordering,
+       size, or padding might be different for each platform. */
 
     ca->ai_flags     = ai->ai_flags;
     ca->ai_family    = ai->ai_family;
@@ -404,19 +404,19 @@ static CURLcode ip2addr(struct Curl_addrinfo **addrp, int af,
  * Given an IPv4 or IPv6 dotted string address, this converts it to a proper
  * allocated Curl_addrinfo struct and returns it.
  */
-CURLcode Curl_str2addr(const char *address, int port,
+CURLcode Curl_str2addr(const char *dotted, int port,
                        struct Curl_addrinfo **addrp)
 {
   struct in_addr in;
-  if(curlx_inet_pton(AF_INET, address, &in) > 0)
+  if(curlx_inet_pton(AF_INET, dotted, &in) > 0)
     /* This is a dotted IP address 123.123.123.123-style */
-    return ip2addr(addrp, AF_INET, &in, address, port);
+    return ip2addr(addrp, AF_INET, &in, dotted, port);
 #ifdef USE_IPV6
   {
     struct in6_addr in6;
-    if(curlx_inet_pton(AF_INET6, address, &in6) > 0)
+    if(curlx_inet_pton(AF_INET6, dotted, &in6) > 0)
       /* This is a dotted IPv6 address ::1-style */
-      return ip2addr(addrp, AF_INET6, &in6, address, port);
+      return ip2addr(addrp, AF_INET6, &in6, dotted, port);
   }
 #endif
   return CURLE_BAD_FUNCTION_ARGUMENT; /* bad input format */

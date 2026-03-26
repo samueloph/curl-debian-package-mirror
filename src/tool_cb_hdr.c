@@ -235,7 +235,7 @@ int tool_write_headers(struct HdrCbData *hdrcbdata, FILE *stream)
   struct curl_slist *h = hdrcbdata->headlist;
   int rc = 1;
   while(h) {
-    /* not "handled", just show it */
+    /* not "handled", show it */
     size_t len = strlen(h->data);
     if(len != fwrite(h->data, 1, len, stream))
       goto fail;
@@ -432,7 +432,7 @@ size_t tool_header_cb(char *ptr, size_t size, size_t nmemb, void *userdata)
   struct OutStruct *etag_save = &per->etag_save;
   const char *str = ptr;
   const size_t cb = size * nmemb;
-  const char *end = (char *)ptr + cb;
+  const char *end = ptr + cb;
   const char *scheme = NULL;
 
   if(!per->config)
@@ -536,7 +536,7 @@ size_t tool_header_cb(char *ptr, size_t size, size_t nmemb, void *userdata)
 #endif
     }
     else
-      /* not "handled", just show it */
+      /* not "handled", show it */
       fwrite(ptr, cb, 1, outs->stream);
   }
   return cb;

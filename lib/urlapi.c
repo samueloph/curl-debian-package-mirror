@@ -37,10 +37,10 @@
 
 #ifdef _WIN32
 /* MS-DOS/Windows style drive prefix, eg c: in c:foo */
-#define STARTS_WITH_DRIVE_PREFIX(str)    \
-  ((('a' <= str[0] && str[0] <= 'z') ||  \
-    ('A' <= str[0] && str[0] <= 'Z')) && \
-   (str[1] == ':'))
+#define STARTS_WITH_DRIVE_PREFIX(str)        \
+  ((('a' <= (str)[0] && (str)[0] <= 'z') ||  \
+    ('A' <= (str)[0] && (str)[0] <= 'Z')) && \
+   ((str)[1] == ':'))
 #endif
 
 /* MS-DOS/Windows style drive prefix, optionally with
@@ -118,8 +118,8 @@ static const char *find_host_sep(const char *url)
 }
 
 /* convert CURLcode to CURLUcode */
-#define cc2cu(x) ((x) == CURLE_TOO_LARGE ? CURLUE_TOO_LARGE :   \
-                  CURLUE_OUT_OF_MEMORY)
+#define cc2cu(x) \
+  ((x) == CURLE_TOO_LARGE ? CURLUE_TOO_LARGE : CURLUE_OUT_OF_MEMORY)
 
 /* urlencode_str() writes data into an output dynbuf and URL-encodes the
  * spaces in the source URL accordingly.
@@ -361,8 +361,8 @@ UNITTEST CURLUcode Curl_parse_port(struct Curl_URL *u, struct dynbuf *host,
     size_t keep = portptr - hostname;
 
     /* Browser behavior adaptation. If there is a colon with no digits after,
-       just cut off the name there which makes us ignore the colon and just
-       use the default port. Firefox, Chrome and Safari all do that.
+       cut off the name there which makes us ignore the colon and use the
+       default port. Firefox, Chrome and Safari all do that.
 
        Do not do it if the URL has no scheme, to make something that looks like
        a scheme not work!
@@ -474,7 +474,7 @@ static CURLUcode hostname_check(struct Curl_URL *u, char *hostname,
  * Returns the host type.
  */
 
-#define HOST_ERROR   -1 /* out of memory */
+#define HOST_ERROR   (-1) /* out of memory */
 
 #define HOST_NAME    1
 #define HOST_IPV4    2
@@ -1078,7 +1078,7 @@ static CURLUcode handle_path(CURLU *u, const char *path,
   }
 
   if(pathlen <= 1) {
-    /* there is no path left or just the slash, unset */
+    /* there is no path left or the slash, unset */
     path = NULL;
   }
   else {
@@ -1089,7 +1089,7 @@ static CURLUcode handle_path(CURLU *u, const char *path,
       path = u->path;
     }
     else if(flags & CURLU_URLENCODE)
-      /* it might have encoded more than just the path so cut it */
+      /* it might have encoded more than the path so cut it */
       u->path[pathlen] = 0;
 
     if(!(flags & CURLU_PATH_AS_IS)) {
@@ -1274,7 +1274,7 @@ static CURLUcode redirect_url(const char *base, const char *relurl,
   if(!curlx_dyn_addn(&urlbuf, base, prelen) &&
      !urlencode_str(&urlbuf, useurl, strlen(useurl), !host_changed, FALSE)) {
     uc = parseurl_and_replace(curlx_dyn_ptr(&urlbuf), u,
-                              flags & ~CURLU_PATH_AS_IS);
+                              flags & ~U_CURLU_PATH_AS_IS);
   }
   else
     uc = CURLUE_OUT_OF_MEMORY;
@@ -1300,9 +1300,9 @@ void curl_url_cleanup(CURLU *u)
 
 #define DUP(dest, src, name)                    \
   do {                                          \
-    if(src->name) {                             \
-      dest->name = curlx_strdup(src->name);     \
-      if(!dest->name)                           \
+    if((src)->name) {                           \
+      (dest)->name = curlx_strdup((src)->name); \
+      if(!(dest)->name)                         \
         goto fail;                              \
     }                                           \
   } while(0)
@@ -1440,9 +1440,9 @@ static CURLUcode urlget_url(const CURLU *u, char **part, unsigned int flags)
   if(u->scheme && curl_strequal("file", u->scheme)) {
     url = curl_maprintf("file://%s%s%s%s%s",
                         u->path,
-                        show_query ? "?": "",
+                        show_query ? "?" : "",
                         u->query ? u->query : "",
-                        show_fragment ? "#": "",
+                        show_fragment ? "#" : "",
                         u->fragment ? u->fragment : "");
   }
   else if(!u->host)
@@ -1517,18 +1517,18 @@ static CURLUcode urlget_url(const CURLU *u, char **part, unsigned int flags)
     url = curl_maprintf("%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s",
                         schemebuf,
                         u->user ? u->user : "",
-                        u->password ? ":": "",
+                        u->password ? ":" : "",
                         u->password ? u->password : "",
                         options ? ";" : "",
                         options ? options : "",
-                        (u->user || u->password || options) ? "@": "",
+                        (u->user || u->password || options) ? "@" : "",
                         allochost ? allochost : u->host,
-                        port ? ":": "",
+                        port ? ":" : "",
                         port ? port : "",
                         u->path ? u->path : "/",
-                        show_query ? "?": "",
+                        show_query ? "?" : "",
                         u->query ? u->query : "",
-                        show_fragment ? "#": "",
+                        show_fragment ? "#" : "",
                         u->fragment ? u->fragment : "");
     curlx_free(allochost);
   }
@@ -1555,7 +1555,7 @@ CURLUcode curl_url_get(const CURLU *u, CURLUPart what,
   case CURLUPART_SCHEME:
     ptr = u->scheme;
     ifmissing = CURLUE_NO_SCHEME;
-    flags &= ~CURLU_URLDECODE; /* never for schemes */
+    flags &= ~U_CURLU_URLDECODE; /* never for schemes */
     if((flags & CURLU_NO_GUESS_SCHEME) && u->guessed_scheme)
       return CURLUE_NO_SCHEME;
     break;
@@ -1582,7 +1582,7 @@ CURLUcode curl_url_get(const CURLU *u, CURLUPart what,
   case CURLUPART_PORT:
     ptr = u->port;
     ifmissing = CURLUE_NO_PORT;
-    flags &= ~CURLU_URLDECODE; /* never for port */
+    flags &= ~U_CURLU_URLDECODE; /* never for port */
     if(!ptr && (flags & CURLU_DEFAULT_PORT) && u->scheme) {
       /* there is no stored port number, but asked to deliver
          a default one for the scheme */
@@ -1877,7 +1877,7 @@ CURLUcode curl_url_set(CURLU *u, CURLUPart what,
   {
     const char *newp;
     struct dynbuf enc;
-    curlx_dyn_init(&enc, nalloc * 3 + 1 + leadingslash);
+    curlx_dyn_init(&enc, (nalloc * 3) + 1 + leadingslash);
 
     if(leadingslash && (part[0] != '/')) {
       CURLcode result = curlx_dyn_addn(&enc, "/", 1);

@@ -41,7 +41,6 @@
 #include "connect.h"
 #include "socks.h"
 #include "curlx/inet_pton.h"
-#include "url.h"
 
 /* for the (SOCKS) connect state machine */
 enum socks_state_t {
@@ -268,8 +267,8 @@ static CURLproxycode socks4_req_add_hd(struct socks_state *sx,
   (void)data;
   buf[0] = 4; /* version (SOCKS4) */
   buf[1] = 1; /* connect */
-  buf[2] = (unsigned char)((sx->remote_port >> 8) & 0xffu); /* MSB */
-  buf[3] = (unsigned char)(sx->remote_port & 0xffu);        /* LSB */
+  buf[2] = (unsigned char)((sx->remote_port >> 8) & 0xffU); /* MSB */
+  buf[3] = (unsigned char)(sx->remote_port & 0xffU);        /* LSB */
 
   result = Curl_bufq_write(&sx->iobuf, buf, 4, &nwritten);
   if(result || (nwritten != 4))
@@ -342,6 +341,8 @@ static CURLproxycode socks4_resolving(struct socks_state *sx,
 
   if(result || !dns) {
     failf(data, "Failed to resolve \"%s\" for SOCKS4 connect.", sx->hostname);
+    if(dns)
+      Curl_resolv_unlink(data, &dns);
     return CURLPX_RESOLVE_HOST;
   }
 
@@ -372,6 +373,7 @@ static CURLproxycode socks4_resolving(struct socks_state *sx,
       return CURLPX_SEND_REQUEST;
   }
   else {
+    Curl_resolv_unlink(data, &dns);
     failf(data, "SOCKS4 connection to %s not supported", sx->hostname);
     return CURLPX_RESOLVE_HOST;
   }
@@ -930,8 +932,8 @@ static CURLproxycode socks5_resolving(struct socks_state *sx,
     goto out;
   }
   /* PORT MSB+LSB */
-  req[0] = (unsigned char)((sx->remote_port >> 8) & 0xffu);
-  req[1] = (unsigned char)(sx->remote_port & 0xffu);
+  req[0] = (unsigned char)((sx->remote_port >> 8) & 0xffU);
+  req[1] = (unsigned char)(sx->remote_port & 0xffU);
   result = Curl_bufq_write(&sx->iobuf, req, 2, &nwritten);
   if(result || (nwritten != 2)) {
     presult = CURLPX_SEND_REQUEST;
@@ -1340,7 +1342,6 @@ static CURLcode socks_cf_adjust_pollset(struct Curl_cfilter *cf,
 static void socks_proxy_cf_close(struct Curl_cfilter *cf,
                                  struct Curl_easy *data)
 {
-
   DEBUGASSERT(cf->next);
   cf->connected = FALSE;
   socks_proxy_cf_free(cf);

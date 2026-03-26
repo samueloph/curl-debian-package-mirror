@@ -21,7 +21,7 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-#include "../curl_setup.h"
+#include "curl_setup.h"
 
 #if !defined(CURL_DISABLE_HTTP) && defined(USE_NGTCP2) && defined(USE_NGHTTP3)
 #include <ngtcp2/ngtcp2.h>
@@ -36,38 +36,38 @@
 #else
 #include <ngtcp2/ngtcp2_crypto_quictls.h>
 #endif
-#include "../vtls/openssl.h"
+#include "vtls/openssl.h"
 #elif defined(USE_GNUTLS)
 #include <ngtcp2/ngtcp2_crypto_gnutls.h>
-#include "../vtls/gtls.h"
+#include "vtls/gtls.h"
 #elif defined(USE_WOLFSSL)
 #include <ngtcp2/ngtcp2_crypto_wolfssl.h>
-#include "../vtls/wolfssl.h"
+#include "vtls/wolfssl.h"
 #endif
 
-#include "../urldata.h"
-#include "../url.h"
-#include "../uint-hash.h"
-#include "../curl_trc.h"
-#include "../rand.h"
-#include "../multiif.h"
-#include "../cfilters.h"
-#include "../cf-socket.h"
-#include "../connect.h"
-#include "../progress.h"
-#include "../curlx/fopen.h"
-#include "../curlx/dynbuf.h"
-#include "../http1.h"
-#include "../select.h"
-#include "../transfer.h"
-#include "../bufref.h"
-#include "vquic.h"
-#include "vquic_int.h"
-#include "vquic-tls.h"
-#include "../vtls/keylog.h"
-#include "../vtls/vtls.h"
-#include "../vtls/vtls_scache.h"
-#include "curl_ngtcp2.h"
+#include "urldata.h"
+#include "url.h"
+#include "uint-hash.h"
+#include "curl_trc.h"
+#include "rand.h"
+#include "multiif.h"
+#include "cfilters.h"
+#include "cf-socket.h"
+#include "connect.h"
+#include "progress.h"
+#include "curlx/fopen.h"
+#include "curlx/dynbuf.h"
+#include "http1.h"
+#include "select.h"
+#include "transfer.h"
+#include "bufref.h"
+#include "vquic/vquic.h"
+#include "vquic/vquic_int.h"
+#include "vquic/vquic-tls.h"
+#include "vtls/keylog.h"
+#include "vtls/vtls.h"
+#include "vtls/vtls_scache.h"
+#include "vquic/curl_ngtcp2.h"
 
 
 #define QUIC_MAX_STREAMS       (256 * 1024)
@@ -376,10 +376,6 @@ static void h3_data_done(struct Curl_cfilter *cf, struct Curl_easy *data)
   }
 }
 
-/* ngtcp2 default congestion controller does not perform pacing. Limit
-   the maximum packet burst to MAX_PKT_BURST packets. */
-#define MAX_PKT_BURST 10
-
 struct pkt_io_ctx {
   struct Curl_cfilter *cf;
   struct Curl_easy *data;
@@ -395,8 +391,8 @@ static void pktx_update_time(struct Curl_easy *data,
   const struct curltime *pnow = Curl_pgrs_now(data);
 
   vquic_ctx_update_time(&ctx->q, pnow);
-  pktx->ts = (ngtcp2_tstamp)pnow->tv_sec * NGTCP2_SECONDS +
-             (ngtcp2_tstamp)pnow->tv_usec * NGTCP2_MICROSECONDS;
+  pktx->ts = ((ngtcp2_tstamp)pnow->tv_sec * NGTCP2_SECONDS) +
+             ((ngtcp2_tstamp)pnow->tv_usec * NGTCP2_MICROSECONDS);
 }
 
 static void pktx_init(struct pkt_io_ctx *pktx,
@@ -410,8 +406,8 @@ static void pktx_init(struct pkt_io_ctx *pktx,
   pktx->data = data;
   ngtcp2_path_storage_zero(&pktx->ps);
   vquic_ctx_set_time(&ctx->q, pnow);
-  pktx->ts = (ngtcp2_tstamp)pnow->tv_sec * NGTCP2_SECONDS +
-             (ngtcp2_tstamp)pnow->tv_usec * NGTCP2_MICROSECONDS;
+  pktx->ts = ((ngtcp2_tstamp)pnow->tv_sec * NGTCP2_SECONDS) +
+             ((ngtcp2_tstamp)pnow->tv_usec * NGTCP2_MICROSECONDS);
 }
 
 static int cb_h3_acked_req_body(nghttp3_conn *conn, int64_t stream_id,
@@ -788,7 +784,7 @@ static void cb_rand(uint8_t *dest, size_t destlen,
   result = Curl_rand(NULL, dest, destlen);
   if(result) {
     /* cb_rand is only used for non-cryptographic context. If Curl_rand
-       failed, just fill 0 and call it *random*. */
+       failed, fill 0 and call it *random*. */
     memset(dest, 0, destlen);
   }
 }
@@ -1828,7 +1824,7 @@ static CURLcode cf_ngtcp2_recv_pkts(const unsigned char *buf, size_t buflen,
     CURL_TRC_CF(pktx->data, pktx->cf, "vquic_recv(len=%zu, gso=%zu, ecn=%x)",
                 buflen, gso_size, ecn);
   ngtcp2_addr_init(&path.local, (struct sockaddr *)&ctx->q.local_addr,
-                   (socklen_t)ctx->q.local_addrlen);
+                   ctx->q.local_addrlen);
   ngtcp2_addr_init(&path.remote, (struct sockaddr *)remote_addr,
                    remote_addrlen);
   pi.ecn = (uint8_t)ecn;
@@ -2052,8 +2048,8 @@ static CURLcode cf_progress_egress(struct Curl_cfilter *cf,
       }
       else if(nread > gsolen ||
               (gsolen > path_max_payload_size && nread != gsolen)) {
-        /* The just added packet is a PMTUD *or* the one(s) before the
-         * just added were PMTUD and the last one is smaller.
+        /* The added packet is a PMTUD *or* the one(s) before the
+         * added were PMTUD and the last one is smaller.
          * Flush the buffer before the last add. */
         curlcode = vquic_send_tail_split(cf, data, &ctx->q,
                                          gsolen, nread, nread);
@@ -2067,8 +2063,7 @@ static CURLcode cf_progress_egress(struct Curl_cfilter *cf,
         pktcnt = 0;
       }
       else if(nread < gsolen) {
-        /* Reached MAX_PKT_BURST *or*
-         * the capacity of our buffer *or*
+        /* Reached capacity of our buffer *or*
          * last add was shorter than the previous ones, flush */
         break;
       }
@@ -2345,6 +2340,7 @@ static int quic_ossl_new_session_cb(SSL *ssl, SSL_SESSION *ssl_sessionid)
 
 #ifdef USE_GNUTLS
 
+#ifdef CURLVERBOSE
 static const char *gtls_hs_msg_name(int mtype)
 {
   switch(mtype) {
@@ -2371,6 +2367,7 @@ static const char *gtls_hs_msg_name(int mtype)
   }
   return "Unknown";
 }
+#endif
 
 static int quic_gtls_handshake_cb(gnutls_session_t session, unsigned int htype,
                                   unsigned when, unsigned int incoming,
@@ -2534,7 +2531,7 @@ static CURLcode cf_ngtcp2_on_session_reuse(struct Curl_cfilter *cf,
 #endif
 #if defined(USE_GNUTLS) || defined(USE_WOLFSSL) || \
   (defined(USE_OPENSSL) && defined(HAVE_OPENSSL_EARLYDATA))
-  if((!ctx->earlydata_max)) {
+  if(!ctx->earlydata_max) {
     CURL_TRC_CF(data, cf, "SSL session does not allow earlydata");
   }
   else if(!Curl_alpn_contains_proto(alpns, scs->alpn)) {
@@ -2736,7 +2733,7 @@ out:
       default:
         if(cerr->error_code >= NGTCP2_CRYPTO_ERROR) {
           CURL_TRC_CF(data, cf, "crypto error, tls alert=%u",
-                      (unsigned int)(cerr->error_code & 0xffu));
+                      (unsigned int)(cerr->error_code & 0xffU));
         }
         else if(cerr->error_code == NGTCP2_CONNECTION_REFUSED) {
           CURL_TRC_CF(data, cf, "connection refused by server");

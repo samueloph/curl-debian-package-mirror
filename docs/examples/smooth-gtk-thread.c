@@ -34,7 +34,6 @@
  * gcc -ggdb `pkg-config --cflags  --libs gtk+-2.0` -lcurl -lssl -lcrypto
  *   -lgthread-2.0 -dl  smooth-gtk-thread.c -o smooth-gtk-thread
  */
-
 #include <stdio.h>
 #include <gtk/gtk.h>
 #include <glib.h>
@@ -47,7 +46,7 @@
 
 static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 static int j = 0;
-static gint num_urls = 9; /* Just make sure this is less than urls[] */
+static gint num_urls = 9; /* make sure this is less than urls[] */
 static const char * const urls[] = {
   "90022",
   "90023",
