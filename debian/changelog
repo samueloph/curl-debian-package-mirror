@@ -1,3 +1,9 @@
+curl (8.19.0-3+exp1) experimental; urgency=medium
+
+  * d/rules: Enable ECH for experimental
+
+ -- Samuel Henrique <samueloph@debian.org>  Thu, 26 Mar 2026 18:52:15 -0700
+
 curl (8.19.0-3) unstable; urgency=medium
 
   * debian/rules: revert parallel tests multiplier to 4.
