@@ -1,3 +1,20 @@
+curl (8.19.0-3) unstable; urgency=medium
+
+  * debian/rules: revert parallel tests multiplier to 4.
+
+ -- Carlos Henrique Lima Melara <charlesmelara@riseup.net>  Thu, 26 Mar 2026 22:28:12 -0300
+
+curl (8.19.0-2) unstable; urgency=medium
+
+  [ Samuel Henrique ]
+  * debian/rules: Don't skip any tests and increase parallel factor to 7.
+
+  [ Carlos Henrique Lima Melara ]
+  * debian/patches/test459-switch-to-mode-warn-for-stderr-check.patch:
+    cherry-pick from upstream. (Closes: #1131157)
+
+ -- Carlos Henrique Lima Melara <charlesmelara@riseup.net>  Thu, 26 Mar 2026 21:16:48 -0300
+
 curl (8.19.0-1+exp1) experimental; urgency=medium
 
   * Enable experimental features: HTTPS RR and SSL session import/export
