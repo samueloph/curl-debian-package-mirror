@@ -25,7 +25,8 @@ CONFIGURE_ARGS = -- --disable-dependency-tracking		\
 # Experimental features targetted at debian experimental
 ifeq ($(DEB_DISTRIBUTION),experimental)
 CONFIGURE_ARGS += --enable-httpsrr \
-                  --enable-ssls-export
+                  --enable-ssls-export \
+                  --enable-ares
 OPENSSL_CONFIGURE_ARGS += --enable-ech
 endif
 
