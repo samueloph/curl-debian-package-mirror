@@ -26,6 +26,7 @@ CONFIGURE_ARGS = -- --disable-dependency-tracking		\
 ifeq ($(DEB_DISTRIBUTION),experimental)
 CONFIGURE_ARGS += --enable-httpsrr \
                   --enable-ssls-export
+OPENSSL_CONFIGURE_ARGS += --enable-ech
 endif
 
 ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
@@ -75,7 +76,7 @@ endef
 
 override_dh_auto_configure:
 ifeq ($(with_openssl),yes)
-	$(call configure-curl,openssl)
+	$(call configure-curl,openssl, $(OPENSSL_CONFIGURE_ARGS))
 endif
 ifeq ($(with_gnutls),yes)
 	$(call configure-curl,gnutls)
