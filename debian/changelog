@@ -1,3 +1,10 @@
+curl (8.19.0-3+exp2) experimental; urgency=medium
+
+  * d/rules: Add libc-ares-dev as a build dependency for HTTPS RR support
+    without DoH
+
+ -- Samuel Henrique <samueloph@debian.org>  Thu, 26 Mar 2026 19:58:22 -0700
+
 curl (8.19.0-3+exp1) experimental; urgency=medium
 
   * d/rules: Enable ECH for experimental
