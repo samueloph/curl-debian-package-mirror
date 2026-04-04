@@ -274,7 +274,7 @@ the HTTP server overrides the part number response returned for a subsequent
 request made by the same test to `previous part number + 1`. For example, if a
 test makes a request which causes the server to return `<data>` that contains
 keyword `swsbounce` then for the next response it ignores the requested part
-number and instead returns `<data1>`. And if `<data1>` contains keyword
+number and instead returns `<data1>`. If `<data1>` contains keyword
 `swsbounce` then the next response is `<data2>` and so on. This is useful for
 auth tests and similar.
 
@@ -636,7 +636,7 @@ parameter is the not negative integer number of seconds for the delay. This
 'delay' attribute is intended for specific test cases, and normally not
 needed.
 
-### `<file name="%LOGDIR/filename" [nonewline="yes"][crlf="yes"]>`
+### `<file name="%LOGDIR/filename" [options]>`
 This creates the named file with this content before the test case is run,
 which is useful if the test case needs a file to act on.
 
@@ -645,6 +645,9 @@ off.
 
 `crlf=yes` forces the newlines to become CRLF even if not written so in the
 test.
+
+`mode="text"` normalizes the line endings to make them compare as text on all
+platforms.
 
 ### `<file1>`
 1 to 4 can be appended to 'file' to create more files.

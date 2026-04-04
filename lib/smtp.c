@@ -1724,7 +1724,7 @@ static CURLcode smtp_done(struct Curl_easy *data, CURLcode status,
     return CURLE_OK;
 
   /* Cleanup our per-request based variables */
-  Curl_safefree(smtp->custom);
+  curlx_safefree(smtp->custom);
 
   if(status) {
     connclose(conn, "SMTP done with bad status"); /* marked for closure */
@@ -1953,7 +1953,7 @@ static void smtp_conn_dtor(void *key, size_t klen, void *entry)
   (void)key;
   (void)klen;
   Curl_pp_disconnect(&smtpc->pp);
-  Curl_safefree(smtpc->domain);
+  curlx_safefree(smtpc->domain);
   curlx_free(smtpc);
 }
 
@@ -1984,7 +1984,7 @@ out:
 /*
  * SMTP protocol handler.
  */
-static const struct Curl_protocol Curl_protocol_smtp = {
+const struct Curl_protocol Curl_protocol_smtp = {
   smtp_setup_connection,            /* setup_connection */
   smtp_do,                          /* do_it */
   smtp_done,                        /* done */
@@ -1999,43 +1999,9 @@ static const struct Curl_protocol Curl_protocol_smtp = {
   smtp_disconnect,                  /* disconnect */
   ZERO_NULL,                        /* write_resp */
   ZERO_NULL,                        /* write_resp_hd */
-  ZERO_NULL,                        /* connection_check */
+  ZERO_NULL,                        /* connection_is_dead */
   ZERO_NULL,                        /* attach connection */
   ZERO_NULL,                        /* follow */
 };
 
 #endif /* CURL_DISABLE_SMTP */
-
-/*
- * SMTP protocol handler.
- */
-const struct Curl_scheme Curl_scheme_smtp = {
-  "smtp",                           /* scheme */
-#ifdef CURL_DISABLE_SMTP
-  ZERO_NULL,
-#else
-  &Curl_protocol_smtp,
-#endif
-  CURLPROTO_SMTP,                   /* protocol */
-  CURLPROTO_SMTP,                   /* family */
-  PROTOPT_CLOSEACTION | PROTOPT_NOURLQUERY | /* flags */
-  PROTOPT_URLOPTIONS | PROTOPT_SSL_REUSE | PROTOPT_CONN_REUSE,
-  PORT_SMTP,                        /* defport */
-};
-
-/*
- * SMTPS protocol handler.
- */
-const struct Curl_scheme Curl_scheme_smtps = {
-  "smtps",                          /* scheme */
-#if defined(CURL_DISABLE_SMTP) || !defined(USE_SSL)
-  ZERO_NULL,
-#else
-  &Curl_protocol_smtp,
-#endif
-  CURLPROTO_SMTPS,                  /* protocol */
-  CURLPROTO_SMTP,                   /* family */
-  PROTOPT_CLOSEACTION | PROTOPT_SSL | /* flags */
-  PROTOPT_NOURLQUERY | PROTOPT_URLOPTIONS | PROTOPT_CONN_REUSE,
-  PORT_SMTPS,                       /* defport */
-};

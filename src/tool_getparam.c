@@ -479,7 +479,7 @@ UNITTEST ParameterError parse_cert_parameter(const char *cert_parameter,
   }
 done:
   if(err) {
-    tool_safefree(*certname);
+    curlx_safefree(*certname);
   }
   else
     *certname_place = '\0';
@@ -709,7 +709,7 @@ static ParameterError data_urlencode(const char *nextarg,
   }
   else {
     char *enc = curl_easy_escape(NULL, postdata, (int)size);
-    tool_safefree(postdata); /* no matter if it worked or not */
+    curlx_safefree(postdata); /* no matter if it worked or not */
     if(enc) {
       char *n;
       replace_url_encoded_space_by_plus(enc);
@@ -727,7 +727,11 @@ static ParameterError data_urlencode(const char *nextarg,
         size = curlx_dyn_len(&dyn);
       }
       else {
-        n = enc;
+        /* make sure we return "our memory" */
+        n = curlx_strdup(enc);
+        curl_free(enc);
+        if(!n)
+          return PARAM_NO_MEM;
         size = strlen(n);
       }
       postdata = n;
@@ -1001,7 +1005,7 @@ static ParameterError set_data(cmdline_t cmd,
   if(!err && curlx_dyn_addn(&config->postdata, postdata, size))
     err = PARAM_NO_MEM;
 
-  tool_safefree(postdata);
+  curlx_safefree(postdata);
 
   config->postfields = curlx_dyn_ptr(&config->postdata);
   return err;
@@ -1263,10 +1267,16 @@ static ParameterError parse_ech(struct OperationConfig *config,
         curlx_fclose(file);
       if(err)
         return err;
-      config->ech_config = curl_maprintf("ecl:%s", tmpcfg);
-      curlx_free(tmpcfg);
-      if(!config->ech_config)
-        return PARAM_NO_MEM;
+      {
+        char *tmp = curl_maprintf("ecl:%s", tmpcfg);
+        curlx_free(tmpcfg);
+        if(!tmp)
+          return PARAM_NO_MEM;
+        config->ech_config = curlx_strdup(tmp);
+        curl_free(tmp);
+        if(!config->ech_config)
+          return PARAM_NO_MEM;
+      }
     } /* file done */
   }
   else {
@@ -1439,8 +1449,8 @@ static ParameterError parse_range(struct OperationConfig *config,
   }
   if(!curlx_str_number(&nextarg, &value, CURL_OFF_T_MAX) &&
      curlx_str_single(&nextarg, '-')) {
-    /* Specifying a range WITHOUT A DASH will create an illegal HTTP range
-       (and will not actually be range by definition). The man page previously
+    /* Specifying a range WITHOUT A DASH does create an illegal HTTP range
+       (and does not actually be range by definition). The man page previously
        claimed that to be a good way, why this code is added to work-around
        it. */
     char buffer[32];
@@ -1529,7 +1539,7 @@ static ParameterError parse_verbose(bool toggle)
     if(!global->trace_set && set_trace_config("-all"))
       return PARAM_NO_MEM;
   }
-  /* the '%' thing here will cause the trace get sent to stderr */
+  /* the '%' thing here causes the trace get sent to stderr */
   switch(global->verbosity) {
   case 0:
     global->verbosity = 1;
@@ -1590,7 +1600,7 @@ static ParameterError parse_writeout(struct OperationConfig *config,
         return PARAM_READ_ERROR;
       }
     }
-    tool_safefree(config->writeout);
+    curlx_safefree(config->writeout);
     err = file2string(&config->writeout, file);
     if(file && (file != stdin))
       curlx_fclose(file);
@@ -1749,7 +1759,7 @@ static ParameterError opt_none(struct OperationConfig *config,
   case C_DUMP_CA_EMBED: /* --dump-ca-embed */
     return PARAM_CA_EMBED_REQUESTED;
   case C_FTP_PASV: /* --ftp-pasv */
-    tool_safefree(config->ftpport);
+    curlx_safefree(config->ftpport);
     break;
 
   case C_HTTP1_0: /* --http1.0 */
@@ -2380,7 +2390,7 @@ static ParameterError opt_string(struct OperationConfig *config,
     err = getstr(&config->doh_url, nextarg, ALLOW_BLANK);
     if(!err && config->doh_url && !config->doh_url[0])
       /* if given a blank string, make it NULL again */
-      tool_safefree(config->doh_url);
+      curlx_safefree(config->doh_url);
     break;
 
   case C_CIPHERS: /* -- ciphers */
@@ -2654,7 +2664,7 @@ static ParameterError opt_string(struct OperationConfig *config,
     if(len)
       err = getstrn(&config->referer, nextarg, len, ALLOW_BLANK);
     else
-      tool_safefree(config->referer);
+      curlx_safefree(config->referer);
   }
     break;
   case C_CERT_TYPE: /* --cert-type */
@@ -2789,7 +2799,7 @@ static ParameterError opt_string(struct OperationConfig *config,
   case C_FTP_PORT: /* --ftp-port */
     /* This makes the FTP sessions use PORT instead of PASV */
     /* use <eth0> or <192.168.10.10> style addresses. Anything except
-       this will make us try to get the "default" address.
+       this makes us try to get the "default" address.
        NOTE: this is a changed behavior since the released 4.1!
      */
     err = getstr(&config->ftpport, nextarg, DENY_BLANK);
@@ -3057,7 +3067,8 @@ ParameterError parse_args(int argc, argv_item_t argv[])
   ParameterError err = PARAM_OK;
   struct OperationConfig *config = global->first;
 
-  for(i = 1, stillflags = TRUE; i < argc && !err; i++) {
+  stillflags = TRUE;
+  for(i = 1; i < argc && !err; i++) {
     orig_opt = convert_tchar_to_UTF8(argv[i]);
     if(!orig_opt)
       return PARAM_NO_MEM;

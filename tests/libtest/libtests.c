@@ -227,6 +227,7 @@
 #include "lib1959.c"
 #include "lib1960.c"
 #include "lib1964.c"
+#include "lib1965.c"
 #include "lib1970.c"
 #include "lib1971.c"
 #include "lib1972.c"
@@ -475,6 +476,7 @@ const struct entry_s s_entries[] = {
   {"lib1959", test_lib1959},
   {"lib1960", test_lib1960},
   {"lib1964", test_lib1964},
+  {"lib1965", test_lib1965},
   {"lib1970", test_lib1970},
   {"lib1971", test_lib1971},
   {"lib1972", test_lib1972},

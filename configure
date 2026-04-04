@@ -1181,6 +1181,7 @@ enable_smb
 enable_smtp
 enable_gopher
 enable_mqtt
+enable_init_mem_debug
 enable_manual
 enable_docs
 enable_libcurl_option
@@ -1210,7 +1211,6 @@ with_libssh
 with_ldap_lib
 with_lber_lib
 with_ldap
-with_librtmp
 enable_versioned_symbols
 enable_windows_unicode
 with_winidn
@@ -1954,14 +1954,17 @@ Optional Features:
   --disable-pop3          Disable POP3 support
   --enable-imap           Enable IMAP support
   --disable-imap          Disable IMAP support
-  --enable-smb            Enable SMB/CIFS support
-  --disable-smb           Disable SMB/CIFS support
+  --enable-smb            Enable SMB support
+  --disable-smb           Disable SMB support
   --enable-smtp           Enable SMTP support
   --disable-smtp          Disable SMTP support
   --enable-gopher         Enable Gopher support
   --disable-gopher        Disable Gopher support
   --enable-mqtt           Enable MQTT support
   --disable-mqtt          Disable MQTT support
+  --enable-init-mem-debug curl_global_init_mem debug
+  --disable-init-mem-debug
+
   --enable-manual         Enable built-in manual
   --disable-manual        Disable built-in manual
   --enable-docs           Enable documentation
@@ -2155,11 +2158,6 @@ Optional Packages:
                           installation; when possible, set the PKG_CONFIG_PATH
                           environment variable instead of using this option
   --without-ldap          disable LDAP
-  --with-librtmp=PATH     Where to look for librtmp, PATH points to the
-                          LIBRTMP installation; when possible, set the
-                          PKG_CONFIG_PATH environment variable instead of
-                          using this option
-  --without-librtmp       disable LIBRTMP
   --with-winidn           enable Windows native IDN
   --without-winidn        disable Windows native IDN
   --with-apple-idn        Enable AppleIDN
@@ -6426,7 +6424,6 @@ curl_unix_sockets_msg="no       (--enable-unix-sockets)"
        curl_ldaps_msg="no       (--enable-ldaps)"
         curl_ipfs_msg="no       (--enable-ipfs)"
         curl_rtsp_msg="no       (--enable-rtsp)"
-        curl_rtmp_msg="no       (--with-librtmp)"
          curl_psl_msg="no       (--with-libpsl)"
       curl_altsvc_msg="enabled  (--disable-alt-svc)"
      curl_headers_msg="enabled  (--disable-headers-api)"
@@ -19888,7 +19885,7 @@ printf "%s\n" "$as_me: WARNING: compiler options rejected: $tmp_options" >&2;}
                     if test "$compiler_num" -ge "209"; then
             tmp_CFLAGS="$tmp_CFLAGS -Wno-sign-conversion"
             tmp_CFLAGS="$tmp_CFLAGS -Wno-padded"                         # Not used because we cannot change public structs
-            tmp_CFLAGS="$tmp_CFLAGS -Wno-used-but-marked-unused"         # Triggered by typecheck-gcc.h with clang 14+, dependency headers
+            tmp_CFLAGS="$tmp_CFLAGS -Wno-used-but-marked-unused"         # for typecheck-gcc.h with clang 14+, dependency headers
 
     ac_var_added_warnings=""
   for warning in shift-sign-overflow; do
@@ -19975,7 +19972,7 @@ printf "%s\n" "$as_me: WARNING: compiler options rejected: $tmp_options" >&2;}
   squeeze tmp_CFLAGS
 
             tmp_CFLAGS="$tmp_CFLAGS -Wno-covered-switch-default"    # Annoying to fix or silence
-            tmp_CFLAGS="$tmp_CFLAGS -Wno-disabled-macro-expansion"  # Triggered by curl/curl.h, standard headers
+            tmp_CFLAGS="$tmp_CFLAGS -Wno-disabled-macro-expansion"  # for std headers, and curl/curl.h (rare combos)
           fi
           #
                     if test "$compiler_num" -ge "302"; then
@@ -20348,6 +20345,26 @@ printf "%s\n" "$as_me: WARNING: compiler options rejected: $tmp_options" >&2;}
 
 
     ac_var_added_warnings=""
+  for warning in implicit-int-enum-cast; do
+
+  ac_var_match_word="no"
+  for word1 in $CFLAGS; do
+    for word2 in -Wno-$warning -W$warning; do
+      if test "$word1" = "$word2"; then
+        ac_var_match_word="yes"
+      fi
+    done
+  done
+
+    if test "$ac_var_match_word" = "no"; then
+      ac_var_added_warnings="$ac_var_added_warnings -W$warning"
+    fi
+  done
+    tmp_CFLAGS="$tmp_CFLAGS $ac_var_added_warnings"
+  squeeze tmp_CFLAGS
+
+
+    ac_var_added_warnings=""
   for warning in jump-misses-init; do
 
   ac_var_match_word="no"
@@ -20424,7 +20441,7 @@ printf "%s\n" "$as_me: WARNING: compiler options rejected: $tmp_options" >&2;}
         #
       GNU_C)
         #
-        if test "$want_warnings" = "yes"; then
+                if test "$want_warnings" = "yes" && test "$compiler_num" -ge "406"; then
           #
                               if test "$cross_compiling" != "yes" ||
              test "$compiler_num" -ge "300"; then
@@ -21491,13 +21508,6 @@ printf "%s\n" "$as_me: WARNING: compiler options rejected: $tmp_options" >&2;}
               tmp_CFLAGS="$tmp_CFLAGS -Wno-missing-prototypes"
             fi
           fi
-        fi
-        if test "$compiler_num" -lt "405"; then
-                    tmp_CFLAGS="$tmp_CFLAGS -Wno-shadow"
-          tmp_CFLAGS="$tmp_CFLAGS -Wno-unreachable-code"
-        fi
-        if test "$compiler_num" -ge "402" && test "$compiler_num" -lt "406"; then
-                    tmp_CFLAGS="$tmp_CFLAGS -Wno-overlength-strings"
         fi
         if test "$compiler_num" -ge "400" && test "$compiler_num" -lt "407"; then
                     tmp_CFLAGS="$tmp_CFLAGS -Wno-missing-field-initializers"
@@ -22761,22 +22771,22 @@ printf %s "checking whether to support smb... " >&6; }
 if test ${enable_smb+y}
 then :
   enableval=$enable_smb;  case "$enableval" in
-  no)
-    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
-printf "%s\n" "no" >&6; }
-
-printf "%s\n" "#define CURL_DISABLE_SMB 1" >>confdefs.h
-
-    CURL_DISABLE_SMB=1
-    ;;
-  *)
+  yes)
     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
+
+printf "%s\n" "#define CURL_ENABLE_SMB 1" >>confdefs.h
+
+    CURL_ENABLE_SMB=1
+    ;;
+  *)
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
     ;;
   esac
 else $as_nop
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-printf "%s\n" "yes" >&6; }
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
 
 fi
 
@@ -22850,6 +22860,32 @@ printf "%s\n" "#define CURL_DISABLE_MQTT 1" >>confdefs.h
   *)
     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
+    ;;
+  esac
+else $as_nop
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
+
+fi
+
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking enable curl_global_init_mem debug build" >&5
+printf %s "checking enable curl_global_init_mem debug build... " >&6; }
+# Check whether --enable-init-mem-debug was given.
+if test ${enable_init_mem_debug+y}
+then :
+  enableval=$enable_init_mem_debug;  case "$enableval" in
+  yes)
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+printf "%s\n" "yes" >&6; }
+
+printf "%s\n" "#define CURL_DEBUG_GLOBAL_MEM 1" >>confdefs.h
+
+    SUPPORT_FEATURES="$SUPPORT_FEATURES global-mem-debug"
+    ;;
+  *)
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
     ;;
   esac
 else $as_nop
@@ -24052,18 +24088,117 @@ fi
 printf %s "checking for zlib options with pkg-config... " >&6; }
         itexists=`
   if test -n ""; then
-    PKG_CONFIG_LIBDIR=""
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
        $PKGCONFIG --exists zlib >/dev/null 2>&1 && echo 1`
 
     if test -z "$itexists"; then
-                  PKGCONFIG="no"
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+                  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG$CURL_CI"; then
+
+          trc=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug zlib 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors zlib 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists zlib trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists zlib trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
+      PKGCONFIG="no"
     else
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: found" >&5
 printf "%s\n" "found" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG"; then
+
+          trc=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug zlib 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors zlib 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists zlib trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists zlib trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
     fi
   fi
 
@@ -24385,18 +24520,117 @@ fi
 printf %s "checking for libbrotlidec options with pkg-config... " >&6; }
         itexists=`
   if test -n ""; then
-    PKG_CONFIG_LIBDIR=""
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
        $PKGCONFIG --exists libbrotlidec >/dev/null 2>&1 && echo 1`
 
     if test -z "$itexists"; then
-                  PKGCONFIG="no"
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+                  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG$CURL_CI"; then
+
+          trc=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug libbrotlidec 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors libbrotlidec 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists libbrotlidec trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists libbrotlidec trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
+      PKGCONFIG="no"
     else
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: found" >&5
 printf "%s\n" "found" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG"; then
+
+          trc=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug libbrotlidec 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors libbrotlidec 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists libbrotlidec trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists libbrotlidec trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
     fi
   fi
 
@@ -24529,18 +24763,117 @@ fi
 printf %s "checking for libbrotlicommon options with pkg-config... " >&6; }
         itexists=`
   if test -n ""; then
-    PKG_CONFIG_LIBDIR=""
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
        $PKGCONFIG --exists libbrotlicommon >/dev/null 2>&1 && echo 1`
 
     if test -z "$itexists"; then
-                  PKGCONFIG="no"
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+                  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG$CURL_CI"; then
+
+          trc=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug libbrotlicommon 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors libbrotlicommon 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists libbrotlicommon trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists libbrotlicommon trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
+      PKGCONFIG="no"
     else
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: found" >&5
 printf "%s\n" "found" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG"; then
+
+          trc=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug libbrotlicommon 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors libbrotlicommon 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists libbrotlicommon trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists libbrotlicommon trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
     fi
   fi
 
@@ -24794,18 +25127,117 @@ fi
 printf %s "checking for libzstd options with pkg-config... " >&6; }
         itexists=`
   if test -n ""; then
-    PKG_CONFIG_LIBDIR=""
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
        $PKGCONFIG --exists libzstd >/dev/null 2>&1 && echo 1`
 
     if test -z "$itexists"; then
-                  PKGCONFIG="no"
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+                  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG$CURL_CI"; then
+
+          trc=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug libzstd 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors libzstd 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists libzstd trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists libzstd trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
+      PKGCONFIG="no"
     else
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: found" >&5
 printf "%s\n" "found" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG"; then
+
+          trc=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug libzstd 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors libzstd 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists libzstd trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists libzstd trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
     fi
   fi
 
@@ -25319,18 +25751,117 @@ fi
 printf %s "checking for mit-krb5-gssapi options with pkg-config... " >&6; }
         itexists=`
   if test -n "$GSSAPI_ROOT/lib/pkgconfig"; then
-    PKG_CONFIG_LIBDIR="$GSSAPI_ROOT/lib/pkgconfig"
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="$GSSAPI_ROOT/lib/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$GSSAPI_ROOT/lib/pkgconfig"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
        $PKGCONFIG --exists mit-krb5-gssapi >/dev/null 2>&1 && echo 1`
 
     if test -z "$itexists"; then
-                  PKGCONFIG="no"
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+                  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG$CURL_CI"; then
+
+          trc=`
+  if test -n "$GSSAPI_ROOT/lib/pkgconfig"; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="$GSSAPI_ROOT/lib/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$GSSAPI_ROOT/lib/pkgconfig"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug mit-krb5-gssapi 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n "$GSSAPI_ROOT/lib/pkgconfig"; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="$GSSAPI_ROOT/lib/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$GSSAPI_ROOT/lib/pkgconfig"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors mit-krb5-gssapi 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists mit-krb5-gssapi trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists mit-krb5-gssapi trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
+      PKGCONFIG="no"
     else
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: found" >&5
 printf "%s\n" "found" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG"; then
+
+          trc=`
+  if test -n "$GSSAPI_ROOT/lib/pkgconfig"; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="$GSSAPI_ROOT/lib/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$GSSAPI_ROOT/lib/pkgconfig"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug mit-krb5-gssapi 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n "$GSSAPI_ROOT/lib/pkgconfig"; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="$GSSAPI_ROOT/lib/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$GSSAPI_ROOT/lib/pkgconfig"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors mit-krb5-gssapi 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists mit-krb5-gssapi trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists mit-krb5-gssapi trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
     fi
   fi
 
@@ -25456,18 +25987,117 @@ fi
 printf %s "checking for mit-krb5-gssapi options with pkg-config... " >&6; }
         itexists=`
   if test -n ""; then
-    PKG_CONFIG_LIBDIR=""
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
        $PKGCONFIG --exists mit-krb5-gssapi >/dev/null 2>&1 && echo 1`
 
     if test -z "$itexists"; then
-                  PKGCONFIG="no"
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+                  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG$CURL_CI"; then
+
+          trc=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug mit-krb5-gssapi 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors mit-krb5-gssapi 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists mit-krb5-gssapi trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists mit-krb5-gssapi trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
+      PKGCONFIG="no"
     else
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: found" >&5
 printf "%s\n" "found" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG"; then
+
+          trc=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug mit-krb5-gssapi 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors mit-krb5-gssapi 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists mit-krb5-gssapi trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists mit-krb5-gssapi trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
     fi
   fi
 
@@ -25663,18 +26293,117 @@ fi
 printf %s "checking for mit-krb5-gssapi options with pkg-config... " >&6; }
         itexists=`
   if test -n "$GSSAPI_ROOT/lib/pkgconfig"; then
-    PKG_CONFIG_LIBDIR="$GSSAPI_ROOT/lib/pkgconfig"
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="$GSSAPI_ROOT/lib/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$GSSAPI_ROOT/lib/pkgconfig"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
        $PKGCONFIG --exists mit-krb5-gssapi >/dev/null 2>&1 && echo 1`
 
     if test -z "$itexists"; then
-                  PKGCONFIG="no"
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+                  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG$CURL_CI"; then
+
+          trc=`
+  if test -n "$GSSAPI_ROOT/lib/pkgconfig"; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="$GSSAPI_ROOT/lib/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$GSSAPI_ROOT/lib/pkgconfig"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug mit-krb5-gssapi 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n "$GSSAPI_ROOT/lib/pkgconfig"; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="$GSSAPI_ROOT/lib/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$GSSAPI_ROOT/lib/pkgconfig"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors mit-krb5-gssapi 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists mit-krb5-gssapi trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists mit-krb5-gssapi trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
+      PKGCONFIG="no"
     else
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: found" >&5
 printf "%s\n" "found" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG"; then
+
+          trc=`
+  if test -n "$GSSAPI_ROOT/lib/pkgconfig"; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="$GSSAPI_ROOT/lib/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$GSSAPI_ROOT/lib/pkgconfig"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug mit-krb5-gssapi 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n "$GSSAPI_ROOT/lib/pkgconfig"; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="$GSSAPI_ROOT/lib/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$GSSAPI_ROOT/lib/pkgconfig"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors mit-krb5-gssapi 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists mit-krb5-gssapi trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists mit-krb5-gssapi trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
     fi
   fi
 
@@ -25800,18 +26529,117 @@ fi
 printf %s "checking for mit-krb5-gssapi options with pkg-config... " >&6; }
         itexists=`
   if test -n ""; then
-    PKG_CONFIG_LIBDIR=""
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
        $PKGCONFIG --exists mit-krb5-gssapi >/dev/null 2>&1 && echo 1`
 
     if test -z "$itexists"; then
-                  PKGCONFIG="no"
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+                  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG$CURL_CI"; then
+
+          trc=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug mit-krb5-gssapi 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors mit-krb5-gssapi 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists mit-krb5-gssapi trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists mit-krb5-gssapi trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
+      PKGCONFIG="no"
     else
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: found" >&5
 printf "%s\n" "found" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG"; then
+
+          trc=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug mit-krb5-gssapi 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors mit-krb5-gssapi 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists mit-krb5-gssapi trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists mit-krb5-gssapi trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
     fi
   fi
 
@@ -26306,18 +27134,117 @@ fi
 printf %s "checking for openssl options with pkg-config... " >&6; }
         itexists=`
   if test -n "$OPENSSL_PCDIR"; then
-    PKG_CONFIG_LIBDIR="$OPENSSL_PCDIR"
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="$OPENSSL_PCDIR${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$OPENSSL_PCDIR"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
        $PKGCONFIG --exists openssl >/dev/null 2>&1 && echo 1`
 
     if test -z "$itexists"; then
-                  PKGCONFIG="no"
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+                  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG$CURL_CI"; then
+
+          trc=`
+  if test -n "$OPENSSL_PCDIR"; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="$OPENSSL_PCDIR${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$OPENSSL_PCDIR"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug openssl 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n "$OPENSSL_PCDIR"; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="$OPENSSL_PCDIR${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$OPENSSL_PCDIR"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors openssl 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists openssl trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists openssl trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
+      PKGCONFIG="no"
     else
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: found" >&5
 printf "%s\n" "found" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG"; then
+
+          trc=`
+  if test -n "$OPENSSL_PCDIR"; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="$OPENSSL_PCDIR${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$OPENSSL_PCDIR"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug openssl 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n "$OPENSSL_PCDIR"; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="$OPENSSL_PCDIR${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$OPENSSL_PCDIR"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors openssl 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists openssl trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists openssl trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
     fi
   fi
 
@@ -26325,22 +27252,37 @@ printf "%s\n" "found" >&6; }
     if test "$PKGCONFIG" != "no"; then
       SSL_LIBS=`
   if test -n "$OPENSSL_PCDIR"; then
-    PKG_CONFIG_LIBDIR="$OPENSSL_PCDIR"
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="$OPENSSL_PCDIR${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$OPENSSL_PCDIR"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
          $PKGCONFIG --libs-only-l --libs-only-other openssl 2>/dev/null`
 
       SSL_LDFLAGS=`
   if test -n "$OPENSSL_PCDIR"; then
-    PKG_CONFIG_LIBDIR="$OPENSSL_PCDIR"
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="$OPENSSL_PCDIR${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$OPENSSL_PCDIR"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
          $PKGCONFIG --libs-only-L openssl 2>/dev/null`
 
       SSL_CPPFLAGS=`
   if test -n "$OPENSSL_PCDIR"; then
-    PKG_CONFIG_LIBDIR="$OPENSSL_PCDIR"
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="$OPENSSL_PCDIR${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$OPENSSL_PCDIR"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
          $PKGCONFIG --cflags-only-I openssl 2>/dev/null`
 
@@ -26669,7 +27611,7 @@ then :
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
       ssl_msg="AWS-LC"
-      OPENSSL_IS_BORINGSSL=1
+      OPENSSL_IS_AWSLC=1
 
 else $as_nop
 
@@ -26793,7 +27735,8 @@ printf "%s\n" "$as_me: Added $LIB_OPENSSL to CURL_LIBRARY_PATH" >&6;}
       fi
     fi
     check_for_ca_bundle=1
-    LIBCURL_PC_REQUIRES_PRIVATE="$LIBCURL_PC_REQUIRES_PRIVATE openssl"
+    if test "$OPENSSL_IS_BORINGSSL" != "1"; then        LIBCURL_PC_REQUIRES_PRIVATE="$LIBCURL_PC_REQUIRES_PRIVATE openssl"
+    fi
   fi
 
   test -z "$ssl_msg" || ssl_backends="${ssl_backends:+$ssl_backends, }$ssl_msg"
@@ -27038,18 +27981,117 @@ fi
 printf %s "checking for gnutls options with pkg-config... " >&6; }
         itexists=`
   if test -n ""; then
-    PKG_CONFIG_LIBDIR=""
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
        $PKGCONFIG --exists gnutls >/dev/null 2>&1 && echo 1`
 
     if test -z "$itexists"; then
-                  PKGCONFIG="no"
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+                  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG$CURL_CI"; then
+
+          trc=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug gnutls 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors gnutls 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists gnutls trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists gnutls trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
+      PKGCONFIG="no"
     else
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: found" >&5
 printf "%s\n" "found" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG"; then
+
+          trc=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug gnutls 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors gnutls 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists gnutls trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists gnutls trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
     fi
   fi
 
@@ -27347,18 +28389,117 @@ fi
 printf %s "checking for nettle options with pkg-config... " >&6; }
         itexists=`
   if test -n ""; then
-    PKG_CONFIG_LIBDIR=""
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
        $PKGCONFIG --exists nettle >/dev/null 2>&1 && echo 1`
 
     if test -z "$itexists"; then
-                  PKGCONFIG="no"
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+                  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG$CURL_CI"; then
+
+          trc=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug nettle 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors nettle 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists nettle trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists nettle trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
+      PKGCONFIG="no"
     else
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: found" >&5
 printf "%s\n" "found" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG"; then
+
+          trc=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug nettle 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors nettle 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists nettle trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists nettle trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
     fi
   fi
 
@@ -27678,7 +28819,7 @@ case "$OPT_WOLFSSL" in
     wolfpkg=""
     ;;
   *)
-    wolfpkg="$withval/lib/pkgconfig"
+    wolfpkg="$OPT_WOLFSSL/lib/pkgconfig"
     ;;
 esac
 
@@ -27816,18 +28957,117 @@ fi
 printf %s "checking for wolfssl options with pkg-config... " >&6; }
         itexists=`
   if test -n "$wolfpkg"; then
-    PKG_CONFIG_LIBDIR="$wolfpkg"
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="$wolfpkg${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$wolfpkg"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
        $PKGCONFIG --exists wolfssl >/dev/null 2>&1 && echo 1`
 
     if test -z "$itexists"; then
-                  PKGCONFIG="no"
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+                  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG$CURL_CI"; then
+
+          trc=`
+  if test -n "$wolfpkg"; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="$wolfpkg${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$wolfpkg"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug wolfssl 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n "$wolfpkg"; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="$wolfpkg${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$wolfpkg"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors wolfssl 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists wolfssl trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists wolfssl trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
+      PKGCONFIG="no"
     else
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: found" >&5
 printf "%s\n" "found" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG"; then
+
+          trc=`
+  if test -n "$wolfpkg"; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="$wolfpkg${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$wolfpkg"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug wolfssl 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n "$wolfpkg"; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="$wolfpkg${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$wolfpkg"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors wolfssl 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists wolfssl trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists wolfssl trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
     fi
   fi
 
@@ -27840,29 +29080,49 @@ printf "%s\n" "$as_me: Check directory $wolfpkg" >&6;}
     if test "$PKGCONFIG" != "no"; then
       addlib=`
   if test -n "$wolfpkg"; then
-    PKG_CONFIG_LIBDIR="$wolfpkg"
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="$wolfpkg${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$wolfpkg"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
 
         $PKGCONFIG --libs-only-l wolfssl`
       addld=`
   if test -n "$wolfpkg"; then
-    PKG_CONFIG_LIBDIR="$wolfpkg"
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="$wolfpkg${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$wolfpkg"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
 
         $PKGCONFIG --libs-only-L wolfssl`
       addcflags=`
   if test -n "$wolfpkg"; then
-    PKG_CONFIG_LIBDIR="$wolfpkg"
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="$wolfpkg${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$wolfpkg"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
 
         $PKGCONFIG --cflags-only-I wolfssl`
       version=`
   if test -n "$wolfpkg"; then
-    PKG_CONFIG_LIBDIR="$wolfpkg"
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="$wolfpkg${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$wolfpkg"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
 
         $PKGCONFIG --modversion wolfssl`
@@ -28218,18 +29478,117 @@ fi
 printf %s "checking for rustls options with pkg-config... " >&6; }
         itexists=`
   if test -n "$RUSTLS_PCDIR"; then
-    PKG_CONFIG_LIBDIR="$RUSTLS_PCDIR"
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="$RUSTLS_PCDIR${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$RUSTLS_PCDIR"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
        $PKGCONFIG --exists rustls >/dev/null 2>&1 && echo 1`
 
     if test -z "$itexists"; then
-                  PKGCONFIG="no"
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+                  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG$CURL_CI"; then
+
+          trc=`
+  if test -n "$RUSTLS_PCDIR"; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="$RUSTLS_PCDIR${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$RUSTLS_PCDIR"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug rustls 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n "$RUSTLS_PCDIR"; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="$RUSTLS_PCDIR${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$RUSTLS_PCDIR"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors rustls 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists rustls trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists rustls trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
+      PKGCONFIG="no"
     else
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: found" >&5
 printf "%s\n" "found" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG"; then
+
+          trc=`
+  if test -n "$RUSTLS_PCDIR"; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="$RUSTLS_PCDIR${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$RUSTLS_PCDIR"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug rustls 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n "$RUSTLS_PCDIR"; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="$RUSTLS_PCDIR${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$RUSTLS_PCDIR"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors rustls 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists rustls trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists rustls trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
     fi
   fi
 
@@ -28237,22 +29596,37 @@ printf "%s\n" "found" >&6; }
     if test "$PKGCONFIG" != "no"; then
       SSL_LIBS=`
   if test -n "$RUSTLS_PCDIR"; then
-    PKG_CONFIG_LIBDIR="$RUSTLS_PCDIR"
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="$RUSTLS_PCDIR${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$RUSTLS_PCDIR"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
          $PKGCONFIG --libs-only-l --libs-only-other rustls 2>/dev/null`
 
       SSL_LDFLAGS=`
   if test -n "$RUSTLS_PCDIR"; then
-    PKG_CONFIG_LIBDIR="$RUSTLS_PCDIR"
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="$RUSTLS_PCDIR${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$RUSTLS_PCDIR"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
          $PKGCONFIG --libs-only-L rustls 2>/dev/null`
 
       SSL_CPPFLAGS=`
   if test -n "$RUSTLS_PCDIR"; then
-    PKG_CONFIG_LIBDIR="$RUSTLS_PCDIR"
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="$RUSTLS_PCDIR${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$RUSTLS_PCDIR"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
          $PKGCONFIG --cflags-only-I rustls 2>/dev/null`
 
@@ -28940,18 +30314,117 @@ fi
 printf %s "checking for libpsl options with pkg-config... " >&6; }
         itexists=`
   if test -n ""; then
-    PKG_CONFIG_LIBDIR=""
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
        $PKGCONFIG --exists libpsl >/dev/null 2>&1 && echo 1`
 
     if test -z "$itexists"; then
-                  PKGCONFIG="no"
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+                  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG$CURL_CI"; then
+
+          trc=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug libpsl 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors libpsl 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists libpsl trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists libpsl trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
+      PKGCONFIG="no"
     else
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: found" >&5
 printf "%s\n" "found" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG"; then
+
+          trc=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug libpsl 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors libpsl 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists libpsl trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists libpsl trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
     fi
   fi
 
@@ -29196,18 +30669,117 @@ fi
 printf %s "checking for libgsasl options with pkg-config... " >&6; }
         itexists=`
   if test -n ""; then
-    PKG_CONFIG_LIBDIR=""
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
        $PKGCONFIG --exists libgsasl >/dev/null 2>&1 && echo 1`
 
     if test -z "$itexists"; then
-                  PKGCONFIG="no"
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+                  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG$CURL_CI"; then
+
+          trc=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug libgsasl 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors libgsasl 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists libgsasl trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists libgsasl trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
+      PKGCONFIG="no"
     else
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: found" >&5
 printf "%s\n" "found" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG"; then
+
+          trc=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug libgsasl 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors libgsasl 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists libgsasl trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists libgsasl trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
     fi
   fi
 
@@ -29471,18 +31043,117 @@ fi
 printf %s "checking for libssh2 options with pkg-config... " >&6; }
         itexists=`
   if test -n ""; then
-    PKG_CONFIG_LIBDIR=""
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
        $PKGCONFIG --exists libssh2 >/dev/null 2>&1 && echo 1`
 
     if test -z "$itexists"; then
-                  PKGCONFIG="no"
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+                  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG$CURL_CI"; then
+
+          trc=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug libssh2 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors libssh2 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists libssh2 trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists libssh2 trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
+      PKGCONFIG="no"
     else
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: found" >&5
 printf "%s\n" "found" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG"; then
+
+          trc=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug libssh2 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors libssh2 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists libssh2 trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists libssh2 trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
     fi
   fi
 
@@ -29721,18 +31392,117 @@ fi
 printf %s "checking for libssh options with pkg-config... " >&6; }
         itexists=`
   if test -n ""; then
-    PKG_CONFIG_LIBDIR=""
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
        $PKGCONFIG --exists libssh >/dev/null 2>&1 && echo 1`
 
     if test -z "$itexists"; then
-                  PKGCONFIG="no"
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+                  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG$CURL_CI"; then
+
+          trc=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug libssh 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors libssh 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists libssh trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists libssh trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
+      PKGCONFIG="no"
     else
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: found" >&5
 printf "%s\n" "found" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG"; then
+
+          trc=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug libssh 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors libssh 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists libssh trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists libssh trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
     fi
   fi
 
@@ -30567,260 +32337,6 @@ if test "$CURL_DISABLE_LDAPS" != "1"; then
 fi
 
 
-OPT_LIBRTMP=off
-
-# Check whether --with-librtmp was given.
-if test ${with_librtmp+y}
-then :
-  withval=$with_librtmp; OPT_LIBRTMP=$withval
-fi
-
-
-if test "x$OPT_LIBRTMP" != "xno"; then
-    CLEANLDFLAGS="$LDFLAGS"
-  CLEANLDFLAGSPC="$LDFLAGSPC"
-  CLEANCPPFLAGS="$CPPFLAGS"
-  CLEANLIBS="$LIBS"
-
-  case "$OPT_LIBRTMP" in
-    yes)
-
-  if test -n "$PKG_CONFIG"; then
-    PKGCONFIG="$PKG_CONFIG"
-  else
-    if test -n "$ac_tool_prefix"; then
-  # Extract the first word of "${ac_tool_prefix}pkg-config", so it can be a program name with args.
-set dummy ${ac_tool_prefix}pkg-config; ac_word=$2
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-printf %s "checking for $ac_word... " >&6; }
-if test ${ac_cv_path_PKGCONFIG+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-  case $PKGCONFIG in
-  [\\/]* | ?:[\\/]*)
-  ac_cv_path_PKGCONFIG="$PKGCONFIG" # Let the user override the test with a path.
-  ;;
-  *)
-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-as_dummy="$PATH:/usr/bin:/usr/local/bin"
-for as_dir in $as_dummy
-do
-  IFS=$as_save_IFS
-  case $as_dir in #(((
-    '') as_dir=./ ;;
-    */) ;;
-    *) as_dir=$as_dir/ ;;
-  esac
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir$ac_word$ac_exec_ext"; then
-    ac_cv_path_PKGCONFIG="$as_dir$ac_word$ac_exec_ext"
-    printf "%s\n" "$as_me:${as_lineno-$LINENO}: found $as_dir$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-  ;;
-esac
-fi
-PKGCONFIG=$ac_cv_path_PKGCONFIG
-if test -n "$PKGCONFIG"; then
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $PKGCONFIG" >&5
-printf "%s\n" "$PKGCONFIG" >&6; }
-else
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
-printf "%s\n" "no" >&6; }
-fi
-
-
-fi
-if test -z "$ac_cv_path_PKGCONFIG"; then
-  ac_pt_PKGCONFIG=$PKGCONFIG
-  # Extract the first word of "pkg-config", so it can be a program name with args.
-set dummy pkg-config; ac_word=$2
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-printf %s "checking for $ac_word... " >&6; }
-if test ${ac_cv_path_ac_pt_PKGCONFIG+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-  case $ac_pt_PKGCONFIG in
-  [\\/]* | ?:[\\/]*)
-  ac_cv_path_ac_pt_PKGCONFIG="$ac_pt_PKGCONFIG" # Let the user override the test with a path.
-  ;;
-  *)
-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-as_dummy="$PATH:/usr/bin:/usr/local/bin"
-for as_dir in $as_dummy
-do
-  IFS=$as_save_IFS
-  case $as_dir in #(((
-    '') as_dir=./ ;;
-    */) ;;
-    *) as_dir=$as_dir/ ;;
-  esac
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir$ac_word$ac_exec_ext"; then
-    ac_cv_path_ac_pt_PKGCONFIG="$as_dir$ac_word$ac_exec_ext"
-    printf "%s\n" "$as_me:${as_lineno-$LINENO}: found $as_dir$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-  ;;
-esac
-fi
-ac_pt_PKGCONFIG=$ac_cv_path_ac_pt_PKGCONFIG
-if test -n "$ac_pt_PKGCONFIG"; then
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_pt_PKGCONFIG" >&5
-printf "%s\n" "$ac_pt_PKGCONFIG" >&6; }
-else
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
-printf "%s\n" "no" >&6; }
-fi
-
-  if test "x$ac_pt_PKGCONFIG" = x; then
-    PKGCONFIG="no"
-  else
-    case $cross_compiling:$ac_tool_warned in
-yes:)
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: using cross tools not prefixed with host triplet" >&5
-printf "%s\n" "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
-ac_tool_warned=yes ;;
-esac
-    PKGCONFIG=$ac_pt_PKGCONFIG
-  fi
-else
-  PKGCONFIG="$ac_cv_path_PKGCONFIG"
-fi
-
-  fi
-
-  if test "$PKGCONFIG" != "no"; then
-    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for librtmp options with pkg-config" >&5
-printf %s "checking for librtmp options with pkg-config... " >&6; }
-        itexists=`
-  if test -n ""; then
-    PKG_CONFIG_LIBDIR=""
-    export PKG_CONFIG_LIBDIR
-  fi
-       $PKGCONFIG --exists librtmp >/dev/null 2>&1 && echo 1`
-
-    if test -z "$itexists"; then
-                  PKGCONFIG="no"
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
-printf "%s\n" "no" >&6; }
-    else
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: found" >&5
-printf "%s\n" "found" >&6; }
-    fi
-  fi
-
-
-      if test "$PKGCONFIG" != "no"; then
-        LIB_RTMP=`$PKGCONFIG --libs-only-l librtmp`
-        LD_RTMP=`$PKGCONFIG --libs-only-L librtmp`
-        CPP_RTMP=`$PKGCONFIG --cflags-only-I librtmp`
-        version=`$PKGCONFIG --modversion librtmp`
-        DIR_RTMP=`echo $LD_RTMP | $SED -e 's/^-L//'`
-      else
-                        as_fn_error $? "--librtmp was specified but could not find librtmp pkgconfig file." "$LINENO" 5
-      fi
-      ;;
-    off)
-            LIB_RTMP="-lrtmp"
-      ;;
-    *)
-            LIB_RTMP="-lrtmp"
-      PREFIX_RTMP=$OPT_LIBRTMP
-      ;;
-  esac
-
-    if test -n "$PREFIX_RTMP"; then
-    LD_RTMP=-L${PREFIX_RTMP}/lib$libsuff
-    CPP_RTMP=-I${PREFIX_RTMP}/include
-    DIR_RTMP=${PREFIX_RTMP}/lib$libsuff
-  fi
-
-  LDFLAGS="$LDFLAGS $LD_RTMP"
-  LDFLAGSPC="$LDFLAGSPC $LD_RTMP"
-  CPPFLAGS="$CPPFLAGS $CPP_RTMP"
-  LIBS="$LIB_RTMP $LIBS"
-
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for RTMP_Init in -lrtmp" >&5
-printf %s "checking for RTMP_Init in -lrtmp... " >&6; }
-if test ${ac_cv_lib_rtmp_RTMP_Init+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lrtmp  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-
-#ifdef __cplusplus
-extern "C"
-#endif
-char RTMP_Init ();
-int main(void)
-{
-return RTMP_Init ();
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"
-then :
-  ac_cv_lib_rtmp_RTMP_Init=yes
-else $as_nop
-  ac_cv_lib_rtmp_RTMP_Init=no
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_rtmp_RTMP_Init" >&5
-printf "%s\n" "$ac_cv_lib_rtmp_RTMP_Init" >&6; }
-if test "x$ac_cv_lib_rtmp_RTMP_Init" = xyes
-then :
-
-             for ac_header in librtmp/rtmp.h
-do :
-  ac_fn_c_check_header_compile "$LINENO" "librtmp/rtmp.h" "ac_cv_header_librtmp_rtmp_h" "$ac_includes_default"
-if test "x$ac_cv_header_librtmp_rtmp_h" = xyes
-then :
-  printf "%s\n" "#define HAVE_LIBRTMP_RTMP_H 1" >>confdefs.h
- curl_rtmp_msg="enabled (librtmp)"
-
-printf "%s\n" "#define USE_LIBRTMP 1" >>confdefs.h
-
-        USE_LIBRTMP=1
-        LIBCURL_PC_REQUIRES_PRIVATE="$LIBCURL_PC_REQUIRES_PRIVATE librtmp"
-
-fi
-
-done
-
-else $as_nop
-        LDFLAGS=$CLEANLDFLAGS
-      LDFLAGSPC=$CLEANLDFLAGSPC
-      CPPFLAGS=$CLEANCPPFLAGS
-      LIBS=$CLEANLIBS
-
-fi
-
-
-  if test "x$OPT_LIBRTMP" != "xoff" &&
-     test "$USE_LIBRTMP" != "1"; then
-    as_fn_error $? "librtmp libs and/or directories were not found where specified!" "$LINENO" 5
-  fi
-fi
-
-
 versioned_symbols_flavour=
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether versioned symbols are wanted" >&5
 printf %s "checking whether versioned symbols are wanted... " >&6; }
@@ -31230,38 +32746,152 @@ fi
 printf %s "checking for libidn2 options with pkg-config... " >&6; }
         itexists=`
   if test -n "$IDN_PCDIR"; then
-    PKG_CONFIG_LIBDIR="$IDN_PCDIR"
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="$IDN_PCDIR${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$IDN_PCDIR"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
        $PKGCONFIG --exists libidn2 >/dev/null 2>&1 && echo 1`
 
     if test -z "$itexists"; then
-                  PKGCONFIG="no"
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+                  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG$CURL_CI"; then
+
+          trc=`
+  if test -n "$IDN_PCDIR"; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="$IDN_PCDIR${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$IDN_PCDIR"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug libidn2 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n "$IDN_PCDIR"; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="$IDN_PCDIR${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$IDN_PCDIR"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors libidn2 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists libidn2 trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists libidn2 trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
+      PKGCONFIG="no"
     else
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: found" >&5
 printf "%s\n" "found" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG"; then
+
+          trc=`
+  if test -n "$IDN_PCDIR"; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="$IDN_PCDIR${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$IDN_PCDIR"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug libidn2 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n "$IDN_PCDIR"; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="$IDN_PCDIR${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$IDN_PCDIR"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors libidn2 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists libidn2 trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists libidn2 trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
     fi
   fi
 
     if test "$PKGCONFIG" != "no"; then
       IDN_LIBS=`
   if test -n "$IDN_PCDIR"; then
-    PKG_CONFIG_LIBDIR="$IDN_PCDIR"
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="$IDN_PCDIR${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$IDN_PCDIR"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
          $PKGCONFIG --libs-only-l libidn2 2>/dev/null`
       IDN_LDFLAGS=`
   if test -n "$IDN_PCDIR"; then
-    PKG_CONFIG_LIBDIR="$IDN_PCDIR"
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="$IDN_PCDIR${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$IDN_PCDIR"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
          $PKGCONFIG --libs-only-L libidn2 2>/dev/null`
       IDN_CPPFLAGS=`
   if test -n "$IDN_PCDIR"; then
-    PKG_CONFIG_LIBDIR="$IDN_PCDIR"
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="$IDN_PCDIR${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$IDN_PCDIR"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
          $PKGCONFIG --cflags-only-I libidn2 2>/dev/null`
       IDN_DIR=`echo $IDN_LDFLAGS | $SED -e 's/^-L//'`
@@ -31393,18 +33023,117 @@ fi
 printf %s "checking for libidn2 options with pkg-config... " >&6; }
         itexists=`
   if test -n ""; then
-    PKG_CONFIG_LIBDIR=""
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
        $PKGCONFIG --exists libidn2 >/dev/null 2>&1 && echo 1`
 
     if test -z "$itexists"; then
-                  PKGCONFIG="no"
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+                  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG$CURL_CI"; then
+
+          trc=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug libidn2 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors libidn2 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists libidn2 trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists libidn2 trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
+      PKGCONFIG="no"
     else
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: found" >&5
 printf "%s\n" "found" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG"; then
+
+          trc=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug libidn2 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors libidn2 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists libidn2 trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists libidn2 trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
     fi
   fi
 
@@ -31548,7 +33277,7 @@ case "$OPT_H2" in
   *)
         want_nghttp2="yes"
     want_nghttp2_path="$withval"
-    want_nghttp2_pkg_config_path="$withval/lib/pkgconfig"
+    want_nghttp2_pkg_config_path="$OPT_H2/lib/pkgconfig"
     ;;
 esac
 
@@ -31679,18 +33408,117 @@ fi
 printf %s "checking for libnghttp2 options with pkg-config... " >&6; }
         itexists=`
   if test -n "$want_nghttp2_pkg_config_path"; then
-    PKG_CONFIG_LIBDIR="$want_nghttp2_pkg_config_path"
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="$want_nghttp2_pkg_config_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_nghttp2_pkg_config_path"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
        $PKGCONFIG --exists libnghttp2 >/dev/null 2>&1 && echo 1`
 
     if test -z "$itexists"; then
-                  PKGCONFIG="no"
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+                  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG$CURL_CI"; then
+
+          trc=`
+  if test -n "$want_nghttp2_pkg_config_path"; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="$want_nghttp2_pkg_config_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_nghttp2_pkg_config_path"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug libnghttp2 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n "$want_nghttp2_pkg_config_path"; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="$want_nghttp2_pkg_config_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_nghttp2_pkg_config_path"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors libnghttp2 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists libnghttp2 trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists libnghttp2 trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
+      PKGCONFIG="no"
     else
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: found" >&5
 printf "%s\n" "found" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG"; then
+
+          trc=`
+  if test -n "$want_nghttp2_pkg_config_path"; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="$want_nghttp2_pkg_config_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_nghttp2_pkg_config_path"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug libnghttp2 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n "$want_nghttp2_pkg_config_path"; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="$want_nghttp2_pkg_config_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_nghttp2_pkg_config_path"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors libnghttp2 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists libnghttp2 trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists libnghttp2 trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
     fi
   fi
 
@@ -31698,8 +33526,13 @@ printf "%s\n" "found" >&6; }
   if test "$PKGCONFIG" != "no"; then
     LIB_H2=`
   if test -n "$want_nghttp2_pkg_config_path"; then
-    PKG_CONFIG_LIBDIR="$want_nghttp2_pkg_config_path"
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="$want_nghttp2_pkg_config_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_nghttp2_pkg_config_path"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
 
       $PKGCONFIG --libs-only-l libnghttp2`
@@ -31708,8 +33541,13 @@ printf "%s\n" "$as_me: -l is $LIB_H2" >&6;}
 
     CPP_H2=`
   if test -n "$want_nghttp2_pkg_config_path"; then
-    PKG_CONFIG_LIBDIR="$want_nghttp2_pkg_config_path"
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="$want_nghttp2_pkg_config_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_nghttp2_pkg_config_path"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
        $PKGCONFIG --cflags-only-I libnghttp2`
     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: -I is $CPP_H2" >&5
@@ -31717,8 +33555,13 @@ printf "%s\n" "$as_me: -I is $CPP_H2" >&6;}
 
     LD_H2=`
   if test -n "$want_nghttp2_pkg_config_path"; then
-    PKG_CONFIG_LIBDIR="$want_nghttp2_pkg_config_path"
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="$want_nghttp2_pkg_config_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_nghttp2_pkg_config_path"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
 
       $PKGCONFIG --libs-only-L libnghttp2`
@@ -31838,7 +33681,7 @@ case "$OPT_TCP2" in
     ;;
   *)
         want_tcp2="yes"
-    want_tcp2_path="$withval/lib/pkgconfig"
+    want_tcp2_path="$OPT_TCP2/lib/pkgconfig"
     ;;
 esac
 
@@ -31975,18 +33818,117 @@ fi
 printf %s "checking for libngtcp2 options with pkg-config... " >&6; }
         itexists=`
   if test -n "$want_tcp2_path"; then
-    PKG_CONFIG_LIBDIR="$want_tcp2_path"
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
        $PKGCONFIG --exists libngtcp2 >/dev/null 2>&1 && echo 1`
 
     if test -z "$itexists"; then
-                  PKGCONFIG="no"
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+                  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG$CURL_CI"; then
+
+          trc=`
+  if test -n "$want_tcp2_path"; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug libngtcp2 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n "$want_tcp2_path"; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors libngtcp2 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists libngtcp2 trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists libngtcp2 trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
+      PKGCONFIG="no"
     else
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: found" >&5
 printf "%s\n" "found" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG"; then
+
+          trc=`
+  if test -n "$want_tcp2_path"; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug libngtcp2 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n "$want_tcp2_path"; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors libngtcp2 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists libngtcp2 trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists libngtcp2 trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
     fi
   fi
 
@@ -31994,8 +33936,13 @@ printf "%s\n" "found" >&6; }
   if test "$PKGCONFIG" != "no"; then
     LIB_TCP2=`
   if test -n "$want_tcp2_path"; then
-    PKG_CONFIG_LIBDIR="$want_tcp2_path"
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
 
       $PKGCONFIG --libs-only-l libngtcp2`
@@ -32004,8 +33951,13 @@ printf "%s\n" "$as_me: -l is $LIB_TCP2" >&6;}
 
     CPP_TCP2=`
   if test -n "$want_tcp2_path"; then
-    PKG_CONFIG_LIBDIR="$want_tcp2_path"
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
        $PKGCONFIG --cflags-only-I libngtcp2`
     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: -I is $CPP_TCP2" >&5
@@ -32013,8 +33965,13 @@ printf "%s\n" "$as_me: -I is $CPP_TCP2" >&6;}
 
     LD_TCP2=`
   if test -n "$want_tcp2_path"; then
-    PKG_CONFIG_LIBDIR="$want_tcp2_path"
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
 
       $PKGCONFIG --libs-only-L libngtcp2`
@@ -32230,18 +34187,117 @@ fi
 printf %s "checking for libngtcp2_crypto_libressl options with pkg-config... " >&6; }
         itexists=`
   if test -n "$want_tcp2_path"; then
-    PKG_CONFIG_LIBDIR="$want_tcp2_path"
-    export PKG_CONFIG_LIBDIR
+    if test -n "1"; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
        $PKGCONFIG --exists libngtcp2_crypto_libressl >/dev/null 2>&1 && echo 1`
 
     if test -z "$itexists"; then
-                  PKGCONFIG="no"
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+                  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG$CURL_CI"; then
+
+          trc=`
+  if test -n "$want_tcp2_path"; then
+    if test -n "1"; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug libngtcp2_crypto_libressl 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n "$want_tcp2_path"; then
+    if test -n "1"; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors libngtcp2_crypto_libressl 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists libngtcp2_crypto_libressl trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists libngtcp2_crypto_libressl trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
+      PKGCONFIG="no"
     else
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: found" >&5
 printf "%s\n" "found" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG"; then
+
+          trc=`
+  if test -n "$want_tcp2_path"; then
+    if test -n "1"; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug libngtcp2_crypto_libressl 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n "$want_tcp2_path"; then
+    if test -n "1"; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors libngtcp2_crypto_libressl 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists libngtcp2_crypto_libressl trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists libngtcp2_crypto_libressl trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
     fi
   fi
 
@@ -32249,8 +34305,13 @@ printf "%s\n" "found" >&6; }
   if test "$PKGCONFIG" != "no"; then
     LIB_NGTCP2_CRYPTO_LIBRESSL=`
   if test -n "$want_tcp2_path"; then
-    PKG_CONFIG_LIBDIR="$want_tcp2_path"
-    export PKG_CONFIG_LIBDIR
+    if test -n "1"; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
 
       $PKGCONFIG --libs-only-l libngtcp2_crypto_libressl`
@@ -32259,8 +34320,13 @@ printf "%s\n" "$as_me: -l is $LIB_NGTCP2_CRYPTO_LIBRESSL" >&6;}
 
     CPP_NGTCP2_CRYPTO_LIBRESSL=`
   if test -n "$want_tcp2_path"; then
-    PKG_CONFIG_LIBDIR="$want_tcp2_path"
-    export PKG_CONFIG_LIBDIR
+    if test -n "1"; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
        $PKGCONFIG --cflags-only-I libngtcp2_crypto_libressl`
     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: -I is $CPP_NGTCP2_CRYPTO_LIBRESSL" >&5
@@ -32268,8 +34334,13 @@ printf "%s\n" "$as_me: -I is $CPP_NGTCP2_CRYPTO_LIBRESSL" >&6;}
 
     LD_NGTCP2_CRYPTO_LIBRESSL=`
   if test -n "$want_tcp2_path"; then
-    PKG_CONFIG_LIBDIR="$want_tcp2_path"
-    export PKG_CONFIG_LIBDIR
+    if test -n "1"; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
 
       $PKGCONFIG --libs-only-L libngtcp2_crypto_libressl`
@@ -32356,8 +34427,8 @@ printf "%s\n" "$as_me: WARNING: --with-ngtcp2 was specified but could not find n
   fi
 fi
 
-if test "$USE_NGTCP2" = "1" && test "$OPENSSL_ENABLED" = "1" && test "$OPENSSL_IS_BORINGSSL" != "1" &&
-   test "$OPENSSL_QUIC_API2" != "1"; then
+if test "$USE_NGTCP2" = "1" && test "$OPENSSL_ENABLED" = "1" && test "$HAVE_LIBRESSL" != "1" &&
+   test "$OPENSSL_IS_AWSLC" != "1" && test "$OPENSSL_IS_BORINGSSL" != "1" && test "$OPENSSL_QUIC_API2" != "1"; then
 
     CLEANLDFLAGS="$LDFLAGS"
   CLEANLDFLAGSPC="$LDFLAGSPC"
@@ -32485,18 +34556,117 @@ fi
 printf %s "checking for libngtcp2_crypto_quictls options with pkg-config... " >&6; }
         itexists=`
   if test -n "$want_tcp2_path"; then
-    PKG_CONFIG_LIBDIR="$want_tcp2_path"
-    export PKG_CONFIG_LIBDIR
+    if test -n "1"; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
        $PKGCONFIG --exists libngtcp2_crypto_quictls >/dev/null 2>&1 && echo 1`
 
     if test -z "$itexists"; then
-                  PKGCONFIG="no"
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+                  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG$CURL_CI"; then
+
+          trc=`
+  if test -n "$want_tcp2_path"; then
+    if test -n "1"; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug libngtcp2_crypto_quictls 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n "$want_tcp2_path"; then
+    if test -n "1"; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors libngtcp2_crypto_quictls 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists libngtcp2_crypto_quictls trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists libngtcp2_crypto_quictls trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
+      PKGCONFIG="no"
     else
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: found" >&5
 printf "%s\n" "found" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG"; then
+
+          trc=`
+  if test -n "$want_tcp2_path"; then
+    if test -n "1"; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug libngtcp2_crypto_quictls 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n "$want_tcp2_path"; then
+    if test -n "1"; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors libngtcp2_crypto_quictls 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists libngtcp2_crypto_quictls trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists libngtcp2_crypto_quictls trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
     fi
   fi
 
@@ -32504,8 +34674,13 @@ printf "%s\n" "found" >&6; }
   if test "$PKGCONFIG" != "no"; then
     LIB_NGTCP2_CRYPTO_QUICTLS=`
   if test -n "$want_tcp2_path"; then
-    PKG_CONFIG_LIBDIR="$want_tcp2_path"
-    export PKG_CONFIG_LIBDIR
+    if test -n "1"; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
 
       $PKGCONFIG --libs-only-l libngtcp2_crypto_quictls`
@@ -32514,8 +34689,13 @@ printf "%s\n" "$as_me: -l is $LIB_NGTCP2_CRYPTO_QUICTLS" >&6;}
 
     CPP_NGTCP2_CRYPTO_QUICTLS=`
   if test -n "$want_tcp2_path"; then
-    PKG_CONFIG_LIBDIR="$want_tcp2_path"
-    export PKG_CONFIG_LIBDIR
+    if test -n "1"; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
        $PKGCONFIG --cflags-only-I libngtcp2_crypto_quictls`
     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: -I is $CPP_NGTCP2_CRYPTO_QUICTLS" >&5
@@ -32523,8 +34703,13 @@ printf "%s\n" "$as_me: -I is $CPP_NGTCP2_CRYPTO_QUICTLS" >&6;}
 
     LD_NGTCP2_CRYPTO_QUICTLS=`
   if test -n "$want_tcp2_path"; then
-    PKG_CONFIG_LIBDIR="$want_tcp2_path"
-    export PKG_CONFIG_LIBDIR
+    if test -n "1"; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
 
       $PKGCONFIG --libs-only-L libngtcp2_crypto_quictls`
@@ -32609,8 +34794,8 @@ fi
   fi
 fi
 
-if test "$USE_NGTCP2" = "1" && test "$OPENSSL_ENABLED" = "1" && test "$OPENSSL_IS_BORINGSSL" != "1" &&
-   test "$OPENSSL_QUIC_API2" = "1"; then
+if test "$USE_NGTCP2" = "1" && test "$OPENSSL_ENABLED" = "1" &&
+   test "$OPENSSL_IS_AWSLC" != "1" && test "$OPENSSL_IS_BORINGSSL" != "1" && test "$OPENSSL_QUIC_API2" = "1"; then
 
     CLEANLDFLAGS="$LDFLAGS"
   CLEANLDFLAGSPC="$LDFLAGSPC"
@@ -32738,18 +34923,117 @@ fi
 printf %s "checking for libngtcp2_crypto_ossl options with pkg-config... " >&6; }
         itexists=`
   if test -n "$want_tcp2_path"; then
-    PKG_CONFIG_LIBDIR="$want_tcp2_path"
-    export PKG_CONFIG_LIBDIR
+    if test -n "1"; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
        $PKGCONFIG --exists libngtcp2_crypto_ossl >/dev/null 2>&1 && echo 1`
 
     if test -z "$itexists"; then
-                  PKGCONFIG="no"
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+                  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG$CURL_CI"; then
+
+          trc=`
+  if test -n "$want_tcp2_path"; then
+    if test -n "1"; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug libngtcp2_crypto_ossl 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n "$want_tcp2_path"; then
+    if test -n "1"; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors libngtcp2_crypto_ossl 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists libngtcp2_crypto_ossl trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists libngtcp2_crypto_ossl trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
+      PKGCONFIG="no"
     else
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: found" >&5
 printf "%s\n" "found" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG"; then
+
+          trc=`
+  if test -n "$want_tcp2_path"; then
+    if test -n "1"; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug libngtcp2_crypto_ossl 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n "$want_tcp2_path"; then
+    if test -n "1"; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors libngtcp2_crypto_ossl 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists libngtcp2_crypto_ossl trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists libngtcp2_crypto_ossl trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
     fi
   fi
 
@@ -32757,8 +35041,13 @@ printf "%s\n" "found" >&6; }
   if test "$PKGCONFIG" != "no"; then
     LIB_NGTCP2_CRYPTO_OSSL=`
   if test -n "$want_tcp2_path"; then
-    PKG_CONFIG_LIBDIR="$want_tcp2_path"
-    export PKG_CONFIG_LIBDIR
+    if test -n "1"; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
 
       $PKGCONFIG --libs-only-l libngtcp2_crypto_ossl`
@@ -32767,8 +35056,13 @@ printf "%s\n" "$as_me: -l is $LIB_NGTCP2_CRYPTO_OSSL" >&6;}
 
     CPP_NGTCP2_CRYPTO_OSSL=`
   if test -n "$want_tcp2_path"; then
-    PKG_CONFIG_LIBDIR="$want_tcp2_path"
-    export PKG_CONFIG_LIBDIR
+    if test -n "1"; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
        $PKGCONFIG --cflags-only-I libngtcp2_crypto_ossl`
     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: -I is $CPP_NGTCP2_CRYPTO_OSSL" >&5
@@ -32776,8 +35070,13 @@ printf "%s\n" "$as_me: -I is $CPP_NGTCP2_CRYPTO_OSSL" >&6;}
 
     LD_NGTCP2_CRYPTO_OSSL=`
   if test -n "$want_tcp2_path"; then
-    PKG_CONFIG_LIBDIR="$want_tcp2_path"
-    export PKG_CONFIG_LIBDIR
+    if test -n "1"; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
 
       $PKGCONFIG --libs-only-L libngtcp2_crypto_ossl`
@@ -32865,7 +35164,8 @@ fi
   fi
 fi
 
-if test "$USE_NGTCP2" = "1" && test "$OPENSSL_ENABLED" = "1" && test "$OPENSSL_IS_BORINGSSL" = "1"; then
+if test "$USE_NGTCP2" = "1" && test "$OPENSSL_ENABLED" = "1" &&
+   (test "$OPENSSL_IS_AWSLC" = "1" || test "$OPENSSL_IS_BORINGSSL" = "1"); then
 
     CLEANLDFLAGS="$LDFLAGS"
   CLEANLDFLAGSPC="$LDFLAGSPC"
@@ -32993,18 +35293,117 @@ fi
 printf %s "checking for libngtcp2_crypto_boringssl options with pkg-config... " >&6; }
         itexists=`
   if test -n "$want_tcp2_path"; then
-    PKG_CONFIG_LIBDIR="$want_tcp2_path"
-    export PKG_CONFIG_LIBDIR
+    if test -n "1"; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
        $PKGCONFIG --exists libngtcp2_crypto_boringssl >/dev/null 2>&1 && echo 1`
 
     if test -z "$itexists"; then
-                  PKGCONFIG="no"
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+                  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG$CURL_CI"; then
+
+          trc=`
+  if test -n "$want_tcp2_path"; then
+    if test -n "1"; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug libngtcp2_crypto_boringssl 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n "$want_tcp2_path"; then
+    if test -n "1"; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors libngtcp2_crypto_boringssl 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists libngtcp2_crypto_boringssl trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists libngtcp2_crypto_boringssl trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
+      PKGCONFIG="no"
     else
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: found" >&5
 printf "%s\n" "found" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG"; then
+
+          trc=`
+  if test -n "$want_tcp2_path"; then
+    if test -n "1"; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug libngtcp2_crypto_boringssl 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n "$want_tcp2_path"; then
+    if test -n "1"; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors libngtcp2_crypto_boringssl 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists libngtcp2_crypto_boringssl trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists libngtcp2_crypto_boringssl trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
     fi
   fi
 
@@ -33012,8 +35411,13 @@ printf "%s\n" "found" >&6; }
   if test "$PKGCONFIG" != "no"; then
     LIB_NGTCP2_CRYPTO_BORINGSSL=`
   if test -n "$want_tcp2_path"; then
-    PKG_CONFIG_LIBDIR="$want_tcp2_path"
-    export PKG_CONFIG_LIBDIR
+    if test -n "1"; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
 
       $PKGCONFIG --libs-only-l libngtcp2_crypto_boringssl`
@@ -33022,8 +35426,13 @@ printf "%s\n" "$as_me: -l is $LIB_NGTCP2_CRYPTO_BORINGSSL" >&6;}
 
     CPP_NGTCP2_CRYPTO_BORINGSSL=`
   if test -n "$want_tcp2_path"; then
-    PKG_CONFIG_LIBDIR="$want_tcp2_path"
-    export PKG_CONFIG_LIBDIR
+    if test -n "1"; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
        $PKGCONFIG --cflags-only-I libngtcp2_crypto_boringssl`
     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: -I is $CPP_NGTCP2_CRYPTO_BORINGSSL" >&5
@@ -33031,8 +35440,13 @@ printf "%s\n" "$as_me: -I is $CPP_NGTCP2_CRYPTO_BORINGSSL" >&6;}
 
     LD_NGTCP2_CRYPTO_BORINGSSL=`
   if test -n "$want_tcp2_path"; then
-    PKG_CONFIG_LIBDIR="$want_tcp2_path"
-    export PKG_CONFIG_LIBDIR
+    if test -n "1"; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
 
       $PKGCONFIG --libs-only-L libngtcp2_crypto_boringssl`
@@ -33244,18 +35658,117 @@ fi
 printf %s "checking for libngtcp2_crypto_gnutls options with pkg-config... " >&6; }
         itexists=`
   if test -n "$want_tcp2_path"; then
-    PKG_CONFIG_LIBDIR="$want_tcp2_path"
-    export PKG_CONFIG_LIBDIR
+    if test -n "1"; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
        $PKGCONFIG --exists libngtcp2_crypto_gnutls >/dev/null 2>&1 && echo 1`
 
     if test -z "$itexists"; then
-                  PKGCONFIG="no"
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+                  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG$CURL_CI"; then
+
+          trc=`
+  if test -n "$want_tcp2_path"; then
+    if test -n "1"; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug libngtcp2_crypto_gnutls 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n "$want_tcp2_path"; then
+    if test -n "1"; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors libngtcp2_crypto_gnutls 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists libngtcp2_crypto_gnutls trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists libngtcp2_crypto_gnutls trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
+      PKGCONFIG="no"
     else
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: found" >&5
 printf "%s\n" "found" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG"; then
+
+          trc=`
+  if test -n "$want_tcp2_path"; then
+    if test -n "1"; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug libngtcp2_crypto_gnutls 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n "$want_tcp2_path"; then
+    if test -n "1"; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors libngtcp2_crypto_gnutls 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists libngtcp2_crypto_gnutls trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists libngtcp2_crypto_gnutls trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
     fi
   fi
 
@@ -33263,8 +35776,13 @@ printf "%s\n" "found" >&6; }
   if test "$PKGCONFIG" != "no"; then
     LIB_NGTCP2_CRYPTO_GNUTLS=`
   if test -n "$want_tcp2_path"; then
-    PKG_CONFIG_LIBDIR="$want_tcp2_path"
-    export PKG_CONFIG_LIBDIR
+    if test -n "1"; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
 
       $PKGCONFIG --libs-only-l libngtcp2_crypto_gnutls`
@@ -33273,8 +35791,13 @@ printf "%s\n" "$as_me: -l is $LIB_NGTCP2_CRYPTO_GNUTLS" >&6;}
 
     CPP_NGTCP2_CRYPTO_GNUTLS=`
   if test -n "$want_tcp2_path"; then
-    PKG_CONFIG_LIBDIR="$want_tcp2_path"
-    export PKG_CONFIG_LIBDIR
+    if test -n "1"; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
        $PKGCONFIG --cflags-only-I libngtcp2_crypto_gnutls`
     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: -I is $CPP_NGTCP2_CRYPTO_GNUTLS" >&5
@@ -33282,8 +35805,13 @@ printf "%s\n" "$as_me: -I is $CPP_NGTCP2_CRYPTO_GNUTLS" >&6;}
 
     LD_NGTCP2_CRYPTO_GNUTLS=`
   if test -n "$want_tcp2_path"; then
-    PKG_CONFIG_LIBDIR="$want_tcp2_path"
-    export PKG_CONFIG_LIBDIR
+    if test -n "1"; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
 
       $PKGCONFIG --libs-only-L libngtcp2_crypto_gnutls`
@@ -33495,18 +36023,117 @@ fi
 printf %s "checking for libngtcp2_crypto_wolfssl options with pkg-config... " >&6; }
         itexists=`
   if test -n "$want_tcp2_path"; then
-    PKG_CONFIG_LIBDIR="$want_tcp2_path"
-    export PKG_CONFIG_LIBDIR
+    if test -n "1"; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
        $PKGCONFIG --exists libngtcp2_crypto_wolfssl >/dev/null 2>&1 && echo 1`
 
     if test -z "$itexists"; then
-                  PKGCONFIG="no"
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+                  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG$CURL_CI"; then
+
+          trc=`
+  if test -n "$want_tcp2_path"; then
+    if test -n "1"; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug libngtcp2_crypto_wolfssl 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n "$want_tcp2_path"; then
+    if test -n "1"; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors libngtcp2_crypto_wolfssl 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists libngtcp2_crypto_wolfssl trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists libngtcp2_crypto_wolfssl trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
+      PKGCONFIG="no"
     else
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: found" >&5
 printf "%s\n" "found" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG"; then
+
+          trc=`
+  if test -n "$want_tcp2_path"; then
+    if test -n "1"; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug libngtcp2_crypto_wolfssl 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n "$want_tcp2_path"; then
+    if test -n "1"; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors libngtcp2_crypto_wolfssl 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists libngtcp2_crypto_wolfssl trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists libngtcp2_crypto_wolfssl trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
     fi
   fi
 
@@ -33514,8 +36141,13 @@ printf "%s\n" "found" >&6; }
   if test "$PKGCONFIG" != "no"; then
     LIB_NGTCP2_CRYPTO_WOLFSSL=`
   if test -n "$want_tcp2_path"; then
-    PKG_CONFIG_LIBDIR="$want_tcp2_path"
-    export PKG_CONFIG_LIBDIR
+    if test -n "1"; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
 
       $PKGCONFIG --libs-only-l libngtcp2_crypto_wolfssl`
@@ -33524,8 +36156,13 @@ printf "%s\n" "$as_me: -l is $LIB_NGTCP2_CRYPTO_WOLFSSL" >&6;}
 
     CPP_NGTCP2_CRYPTO_WOLFSSL=`
   if test -n "$want_tcp2_path"; then
-    PKG_CONFIG_LIBDIR="$want_tcp2_path"
-    export PKG_CONFIG_LIBDIR
+    if test -n "1"; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
        $PKGCONFIG --cflags-only-I libngtcp2_crypto_wolfssl`
     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: -I is $CPP_NGTCP2_CRYPTO_WOLFSSL" >&5
@@ -33533,8 +36170,13 @@ printf "%s\n" "$as_me: -I is $CPP_NGTCP2_CRYPTO_WOLFSSL" >&6;}
 
     LD_NGTCP2_CRYPTO_WOLFSSL=`
   if test -n "$want_tcp2_path"; then
-    PKG_CONFIG_LIBDIR="$want_tcp2_path"
-    export PKG_CONFIG_LIBDIR
+    if test -n "1"; then
+            PKG_CONFIG_PATH="$want_tcp2_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_tcp2_path"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
 
       $PKGCONFIG --libs-only-L libngtcp2_crypto_wolfssl`
@@ -33645,7 +36287,7 @@ case "$OPT_NGHTTP3" in
     ;;
   *)
         want_nghttp3="yes"
-    want_nghttp3_path="$withval/lib/pkgconfig"
+    want_nghttp3_path="$OPT_NGHTTP3/lib/pkgconfig"
     ;;
 esac
 
@@ -33783,18 +36425,117 @@ fi
 printf %s "checking for libnghttp3 options with pkg-config... " >&6; }
         itexists=`
   if test -n "$want_nghttp3_path"; then
-    PKG_CONFIG_LIBDIR="$want_nghttp3_path"
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="$want_nghttp3_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_nghttp3_path"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
        $PKGCONFIG --exists libnghttp3 >/dev/null 2>&1 && echo 1`
 
     if test -z "$itexists"; then
-                  PKGCONFIG="no"
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+                  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG$CURL_CI"; then
+
+          trc=`
+  if test -n "$want_nghttp3_path"; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="$want_nghttp3_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_nghttp3_path"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug libnghttp3 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n "$want_nghttp3_path"; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="$want_nghttp3_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_nghttp3_path"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors libnghttp3 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists libnghttp3 trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists libnghttp3 trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
+      PKGCONFIG="no"
     else
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: found" >&5
 printf "%s\n" "found" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG"; then
+
+          trc=`
+  if test -n "$want_nghttp3_path"; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="$want_nghttp3_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_nghttp3_path"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug libnghttp3 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n "$want_nghttp3_path"; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="$want_nghttp3_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_nghttp3_path"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors libnghttp3 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists libnghttp3 trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists libnghttp3 trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
     fi
   fi
 
@@ -33802,8 +36543,13 @@ printf "%s\n" "found" >&6; }
   if test "$PKGCONFIG" != "no"; then
     LIB_NGHTTP3=`
   if test -n "$want_nghttp3_path"; then
-    PKG_CONFIG_LIBDIR="$want_nghttp3_path"
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="$want_nghttp3_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_nghttp3_path"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
 
       $PKGCONFIG --libs-only-l libnghttp3`
@@ -33812,8 +36558,13 @@ printf "%s\n" "$as_me: -l is $LIB_NGHTTP3" >&6;}
 
     CPP_NGHTTP3=`
   if test -n "$want_nghttp3_path"; then
-    PKG_CONFIG_LIBDIR="$want_nghttp3_path"
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="$want_nghttp3_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_nghttp3_path"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
        $PKGCONFIG --cflags-only-I libnghttp3`
     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: -I is $CPP_NGHTTP3" >&5
@@ -33821,8 +36572,13 @@ printf "%s\n" "$as_me: -I is $CPP_NGHTTP3" >&6;}
 
     LD_NGHTTP3=`
   if test -n "$want_nghttp3_path"; then
-    PKG_CONFIG_LIBDIR="$want_nghttp3_path"
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="$want_nghttp3_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_nghttp3_path"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
 
       $PKGCONFIG --libs-only-L libnghttp3`
@@ -33912,8 +36668,6 @@ fi
 
 if test "$USE_NGTCP2" = "1" && test "$USE_NGHTTP3" = "1"; then
   USE_NGTCP2_H3=1
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: HTTP3 support is experimental" >&5
-printf "%s\n" "$as_me: HTTP3 support is experimental" >&6;}
   curl_h3_msg="enabled (ngtcp2 + nghttp3)"
 fi
 
@@ -34082,18 +36836,117 @@ fi
 printf %s "checking for quiche options with pkg-config... " >&6; }
         itexists=`
   if test -n "$want_quiche_path"; then
-    PKG_CONFIG_LIBDIR="$want_quiche_path"
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="$want_quiche_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_quiche_path"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
        $PKGCONFIG --exists quiche >/dev/null 2>&1 && echo 1`
 
     if test -z "$itexists"; then
-                  PKGCONFIG="no"
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+                  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG$CURL_CI"; then
+
+          trc=`
+  if test -n "$want_quiche_path"; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="$want_quiche_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_quiche_path"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug quiche 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n "$want_quiche_path"; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="$want_quiche_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_quiche_path"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors quiche 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists quiche trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists quiche trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
+      PKGCONFIG="no"
     else
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: found" >&5
 printf "%s\n" "found" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG"; then
+
+          trc=`
+  if test -n "$want_quiche_path"; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="$want_quiche_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_quiche_path"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug quiche 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n "$want_quiche_path"; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="$want_quiche_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_quiche_path"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors quiche 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists quiche trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists quiche trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
     fi
   fi
 
@@ -34101,8 +36954,13 @@ printf "%s\n" "found" >&6; }
   if test "$PKGCONFIG" != "no"; then
     LIB_QUICHE=`
   if test -n "$want_quiche_path"; then
-    PKG_CONFIG_LIBDIR="$want_quiche_path"
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="$want_quiche_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_quiche_path"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
 
       $PKGCONFIG --libs-only-l quiche`
@@ -34111,8 +36969,13 @@ printf "%s\n" "$as_me: -l is $LIB_QUICHE" >&6;}
 
     CPP_QUICHE=`
   if test -n "$want_quiche_path"; then
-    PKG_CONFIG_LIBDIR="$want_quiche_path"
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="$want_quiche_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_quiche_path"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
        $PKGCONFIG --cflags-only-I quiche`
     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: -I is $CPP_QUICHE" >&5
@@ -34120,8 +36983,13 @@ printf "%s\n" "$as_me: -I is $CPP_QUICHE" >&6;}
 
     LD_QUICHE=`
   if test -n "$want_quiche_path"; then
-    PKG_CONFIG_LIBDIR="$want_quiche_path"
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="$want_quiche_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_quiche_path"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
 
       $PKGCONFIG --libs-only-L quiche`
@@ -34374,18 +37242,117 @@ fi
 printf %s "checking for libuv options with pkg-config... " >&6; }
         itexists=`
   if test -n "$want_libuv_path"; then
-    PKG_CONFIG_LIBDIR="$want_libuv_path"
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="$want_libuv_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_libuv_path"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
        $PKGCONFIG --exists libuv >/dev/null 2>&1 && echo 1`
 
     if test -z "$itexists"; then
-                  PKGCONFIG="no"
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+                  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG$CURL_CI"; then
+
+          trc=`
+  if test -n "$want_libuv_path"; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="$want_libuv_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_libuv_path"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug libuv 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n "$want_libuv_path"; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="$want_libuv_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_libuv_path"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors libuv 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists libuv trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists libuv trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
+      PKGCONFIG="no"
     else
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: found" >&5
 printf "%s\n" "found" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG"; then
+
+          trc=`
+  if test -n "$want_libuv_path"; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="$want_libuv_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_libuv_path"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug libuv 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n "$want_libuv_path"; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="$want_libuv_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_libuv_path"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors libuv 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists libuv trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists libuv trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
     fi
   fi
 
@@ -34393,8 +37360,13 @@ printf "%s\n" "found" >&6; }
   if test "$PKGCONFIG" != "no"; then
     LIB_LIBUV=`
   if test -n "$want_libuv_path"; then
-    PKG_CONFIG_LIBDIR="$want_libuv_path"
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="$want_libuv_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_libuv_path"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
 
       $PKGCONFIG --libs-only-l libuv`
@@ -34403,8 +37375,13 @@ printf "%s\n" "$as_me: -l is $LIB_LIBUV" >&6;}
 
     CPP_LIBUV=`
   if test -n "$want_libuv_path"; then
-    PKG_CONFIG_LIBDIR="$want_libuv_path"
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="$want_libuv_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_libuv_path"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
        $PKGCONFIG --cflags-only-I libuv`
     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: -I is $CPP_LIBUV" >&5
@@ -34412,8 +37389,13 @@ printf "%s\n" "$as_me: -I is $CPP_LIBUV" >&6;}
 
     LD_LIBUV=`
   if test -n "$want_libuv_path"; then
-    PKG_CONFIG_LIBDIR="$want_libuv_path"
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="$want_libuv_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$want_libuv_path"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
 
       $PKGCONFIG --libs-only-L libuv`
@@ -34670,18 +37652,117 @@ fi
 printf %s "checking for fish options with pkg-config... " >&6; }
         itexists=`
   if test -n ""; then
-    PKG_CONFIG_LIBDIR=""
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
        $PKGCONFIG --exists fish >/dev/null 2>&1 && echo 1`
 
     if test -z "$itexists"; then
-                  PKGCONFIG="no"
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+                  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG$CURL_CI"; then
+
+          trc=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug fish 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors fish 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists fish trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists fish trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
+      PKGCONFIG="no"
     else
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: found" >&5
 printf "%s\n" "found" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG"; then
+
+          trc=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug fish 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors fish 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists fish trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists fish trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
     fi
   fi
 
@@ -38091,154 +41172,6 @@ printf "%s\n" "#define HAVE_FSETXATTR_6 1" >>confdefs.h
     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
     curl_cv_func_fsetxattr="no"
-  fi
-
-
-    #
-  tst_links_ftruncate="unknown"
-  tst_proto_ftruncate="unknown"
-  tst_compi_ftruncate="unknown"
-  tst_allow_ftruncate="unknown"
-  #
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking if ftruncate can be linked" >&5
-printf %s "checking if ftruncate can be linked... " >&6; }
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-
-#define ftruncate innocuous_ftruncate
-#ifdef __STDC__
-#  include <limits.h>
-#else
-#  include <assert.h>
-#endif
-#undef ftruncate
-#ifdef __cplusplus
-extern "C"
-#endif
-char ftruncate ();
-#if defined __stub_ftruncate || defined __stub___ftruncate
-#error force compilation error
-#endif
-
-int main(void)
-{
-return ftruncate ();
-  return 0;
-}
-
-_ACEOF
-if ac_fn_c_try_link "$LINENO"
-then :
-
-    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-printf "%s\n" "yes" >&6; }
-    tst_links_ftruncate="yes"
-
-else $as_nop
-
-    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
-printf "%s\n" "no" >&6; }
-    tst_links_ftruncate="no"
-
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam \
-    conftest$ac_exeext conftest.$ac_ext
-  #
-  if test "$tst_links_ftruncate" = "yes"; then
-    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking if ftruncate is prototyped" >&5
-printf %s "checking if ftruncate is prototyped... " >&6; }
-    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-      $curl_includes_unistd
-
-_ACEOF
-if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
-  $EGREP "ftruncate" >/dev/null 2>&1
-then :
-
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-printf "%s\n" "yes" >&6; }
-      tst_proto_ftruncate="yes"
-
-else $as_nop
-
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
-printf "%s\n" "no" >&6; }
-      tst_proto_ftruncate="no"
-
-fi
-rm -rf conftest*
-
-  fi
-  #
-  if test "$tst_proto_ftruncate" = "yes"; then
-    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking if ftruncate is compilable" >&5
-printf %s "checking if ftruncate is compilable... " >&6; }
-    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-
-        $curl_includes_unistd
-
-int main(void)
-{
-
-        if(ftruncate(0, 0) != 0)
-          return 1;
-
-  return 0;
-}
-
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"
-then :
-
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-printf "%s\n" "yes" >&6; }
-      tst_compi_ftruncate="yes"
-
-else $as_nop
-
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
-printf "%s\n" "no" >&6; }
-      tst_compi_ftruncate="no"
-
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
-  fi
-  #
-  if test "$tst_compi_ftruncate" = "yes"; then
-    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking if ftruncate usage allowed" >&5
-printf %s "checking if ftruncate usage allowed... " >&6; }
-    if test "x$curl_disallow_ftruncate" != "xyes"; then
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-printf "%s\n" "yes" >&6; }
-      tst_allow_ftruncate="yes"
-    else
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
-printf "%s\n" "no" >&6; }
-      tst_allow_ftruncate="no"
-    fi
-  fi
-  #
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking if ftruncate might be used" >&5
-printf %s "checking if ftruncate might be used... " >&6; }
-  if test "$tst_links_ftruncate" = "yes" &&
-     test "$tst_proto_ftruncate" = "yes" &&
-     test "$tst_compi_ftruncate" = "yes" &&
-     test "$tst_allow_ftruncate" = "yes"; then
-    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-printf "%s\n" "yes" >&6; }
-
-printf "%s\n" "#define HAVE_FTRUNCATE 1" >>confdefs.h
-
-    curl_cv_func_ftruncate="yes"
-  else
-    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
-printf "%s\n" "no" >&6; }
-    curl_cv_func_ftruncate="no"
   fi
 
 
@@ -42773,12 +45706,6 @@ then :
   printf "%s\n" "#define HAVE_SCHED_YIELD 1" >>confdefs.h
 
 fi
-ac_fn_c_check_func "$LINENO" "snprintf" "ac_cv_func_snprintf"
-if test "x$ac_cv_func_snprintf" = xyes
-then :
-  printf "%s\n" "#define HAVE_SNPRINTF 1" >>confdefs.h
-
-fi
 
 
 curl_includes_arpa_inet="\
@@ -44232,40 +47159,154 @@ fi
 printf %s "checking for libcares options with pkg-config... " >&6; }
         itexists=`
   if test -n "$ARES_PCDIR"; then
-    PKG_CONFIG_LIBDIR="$ARES_PCDIR"
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="$ARES_PCDIR${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$ARES_PCDIR"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
        $PKGCONFIG --exists libcares >/dev/null 2>&1 && echo 1`
 
     if test -z "$itexists"; then
-                  PKGCONFIG="no"
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+                  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG$CURL_CI"; then
+
+          trc=`
+  if test -n "$ARES_PCDIR"; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="$ARES_PCDIR${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$ARES_PCDIR"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug libcares 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n "$ARES_PCDIR"; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="$ARES_PCDIR${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$ARES_PCDIR"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors libcares 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists libcares trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists libcares trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
+      PKGCONFIG="no"
     else
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: found" >&5
 printf "%s\n" "found" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG"; then
+
+          trc=`
+  if test -n "$ARES_PCDIR"; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="$ARES_PCDIR${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$ARES_PCDIR"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug libcares 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n "$ARES_PCDIR"; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="$ARES_PCDIR${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$ARES_PCDIR"
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors libcares 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists libcares trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists libcares trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
     fi
   fi
 
       if test "$PKGCONFIG" != "no"; then
         ares_LIBS=`
   if test -n "$ARES_PCDIR"; then
-    PKG_CONFIG_LIBDIR="$ARES_PCDIR"
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="$ARES_PCDIR${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$ARES_PCDIR"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
 
           $PKGCONFIG --libs-only-l libcares`
         ares_LDFLAGS=`
   if test -n "$ARES_PCDIR"; then
-    PKG_CONFIG_LIBDIR="$ARES_PCDIR"
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="$ARES_PCDIR${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$ARES_PCDIR"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
 
           $PKGCONFIG --libs-only-L libcares`
         ares_CPPFLAGS=`
   if test -n "$ARES_PCDIR"; then
-    PKG_CONFIG_LIBDIR="$ARES_PCDIR"
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="$ARES_PCDIR${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR="$ARES_PCDIR"
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
 
           $PKGCONFIG --cflags-only-I libcares`
@@ -44402,18 +47443,117 @@ fi
 printf %s "checking for libcares options with pkg-config... " >&6; }
         itexists=`
   if test -n ""; then
-    PKG_CONFIG_LIBDIR=""
-    export PKG_CONFIG_LIBDIR
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
   fi
        $PKGCONFIG --exists libcares >/dev/null 2>&1 && echo 1`
 
     if test -z "$itexists"; then
-                  PKGCONFIG="no"
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+                  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG$CURL_CI"; then
+
+          trc=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug libcares 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors libcares 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists libcares trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists libcares trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
+      PKGCONFIG="no"
     else
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: found" >&5
 printf "%s\n" "found" >&6; }
+      if test -n "$CURL_TRACE_PKG_CONFIG"; then
+
+          trc=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    if test -n "$PKG_CONFIG_LIBDIR"; then
+      echo "PKG_CONFIG_LIBDIR: '$PKG_CONFIG_LIBDIR'"
+    fi
+    if test -n "$PKG_CONFIG_PATH"; then
+      echo "PKG_CONFIG_PATH: '$PKG_CONFIG_PATH'"
+    fi
+    $PKGCONFIG --exists --debug libcares 2>&1 | \
+      $EGREP '(trying path:|Adding directory|Looking for|Scanning directory|Cannot open directory)' | \
+      $SED 's/^.*trying path:/trying path:/'`
+  msg=`
+  if test -n ""; then
+    if test -n ""; then
+            PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      export PKG_CONFIG_PATH
+    else
+            PKG_CONFIG_LIBDIR=""
+      export PKG_CONFIG_LIBDIR
+    fi
+  fi
+
+    $PKGCONFIG --exists --print-errors libcares 2>&1`
+  if test -n "$msg"; then
+    trc=`echo "$trc"; echo '==== error:'; echo "$msg"`
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: pkg-config --exists libcares trace:
+---- begin
+${trc}
+---- end" >&5
+printf "%s\n" "$as_me: pkg-config --exists libcares trace:
+---- begin
+${trc}
+---- end" >&6;}
+
+      fi
     fi
   fi
 
@@ -44440,43 +47580,14 @@ printf "%s\n" "$as_me: pkg-config: ares_CPPFLAGS: \"$ares_CPPFLAGS\"" >&6;}
     LIBS="$ares_LIBS $clean_LIBS"
     #
 
-        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking that c-ares is good and recent enough" >&5
-printf %s "checking that c-ares is good and recent enough... " >&6; }
-    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-
-        #include <ares.h>
-        /* set of dummy functions in case c-ares was built with debug */
-        void curl_dofree(void);   void curl_dofree(void) {}
-        void curl_sclose(void);   void curl_sclose(void) {}
-        void curl_domalloc(void); void curl_domalloc(void) {}
-        void curl_docalloc(void); void curl_docalloc(void) {}
-        void curl_socket(void);   void curl_socket(void) {}
-
-int main(void)
-{
-
-        ares_channel channel;
-        ares_cancel(channel); /* added in 1.2.0 */
-        ares_process_fd(channel, 0, 0); /* added in 1.4.0 */
-        ares_dup(&channel, channel); /* added in 1.6.0 */
-
-  return 0;
-}
-
-_ACEOF
-if ac_fn_c_try_link "$LINENO"
+        ac_fn_c_check_func "$LINENO" "ares_getaddrinfo" "ac_cv_func_ares_getaddrinfo"
+if test "x$ac_cv_func_ares_getaddrinfo" = xyes
 then :
 
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-printf "%s\n" "yes" >&6; }
 
 else $as_nop
 
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
-printf "%s\n" "no" >&6; }
-      as_fn_error $? "c-ares library defective or too old" "$LINENO" 5
+      as_fn_error $? "c-ares library is defective or too old" "$LINENO" 5
             CPPFLAGS="$clean_CPPFLAGS"
       LDFLAGS="$clean_LDFLAGS"
       LDFLAGSPC="$clean_LDFLAGSPC"
@@ -44485,8 +47596,7 @@ printf "%s\n" "no" >&6; }
       want_ares="no"
 
 fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam \
-    conftest$ac_exeext conftest.$ac_ext
+
 
     if test "$want_ares" = "yes"; then
 
@@ -44582,20 +47692,10 @@ printf "%s\n" "no" >&6; }
 
 fi
 
-if test "$want_threaded_resolver" = "yes" && test "$curl_cv_native_windows" = "yes"; then
-  USE_THREADS_WIN32=1
-
-printf "%s\n" "#define USE_THREADS_WIN32 1" >>confdefs.h
-
-  curl_res_msg="Win32 threaded"
-fi
-
-if test "$want_threaded_resolver" = "yes" && test "$USE_THREADS_WIN32" != "1"; then
+if test "$curl_cv_native_windows" != "yes"; then
   ac_fn_c_check_header_compile "$LINENO" "pthread.h" "ac_cv_header_pthread_h" "$ac_includes_default"
 if test "x$ac_cv_header_pthread_h" = xyes
 then :
-
-printf "%s\n" "#define HAVE_PTHREAD_H 1" >>confdefs.h
 
       save_CFLAGS="$CFLAGS"
                                     save_LIBS="$LIBS"
@@ -44604,7 +47704,7 @@ printf "%s\n" "#define HAVE_PTHREAD_H 1" >>confdefs.h
             ac_fn_c_check_func "$LINENO" "pthread_create" "ac_cv_func_pthread_create"
 if test "x$ac_cv_func_pthread_create" = xyes
 then :
-  USE_THREADS_POSIX=1
+  HAVE_THREADS_POSIX=1
 fi
 
       LIBS="$save_LIBS"
@@ -44617,7 +47717,7 @@ fi
           ;;
       esac
 
-            if test "$USE_THREADS_POSIX" != "1"; then
+            if test "$HAVE_THREADS_POSIX" != "1"; then
         # assign PTHREAD for pkg-config use
         PTHREAD=" -pthread"
 
@@ -44673,26 +47773,44 @@ fi
 printf "%s\n" "$ac_cv_lib_pthread_pthread_create" >&6; }
 if test "x$ac_cv_lib_pthread_pthread_create" = xyes
 then :
-  USE_THREADS_POSIX=1
+  HAVE_THREADS_POSIX=1
 else $as_nop
    CFLAGS="$save_CFLAGS"
 fi
 
       fi
 
-      if test "$USE_THREADS_POSIX" = "1"; then
-
-printf "%s\n" "#define USE_THREADS_POSIX 1" >>confdefs.h
-
-        curl_res_msg="POSIX threaded"
-      fi
-
 fi
 
+  if test "$HAVE_THREADS_POSIX" = "1"; then
+
+printf "%s\n" "#define HAVE_THREADS_POSIX 1" >>confdefs.h
+
+  fi
 fi
 
-if test "$want_threaded_resolver" != "no" && test "$USE_THREADS_POSIX" != "1" && test "$USE_THREADS_WIN32" != "1"; then
-  as_fn_error $? "Threaded resolver enabled but no thread library found" "$LINENO" 5
+if test "$want_threaded_resolver" = "yes"; then
+  if test "$curl_cv_native_windows" = "yes"; then
+    USE_RESOLV_THREADED=1
+
+printf "%s\n" "#define USE_RESOLV_THREADED 1" >>confdefs.h
+
+    curl_res_msg="Win32 threaded"
+  elif test "$HAVE_THREADS_POSIX" = "1"; then
+    USE_RESOLV_THREADED=1
+
+printf "%s\n" "#define USE_RESOLV_THREADED 1" >>confdefs.h
+
+    curl_res_msg="POSIX threaded"
+  else
+    as_fn_error $? "Threaded resolver enabled but no thread library found" "$LINENO" 5
+  fi
+elif test "$USE_ARES" = "1"; then
+  USE_RESOLV_ARES=1
+
+printf "%s\n" "#define USE_RESOLV_ARES 1" >>confdefs.h
+
+  curl_res_msg="c-ares"
 fi
 
 ac_fn_c_check_header_compile "$LINENO" "dirent.h" "ac_cv_header_dirent_h" "$ac_includes_default"
@@ -45018,22 +48136,22 @@ printf %s "checking whether to support NTLM... " >&6; }
 if test ${enable_ntlm+y}
 then :
   enableval=$enable_ntlm;  case "$enableval" in
-  no)
-    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
-printf "%s\n" "no" >&6; }
-
-printf "%s\n" "#define CURL_DISABLE_NTLM 1" >>confdefs.h
-
-    CURL_DISABLE_NTLM=1
-    ;;
-  *)
+  yes)
     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
+
+printf "%s\n" "#define CURL_ENABLE_NTLM 1" >>confdefs.h
+
+    CURL_ENABLE_NTLM=1
+    ;;
+  *)
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
     ;;
   esac
 else $as_nop
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-printf "%s\n" "yes" >&6; }
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
 
 fi
 
@@ -45821,7 +48939,7 @@ fi
 if test "$HAVE_ZSTD" = "1"; then
   SUPPORT_FEATURES="$SUPPORT_FEATURES zstd"
 fi
-if test "$USE_ARES" = "1" || test "$USE_THREADS_POSIX" = "1" || test "$USE_THREADS_WIN32" = "1"; then
+if test "$USE_RESOLV_ARES" = "1" || test "$USE_RESOLV_THREADED" = "1"; then
   SUPPORT_FEATURES="$SUPPORT_FEATURES AsynchDNS"
 fi
 if test "$USE_ARES" = "1" && test "$want_threaded_resolver" = "yes" && test "$want_httpsrr" != "no"; then
@@ -45863,7 +48981,7 @@ fi
 
 use_curl_ntlm_core=no
 
-if test "$CURL_DISABLE_NTLM" != "1"; then
+if test "$CURL_ENABLE_NTLM" = "1"; then
   if test "$HAVE_DES_ECB_ENCRYPT" = "1" ||
      test "$GNUTLS_ENABLED" = "1" ||
      test "$USE_WIN32_CRYPTO" = "1" ||
@@ -45960,7 +49078,7 @@ fi
 
 if test "$tst_atomic" = "yes"; then
   SUPPORT_FEATURES="$SUPPORT_FEATURES threadsafe"
-elif test "$USE_THREADS_POSIX" = "1" && test "$ac_cv_header_pthread_h" = "yes"; then
+elif test "$HAVE_THREADS_POSIX" = "1" && test "$ac_cv_header_pthread_h" = "yes"; then
   SUPPORT_FEATURES="$SUPPORT_FEATURES threadsafe"
 elif test "$curl_cv_native_windows" = "yes"; then
   SUPPORT_FEATURES="$SUPPORT_FEATURES threadsafe"
@@ -46043,7 +49161,7 @@ if test "$CURL_DISABLE_IMAP" != "1"; then
     SUPPORT_PROTOCOLS="$SUPPORT_PROTOCOLS IMAPS"
   fi
 fi
-if test "$CURL_DISABLE_SMB" != "1" && test "$use_curl_ntlm_core" = "yes"; then
+if test "$CURL_ENABLE_SMB" = "1" && test "$use_curl_ntlm_core" = "yes"; then
   SUPPORT_PROTOCOLS="$SUPPORT_PROTOCOLS SMB"
   if test "$SSL_ENABLED" = "1"; then
     SUPPORT_PROTOCOLS="$SUPPORT_PROTOCOLS SMBS"
@@ -46068,9 +49186,6 @@ if test "$CURL_DISABLE_IPFS" != "1"; then
 fi
 if test "$CURL_DISABLE_RTSP" != "1"; then
   SUPPORT_PROTOCOLS="$SUPPORT_PROTOCOLS RTSP"
-fi
-if test "$USE_LIBRTMP" = "1"; then
-  SUPPORT_PROTOCOLS="$SUPPORT_PROTOCOLS RTMP"
 fi
 if test "$CURL_DISABLE_WEBSOCKETS" != "1"; then
   SUPPORT_PROTOCOLS="$SUPPORT_PROTOCOLS WS"
@@ -48966,7 +52081,6 @@ SUPPORT_PROTOCOLS_LOWER=`echo "$SUPPORT_PROTOCOLS" | tr A-Z a-z`
   LDAPS:            ${curl_ldaps_msg}
   IPFS/IPNS:        ${curl_ipfs_msg}
   RTSP:             ${curl_rtsp_msg}
-  RTMP:             ${curl_rtmp_msg}
   PSL:              ${curl_psl_msg}
   Alt-svc:          ${curl_altsvc_msg}
   Headers API:      ${curl_headers_msg}
@@ -49022,7 +52136,6 @@ printf "%s\n" "$as_me: Configured to build curl/libcurl:
   LDAPS:            ${curl_ldaps_msg}
   IPFS/IPNS:        ${curl_ipfs_msg}
   RTSP:             ${curl_rtsp_msg}
-  RTMP:             ${curl_rtmp_msg}
   PSL:              ${curl_psl_msg}
   Alt-svc:          ${curl_altsvc_msg}
   Headers API:      ${curl_headers_msg}

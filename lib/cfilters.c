@@ -35,7 +35,10 @@
 
 #ifdef UNITTESTS
 /* used by unit2600.c */
-void Curl_cf_def_close(struct Curl_cfilter *cf, struct Curl_easy *data)
+UNITTEST void Curl_cf_def_close(struct Curl_cfilter *cf,
+                                struct Curl_easy *data);
+UNITTEST void Curl_cf_def_close(struct Curl_cfilter *cf,
+                                struct Curl_easy *data)
 {
   cf->connected = FALSE;
   if(cf->next)
@@ -505,6 +508,11 @@ CURLcode Curl_conn_connect(struct Curl_easy *data,
   if(!CONN_SOCK_IDX_VALID(sockindex))
     return CURLE_BAD_FUNCTION_ARGUMENT;
 
+  if(data->conn->scheme->flags & PROTOPT_NONETWORK) {
+    *done = TRUE;
+    return CURLE_OK;
+  }
+
   cf = data->conn->cfilter[sockindex];
   if(!cf) {
     *done = FALSE;
@@ -697,6 +705,30 @@ unsigned char Curl_conn_get_transport(struct Curl_easy *data,
   return Curl_conn_cf_get_transport(cf, data);
 }
 
+int Curl_socktype_for_transport(uint8_t transport)
+{
+  switch(transport) {
+  case TRNSPRT_TCP:
+    return SOCK_STREAM;
+  case TRNSPRT_UNIX:
+    return SOCK_STREAM;
+  default: /* UDP and QUIC */
+    return SOCK_DGRAM;
+  }
+}
+
+int Curl_protocol_for_transport(uint8_t transport)
+{
+  switch(transport) {
+  case TRNSPRT_TCP:
+    return IPPROTO_TCP;
+  case TRNSPRT_UNIX:
+    return IPPROTO_IP;
+  default: /* UDP and QUIC */
+    return IPPROTO_UDP;
+  }
+}
+
 const char *Curl_conn_get_alpn_negotiated(struct Curl_easy *data,
                                           struct connectdata *conn)
 {
@@ -823,11 +855,13 @@ void Curl_conn_get_current_host(struct Curl_easy *data, int sockindex,
                                 const char **phost, int *pport)
 {
   struct Curl_cfilter *cf, *cf_proxy = NULL;
+  int portarg = -1;
 
   if(!data->conn) {
     DEBUGASSERT(0);
     *phost = "";
-    *pport = -1;
+    if(pport)
+      *pport = -1;
     return;
   }
 
@@ -843,12 +877,14 @@ void Curl_conn_get_current_host(struct Curl_easy *data, int sockindex,
    * to an interim host and any authentication or other things apply
    * to this interim host and port. */
   if(!cf_proxy || cf_proxy->cft->query(cf_proxy, data, CF_QUERY_HOST_PORT,
-                                       pport, CURL_UNCONST(phost))) {
+                                       &portarg, CURL_UNCONST(phost))) {
     /* Everything connected or query unsuccessful, the overall
      * connection's destination is the answer */
     *phost = data->conn->host.name;
-    *pport = data->conn->remote_port;
+    portarg = data->conn->remote_port;
   }
+  if(pport)
+    *pport = portarg;
 }
 
 CURLcode Curl_cf_def_cntrl(struct Curl_cfilter *cf,
@@ -1029,7 +1065,7 @@ size_t Curl_conn_get_max_concurrent(struct Curl_easy *data,
   result = cf ? cf->cft->query(cf, data, CF_QUERY_MAX_CONCURRENT,
                                &n, NULL) : CURLE_UNKNOWN_OPTION;
   /* If no filter answered the query, the default is a non-multiplexed
-   * connection with limit 1. Otherwise, the the query may return 0
+   * connection with limit 1. Otherwise, the query may return 0
    * for connections that are in shutdown, e.g. server HTTP/2 GOAWAY. */
   return (result || n < 0) ? 1 : (size_t)n;
 }
