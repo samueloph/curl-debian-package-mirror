@@ -1,8 +1,15 @@
-curl (8.20.0~rc1-1+exp1) UNRELEASED; urgency=medium
+curl (8.20.0~rc1-1+exp1) experimental; urgency=medium
 
   * New upstream version 8.20.0~rc1
+  * Bump Standards-Version to 4.7.4
+  * d/copyright: Remove files from rtmp support, dropped upstream
+  * Update patches:
+    - Drop test459-switch-to-mode-warn-for-stderr-check.patch, merged
+      upstream.
+    - Refresh ZZZgnutls-build.patch and
+      build-Divide-mit-krb5-gssapi-link-flags-between-LDFLAGS-a.patch.
 
- -- Samuel Henrique <samueloph@debian.org>  Sat, 04 Apr 2026 09:43:21 -0700
+ -- Samuel Henrique <samueloph@debian.org>  Sat, 04 Apr 2026 09:53:06 -0700
 
 curl (8.19.0-3+exp2) experimental; urgency=medium
 
