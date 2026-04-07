@@ -1,3 +1,10 @@
+curl (8.20.0~rc1-1+exp3) experimental; urgency=medium
+
+  * debian/rules: Really add new B-D libc-ares-dev as a dependency for the
+    -dev packages.
+
+ -- Carlos Henrique Lima Melara <charlesmelara@riseup.net>  Tue, 07 Apr 2026 19:32:47 -0300
+
 curl (8.20.0~rc1-1+exp2) experimental; urgency=medium
 
   * d/rules: Add new B-D libc-ares-dev as a dependency for the -dev packages
