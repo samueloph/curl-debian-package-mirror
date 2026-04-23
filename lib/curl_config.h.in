@@ -696,6 +696,9 @@
 /* Define to 1 if you have the <uv.h> header file. */
 #undef HAVE_UV_H
 
+/* Define to 1 if you have the `wc_Des_EcbEncrypt' function. */
+#undef HAVE_WC_DES_ECBENCRYPT
+
 /* Define to 1 if you have the `wolfSSL_BIO_new' function. */
 #undef HAVE_WOLFSSL_BIO_NEW
 
@@ -704,9 +707,6 @@
 
 /* Define to 1 if you have the `wolfSSL_CTX_GenerateEchConfig' function. */
 #undef HAVE_WOLFSSL_CTX_GENERATEECHCONFIG
-
-/* Define to 1 if you have the `wolfSSL_DES_ecb_encrypt' function. */
-#undef HAVE_WOLFSSL_DES_ECB_ENCRYPT
 
 /* Define to 1 if you have the `wolfSSL_get_peer_certificate' function. */
 #undef HAVE_WOLFSSL_GET_PEER_CERTIFICATE

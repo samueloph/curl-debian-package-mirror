@@ -1393,7 +1393,7 @@ static CURLcode ssl_cf_set_earlydata(struct Curl_cfilter *cf,
     if(blen > connssl->earlydata_max)
       blen = connssl->earlydata_max;
     result = Curl_bufq_write(&connssl->earlydata, buf, blen, &nwritten);
-    CURL_TRC_CF(data, cf, "ssl_cf_set_earlydata(len=%zu) -> %zd",
+    CURL_TRC_CF(data, cf, "ssl_cf_set_earlydata(len=%zu) -> %zu",
                 blen, nwritten);
     if(result)
       return result;
@@ -1455,16 +1455,16 @@ static bool ssl_cf_data_pending(struct Curl_cfilter *cf,
 {
   struct ssl_connect_data *connssl = cf->ctx;
   struct cf_call_data save;
-  bool result;
+  bool pending;
 
   CF_DATA_SAVE(save, cf, data);
   if(connssl->ssl_impl->data_pending &&
      connssl->ssl_impl->data_pending(cf, data))
-    result = TRUE;
+    pending = TRUE;
   else
-    result = cf->next->cft->has_data_pending(cf->next, data);
+    pending = cf->next->cft->has_data_pending(cf->next, data);
   CF_DATA_RESTORE(cf, save);
-  return result;
+  return pending;
 }
 
 static CURLcode ssl_cf_send(struct Curl_cfilter *cf,
@@ -1684,7 +1684,7 @@ struct Curl_cftype Curl_cft_ssl = {
 
 struct Curl_cftype Curl_cft_ssl_proxy = {
   "SSL-PROXY",
-  CF_TYPE_SSL|CF_TYPE_PROXY,
+  CF_TYPE_SSL | CF_TYPE_PROXY,
   CURL_LOG_LVL_NONE,
   ssl_cf_destroy,
   ssl_cf_connect,

@@ -938,8 +938,8 @@ CHECKSRC = $(CS_$(V))
 CS_0 = @echo "  RUN     " $@;
 CS_1 = 
 CS_ = $(CS_0)
-_tidy_cflags := $(am__append_9)
-TIDYFLAGS := $(am__append_8)
+_tidy_cflags = $(am__append_9)
+TIDYFLAGS = $(am__append_8)
 all: all-am
 
 .SUFFIXES:

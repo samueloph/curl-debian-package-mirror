@@ -284,17 +284,13 @@ CURLcode Curl_close(struct Curl_easy **datap)
     DEBUGASSERT(0);
 
   Curl_hash_destroy(&data->meta_hash);
-#ifndef CURL_DISABLE_PROXY
-  curlx_safefree(data->state.aptr.proxyuserpwd);
-#endif
   curlx_safefree(data->state.aptr.uagent);
-  curlx_safefree(data->state.aptr.userpwd);
   curlx_safefree(data->state.aptr.accept_encoding);
   curlx_safefree(data->state.aptr.rangeline);
   curlx_safefree(data->state.aptr.ref);
   curlx_safefree(data->state.aptr.host);
 #ifndef CURL_DISABLE_COOKIES
-  curlx_safefree(data->state.aptr.cookiehost);
+  curlx_safefree(data->req.cookiehost);
 #endif
 #ifndef CURL_DISABLE_RTSP
   curlx_safefree(data->state.aptr.rtsp_transport);
@@ -390,7 +386,7 @@ void Curl_init_userdefined(struct Curl_easy *data)
 #endif
 
   set->new_file_perms = 0644;    /* Default permissions */
-  set->allowed_protocols = (curl_prot_t) CURLPROTO_64ALL;
+  set->allowed_protocols = (curl_prot_t)CURLPROTO_64ALL;
   set->redir_protocols = CURLPROTO_REDIR;
 
 #if defined(HAVE_GSSAPI) || defined(USE_WINDOWS_SSPI)
@@ -426,6 +422,7 @@ void Curl_init_userdefined(struct Curl_easy *data)
   set->sep_headers = TRUE; /* separated header lists by default */
   set->buffer_size = READBUFFER_SIZE;
   set->upload_buffer_size = UPLOADBUFFER_DEFAULT;
+  set->upload_flags = CURLULFLAG_SEEN;
   set->happy_eyeballs_timeout = CURL_HET_DEFAULT;
   set->upkeep_interval_ms = CURL_UPKEEP_INTERVAL_DEFAULT;
   set->maxconnects = DEFAULT_CONNCACHE_SIZE; /* for easy handles */
@@ -1266,10 +1263,9 @@ static bool url_match_conn(struct connectdata *conn, void *userdata)
   return TRUE;
 }
 
-static bool url_match_result(bool result, void *userdata)
+static bool url_match_result(void *userdata)
 {
   struct url_conn_match *match = userdata;
-  (void)result;
   if(match->found) {
     /* Attach it now while still under lock, so the connection does
      * no longer appear idle and can be reaped. */
@@ -1305,7 +1301,7 @@ static bool url_attach_existing(struct Curl_easy *data,
                                 bool *waitpipe)
 {
   struct url_conn_match match;
-  bool result;
+  bool success;
 
   DEBUGASSERT(!data->conn);
   memset(&match, 0, sizeof(match));
@@ -1340,13 +1336,13 @@ static bool url_attach_existing(struct Curl_easy *data,
 
   /* Find a connection in the pool that matches what "data + needle"
    * requires. If a suitable candidate is found, it is attached to "data". */
-  result = Curl_cpool_find(data, needle->destination,
-                           url_match_conn, url_match_result, &match);
+  success = Curl_cpool_find(data, needle->destination,
+                            url_match_conn, url_match_result, &match);
 
   /* wait_pipe is TRUE if we encounter a bundle that is undecided. There
    * is no matching connection then, yet. */
   *waitpipe = (bool)match.wait_pipe;
-  return result;
+  return success;
 }
 
 /*
@@ -1819,7 +1815,7 @@ static CURLcode setup_connection_internals(struct Curl_easy *data,
   /* IPv6 addresses with a scope_id (0 is default == global) have a
    * printable representation with a '%<scope_id>' suffix. */
   if(conn->scope_id)
-    conn->destination = curl_maprintf("[%s:%u]%%%d", hostname, port,
+    conn->destination = curl_maprintf("[%s:%u]%%%u", hostname, port,
                                       conn->scope_id);
   else
 #endif
@@ -3422,29 +3418,6 @@ out:
   return result;
 }
 
-/* Curl_setup_conn() is called after the name resolve initiated in
- * create_conn() is all done.
- *
- * Curl_setup_conn() also handles reused connections
- */
-CURLcode Curl_setup_conn(struct Curl_easy *data,
-                         struct Curl_dns_entry *dns,
-                         bool *protocol_done)
-{
-  CURLcode result = CURLE_OK;
-  struct connectdata *conn = data->conn;
-
-  if(!conn->bits.reuse)
-    result = Curl_conn_setup(data, conn, FIRSTSOCKET, dns,
-                             CURL_CF_SSL_DEFAULT);
-  if(!result)
-    result = Curl_headers_init(data);
-
-  /* not sure we need this flag to be passed around any more */
-  *protocol_done = FALSE;
-  return result;
-}
-
 CURLcode Curl_connect(struct Curl_easy *data, bool *pconnected)
 {
   CURLcode result;
@@ -3478,7 +3451,7 @@ CURLcode Curl_connect(struct Curl_easy *data, bool *pconnected)
                              CURL_CF_SSL_DEFAULT);
     if(!result)
       result = Curl_headers_init(data);
-    CURL_TRC_M(data, "Curl_setup_conn() -> %d", result);
+    CURL_TRC_M(data, "Curl_conn_setup() -> %d", result);
   }
 
 out:

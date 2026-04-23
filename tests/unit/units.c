@@ -54,6 +54,7 @@
 #include "unit1668.c"
 #include "unit1669.c"
 #include "unit1674.c"
+#include "unit1675.c"
 #include "unit1979.c"
 #include "unit1980.c"
 #include "unit2600.c"
@@ -126,6 +127,7 @@ const struct entry_s s_entries[] = {
   {"unit1668", test_unit1668},
   {"unit1669", test_unit1669},
   {"unit1674", test_unit1674},
+  {"unit1675", test_unit1675},
   {"unit1979", test_unit1979},
   {"unit1980", test_unit1980},
   {"unit2600", test_unit2600},

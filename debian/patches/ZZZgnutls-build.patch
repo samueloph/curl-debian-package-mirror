@@ -15,7 +15,7 @@ Last-Update: 2024-11-06
  6 files changed, 78 insertions(+), 6 deletions(-)
 
 diff --git a/configure.ac b/configure.ac
-index 28cd2f6..7aef4b0 100644
+index d06024b..5591fe9 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -254,6 +254,16 @@ AS_HELP_STRING([--with-gnutls=PATH],[where to look for GnuTLS, PATH points to th
@@ -33,9 +33,9 @@ index 28cd2f6..7aef4b0 100644
 +fi
 +
  OPT_MBEDTLS=no
- AC_ARG_WITH(mbedtls,dnl
+ AC_ARG_WITH(mbedtls,
  AS_HELP_STRING([--with-mbedtls=PATH],[where to look for mbedTLS, PATH points to the installation root]),[
-@@ -2765,7 +2775,7 @@ AS_HELP_STRING([--disable-versioned-symbols], [Disable versioned symbols in shar
+@@ -2763,7 +2773,7 @@ AS_HELP_STRING([--disable-versioned-symbols], [Disable versioned symbols in shar
  )
  
  AC_SUBST([CURL_LIBCURL_VERSIONED_SYMBOLS_PREFIX], ["$versioned_symbols_flavour"])
@@ -58,7 +58,7 @@ index 0885b92..d1a54ce 100644
  # This might hold -Werror
  CFLAGS += @CURL_CFLAG_EXTRAS@
 diff --git a/lib/Makefile.am b/lib/Makefile.am
-index d02bf02..3a43b50 100644
+index 8a2bd4e..1107c2c 100644
 --- a/lib/Makefile.am
 +++ b/lib/Makefile.am
 @@ -32,7 +32,11 @@ EXTRA_DIST = config-mac.h config-os400.h config-riscos.h config-win32.h
@@ -196,7 +196,7 @@ index d02bf02..3a43b50 100644
  libcurlu_la_CPPFLAGS = $(AM_CPPFLAGS) -DCURL_STATICLIB -DUNITTESTS
  libcurlu_la_LDFLAGS = -static $(LIBCURL_PC_LIBS_PRIVATE)
 diff --git a/src/Makefile.am b/src/Makefile.am
-index 77dbbe2..61340ed 100644
+index 69554ee..de66be2 100644
 --- a/src/Makefile.am
 +++ b/src/Makefile.am
 @@ -98,7 +98,7 @@ CFLAGS += @CURL_CFLAG_EXTRAS@

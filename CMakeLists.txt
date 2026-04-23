@@ -1063,9 +1063,9 @@ endmacro()
 if(USE_WOLFSSL)
   curl_openssl_check_exists("wolfSSL_get_peer_certificate" HAVE_WOLFSSL_GET_PEER_CERTIFICATE)
   curl_openssl_check_exists("wolfSSL_UseALPN" HAVE_WOLFSSL_USEALPN)
-  curl_openssl_check_exists("wolfSSL_DES_ecb_encrypt" HAVE_WOLFSSL_DES_ECB_ENCRYPT)
   curl_openssl_check_exists("wolfSSL_BIO_new" HAVE_WOLFSSL_BIO_NEW)
   curl_openssl_check_exists("wolfSSL_BIO_set_shutdown" HAVE_WOLFSSL_BIO_SET_SHUTDOWN)
+  curl_openssl_check_exists("wc_Des_EcbEncrypt" HAVE_WC_DES_ECBENCRYPT)
 endif()
 
 if(USE_OPENSSL)
@@ -1646,13 +1646,19 @@ check_symbol_exists("getaddrinfo"     "${CURL_INCLUDES};stdlib.h;string.h" HAVE_
 check_symbol_exists("getifaddrs"      "${CURL_INCLUDES};stdlib.h" HAVE_GETIFADDRS)  # ifaddrs.h
 check_symbol_exists("freeaddrinfo"    "${CURL_INCLUDES}" HAVE_FREEADDRINFO)  # ws2tcpip.h sys/socket.h netdb.h
 check_function_exists("pipe"          HAVE_PIPE)
-check_function_exists("pipe2"         HAVE_PIPE2)
 check_function_exists("eventfd"       HAVE_EVENTFD)
 check_symbol_exists("getpeername"     "${CURL_INCLUDES}" HAVE_GETPEERNAME)  # winsock2.h unistd.h proto/bsdsocket.h
 check_symbol_exists("getsockname"     "${CURL_INCLUDES}" HAVE_GETSOCKNAME)  # winsock2.h unistd.h proto/bsdsocket.h
 check_function_exists("getrlimit"     HAVE_GETRLIMIT)
 check_function_exists("setlocale"     HAVE_SETLOCALE)
 check_function_exists("setrlimit"     HAVE_SETRLIMIT)
+
+if(NOT APPLE)
+  # Apple platforms do not offer pipe2(), but the iPhone Simulator-specific
+  # /usr/lib/system/libsystem_sim_kernel.dylib exports it. To avoid false
+  # detection, omit this feature check for Apple targets.
+  check_function_exists("pipe2"         HAVE_PIPE2)
+endif()
 
 if(NOT WIN32)
   check_function_exists("if_nametoindex"  HAVE_IF_NAMETOINDEX)  # net/if.h
@@ -1962,7 +1968,7 @@ if(CURL_ENABLE_NTLM AND
     (USE_MBEDTLS AND HAVE_MBEDTLS_DES_CRYPT_ECB) OR
     USE_GNUTLS OR
     USE_WIN32_CRYPTO OR
-    (USE_WOLFSSL AND HAVE_WOLFSSL_DES_ECB_ENCRYPT)))
+    (USE_WOLFSSL AND HAVE_WC_DES_ECBENCRYPT)))
   set(_use_curl_ntlm_core ON)
 endif()
 

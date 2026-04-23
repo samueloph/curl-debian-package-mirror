@@ -316,21 +316,20 @@ const struct Curl_scheme Curl_scheme_smb = {
 #endif
   CURLPROTO_SMB,                        /* protocol */
   CURLPROTO_SMB,                        /* family */
-  PROTOPT_CONN_REUSE,                   /* flags */
+  PROTOPT_NONE,                         /* flags */
   PORT_SMB,                             /* defport */
 };
 
 const struct Curl_scheme Curl_scheme_smbs = {
   "smbs",                               /* scheme */
-#if defined(CURL_ENABLE_SMB) && defined(USE_CURL_NTLM_CORE) &&  \
-  defined(USE_SSL)
+#if defined(CURL_ENABLE_SMB) && defined(USE_CURL_NTLM_CORE) && defined(USE_SSL)
   &Curl_protocol_smb,
 #else
   ZERO_NULL,
 #endif
   CURLPROTO_SMBS,                       /* protocol */
   CURLPROTO_SMB,                        /* family */
-  PROTOPT_SSL | PROTOPT_CONN_REUSE,     /* flags */
+  PROTOPT_SSL,                          /* flags */
   PORT_SMBS,                            /* defport */
 };
 
@@ -405,7 +404,7 @@ const struct Curl_scheme Curl_scheme_ws = {
 const struct Curl_scheme Curl_scheme_wss = {
   "wss",                                /* scheme */
 #if defined(CURL_DISABLE_WEBSOCKETS) || defined(CURL_DISABLE_HTTP) || \
-    !defined(USE_SSL)
+  !defined(USE_SSL)
   ZERO_NULL,
 #else
   &Curl_protocol_ws,

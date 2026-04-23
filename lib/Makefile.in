@@ -1670,8 +1670,8 @@ UNIT_V = $(UNITV_$(V))
 UNITV_0 = @echo "  UNITPR  " $@;
 UNITV_1 = 
 UNITV_ = $(UNITV_0)
-_tidy_cflags := $(am__append_13)
-TIDYFLAGS := $(am__append_12)
+_tidy_cflags = $(am__append_13)
+TIDYFLAGS = $(am__append_12)
 all: curl_config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
