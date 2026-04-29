@@ -185,6 +185,7 @@
 #include "lib1576.c"
 #include "lib1582.c"
 #include "lib1587.c"
+#include "lib1588.c"
 #include "lib1591.c"
 #include "lib1592.c"
 #include "lib1593.c"
@@ -438,6 +439,7 @@ const struct entry_s s_entries[] = {
   {"lib1576", test_lib1576},
   {"lib1582", test_lib1582},
   {"lib1587", test_lib1587},
+  {"lib1588", test_lib1588},
   {"lib1591", test_lib1591},
   {"lib1592", test_lib1592},
   {"lib1593", test_lib1593},

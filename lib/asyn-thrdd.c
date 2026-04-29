@@ -384,7 +384,7 @@ static void async_thrdd_item_process(void *arg)
 #else /* HAVE_GETADDRINFO */
 
 /* Process the item, using Curl_ipv4_resolve_r() */
-static void async_thrdd_item_process(void *item)
+static void async_thrdd_item_process(void *arg)
 {
   struct async_thrdd_item *item = arg;
 
@@ -612,7 +612,7 @@ CURLcode Curl_async_getaddrinfo(struct Curl_easy *data,
   if(result)
     return result;
 
-#ifdef CURL_IPRESOLVE_V6
+#ifdef CURLRES_IPV6
   /* Do not start an AAAA query for an ipv4 address when
    * we will start an A query for it. */
   if((async->dns_queries & CURL_DNSQ_AAAA) &&
@@ -627,8 +627,6 @@ CURLcode Curl_async_getaddrinfo(struct Curl_easy *data,
     if(result)
       goto out;
   }
-  if(result)
-    goto out;
 
 #ifdef CURLVERBOSE
   Curl_thrdq_trace(data->multi->resolv_thrdq, data);
@@ -753,7 +751,7 @@ out:
   Curl_dns_entry_unlink(data, &dns);
   Curl_async_thrdd_shutdown(data, async);
   if(!result && !*pdns)
-    result = Curl_resolver_error(data, NULL);
+    result = Curl_async_failed(data, async, NULL);
   if(result &&
      (result != CURLE_COULDNT_RESOLVE_HOST) &&
      (result != CURLE_COULDNT_RESOLVE_PROXY)) {

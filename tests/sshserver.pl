@@ -588,15 +588,14 @@ push @cfgarr, "# $sshdverstr sshd configuration file for curl testing";
 push @cfgarr, '#';
 
 # AllowUsers and DenyUsers options should use lowercase on Windows
-# and do not support quotes around values for some unknown reason.
+# and do not support quotes around values for an unknown reason.
 if($sshdid =~ /OpenSSH-Windows/) {
     my $username_lc = lc $username;
-    push @cfgarr, "AllowUsers " . $username_lc =~ s/ /\?/gr;
+    push @cfgarr, "AllowUsers " . ($username_lc =~ s/ /\?/gr);  # replace space with '?'
     if(exists $ENV{USERDOMAIN}) {
         my $userdomain_lc = lc $ENV{USERDOMAIN};
         $username_lc = "$userdomain_lc\\$username_lc";
-        $username_lc =~ s/ /\?/g; # replace space with ?
-        push @cfgarr, "AllowUsers " . $username_lc =~ s/ /\?/gr;
+        push @cfgarr, "AllowUsers " . ($username_lc =~ s/ /\?/gr);  # replace space with '?'
     }
 } else {
     push @cfgarr, "AllowUsers $username";
@@ -630,6 +629,9 @@ push @cfgarr, 'HostbasedAuthentication no';
 push @cfgarr, 'HostbasedUsesNameFromPacketOnly no';
 push @cfgarr, 'IgnoreRhosts yes';
 push @cfgarr, 'IgnoreUserKnownHosts yes';
+if(($sshdid =~ /OpenSSH/) && ($sshdvernum >= 700) && $ENV{'CURL_TEST_SSH_ENABLE_KEX'}) {
+    push @cfgarr, 'KexAlgorithms +' . $ENV{'CURL_TEST_SSH_ENABLE_KEX'};
+}
 if(($sshdid =~ /OpenSSH/) && ($sshdvernum >= 750) && $ENV{'CURL_TEST_SSH_DISABLE_KEX'}) {
     push @cfgarr, 'KexAlgorithms -' . $ENV{'CURL_TEST_SSH_DISABLE_KEX'};
 }
