@@ -1,3 +1,16 @@
+curl (7.88.1-10+deb12u15) bookworm; urgency=medium
+
+  * Fix 7 CVEs:
+    - CVE-2025-10148
+    - CVE-2025-14524
+    - CVE-2025-14819
+    - CVE-2026-3783
+    - CVE-2026-3784
+    - CVE-2026-5773
+    - CVE-2026-7168
+
+ -- Samuel Henrique <samueloph@debian.org>  Fri, 08 May 2026 07:16:21 -0700
+
 curl (7.88.1-10+deb12u14) bookworm; urgency=medium
 
   * d/p/0001-http_chunks-reset...: New patch to fix memory leak:
