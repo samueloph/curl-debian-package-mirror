@@ -1,3 +1,9 @@
+curl (8.20.0-2+exp1) experimental; urgency=medium
+
+  * Upload to experimental.
+
+ -- Carlos Henrique Lima Melara <charlesmelara@riseup.net>  Sat, 23 May 2026 09:28:51 +0200
+
 curl (8.20.0-2) unstable; urgency=medium
 
   * debian/patches/event-fix-wakeup-consumption.patch: cherry-pick from
