@@ -1,3 +1,55 @@
+curl (8.20.0-2) unstable; urgency=medium
+
+  * debian/patches/event-fix-wakeup-consumption.patch: cherry-pick from
+    upstream. (Closes: #1136378, #1136264)
+
+ -- Carlos Henrique Lima Melara <charlesmelara@riseup.net>  Wed, 13 May 2026 11:15:17 +0200
+
+curl (8.20.0-1) unstable; urgency=medium
+
+  * New upstream version 8.20.0
+
+ -- Samuel Henrique <samueloph@debian.org>  Wed, 29 Apr 2026 11:38:11 -0300
+
+curl (8.20.0~rc3-1) unstable; urgency=medium
+
+  * New upstream version 8.20.0~rc3
+
+ -- Samuel Henrique <samueloph@debian.org>  Thu, 23 Apr 2026 07:44:08 -0700
+
+curl (8.20.0~rc2-1) unstable; urgency=medium
+
+  * New upstream version 8.20.0~rc2
+
+  [ Samuel Henrique ]
+  * Bump Standards-Version to 4.7.4.
+  * debian/copyright: Remove files from rtmp support, dropped upstream.
+
+  [ Carlos Henrique Lima Melara ]
+  * debian/patches: refresh patches.
+      - test459-switch-to-mode-warn-for-stderr-check.patch: drop patch merged
+        upstream.
+
+
+ -- Carlos Henrique Lima Melara <charlesmelara@riseup.net>  Tue, 14 Apr 2026 22:22:42 -0300
+
+curl (8.19.0-3) unstable; urgency=medium
+
+  * debian/rules: revert parallel tests multiplier to 4.
+
+ -- Carlos Henrique Lima Melara <charlesmelara@riseup.net>  Thu, 26 Mar 2026 22:28:12 -0300
+
+curl (8.19.0-2) unstable; urgency=medium
+
+  [ Samuel Henrique ]
+  * debian/rules: Don't skip any tests and increase parallel factor to 7.
+
+  [ Carlos Henrique Lima Melara ]
+  * debian/patches/test459-switch-to-mode-warn-for-stderr-check.patch:
+    cherry-pick from upstream. (Closes: #1131157)
+
+ -- Carlos Henrique Lima Melara <charlesmelara@riseup.net>  Thu, 26 Mar 2026 21:16:48 -0300
+
 curl (8.19.0-1~bpo13+1) trixie-backports; urgency=medium
 
   * Rebuild for trixie-backports.
