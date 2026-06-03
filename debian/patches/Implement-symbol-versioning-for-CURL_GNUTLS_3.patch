@@ -104,10 +104,10 @@ Forwarded: not-needed
  create mode 100644 lib/libcurl-gnutls.vers.in
 
 diff --git a/configure.ac b/configure.ac
-index f1089b4..cc7a014 100644
+index 8c33941..f0c66aa 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -5415,6 +5415,7 @@ AC_CONFIG_FILES([\
+@@ -5491,6 +5491,7 @@ AC_CONFIG_FILES([\
    lib/Makefile \
    scripts/Makefile \
    lib/libcurl.vers \
@@ -129,7 +129,7 @@ index 1107c2c..41445b8 100644
  libcurl_la_LDFLAGS_EXTRA += -Wl,--version-script=libcurl.vers
  endif
 diff --git a/lib/curl_share.c b/lib/curl_share.c
-index 386a2b5..8110abe 100644
+index 94469bc..f7140eb 100644
 --- a/lib/curl_share.c
 +++ b/lib/curl_share.c
 @@ -91,6 +91,13 @@ CURLSH *curl_share_init(void)
@@ -175,7 +175,7 @@ index 386a2b5..8110abe 100644
  CURLSHcode Curl_share_lock(struct Curl_easy *data, curl_lock_data type,
                             curl_lock_access accesstype)
 diff --git a/lib/easy.c b/lib/easy.c
-index a472d6d..a9fd619 100644
+index ce3d002..661b321 100644
 --- a/lib/easy.c
 +++ b/lib/easy.c
 @@ -205,6 +205,13 @@ CURLcode curl_global_init(long flags)
@@ -729,7 +729,7 @@ index 195e12b..1b23b4c 100644
 +#endif
  #endif
 diff --git a/lib/http2.c b/lib/http2.c
-index 7be5abd..ca7c20f 100644
+index ab70455..dfd2aaa 100644
 --- a/lib/http2.c
 +++ b/lib/http2.c
 @@ -671,6 +671,14 @@ char *curl_pushheader_bynum(struct curl_pushheaders *h, size_t num)
@@ -762,7 +762,7 @@ index 7be5abd..ca7c20f 100644
  
  static struct Curl_easy *h2_duphandle(struct Curl_cfilter *cf,
                                        struct Curl_easy *data)
-@@ -3018,6 +3034,14 @@ char *curl_pushheader_bynum(struct curl_pushheaders *h, size_t num)
+@@ -3012,6 +3028,14 @@ char *curl_pushheader_bynum(struct curl_pushheaders *h, size_t num)
    (void)num;
    return NULL;
  }
@@ -777,7 +777,7 @@ index 7be5abd..ca7c20f 100644
  
  char *curl_pushheader_byname(struct curl_pushheaders *h, const char *name)
  {
-@@ -3025,5 +3049,13 @@ char *curl_pushheader_byname(struct curl_pushheaders *h, const char *name)
+@@ -3019,5 +3043,13 @@ char *curl_pushheader_byname(struct curl_pushheaders *h, const char *name)
    (void)name;
    return NULL;
  }
@@ -909,7 +909,7 @@ index 0000000..e12aa2d
 +  local: *;
 +} CURL_@CURL_LIBCURL_VERSIONED_SYMBOLS_PREFIX@3;
 diff --git a/lib/mime.c b/lib/mime.c
-index b7e51aa..0021845 100644
+index c15807a..1bfcd5d 100644
 --- a/lib/mime.c
 +++ b/lib/mime.c
 @@ -1116,6 +1116,12 @@ void curl_mime_free(curl_mime *mime)
@@ -925,7 +925,7 @@ index b7e51aa..0021845 100644
  
  CURLcode Curl_mime_duppart(struct Curl_easy *data,
                             curl_mimepart *dst, const curl_mimepart *src)
-@@ -1223,6 +1229,12 @@ curl_mime *curl_mime_init(void *easy)
+@@ -1224,6 +1230,12 @@ curl_mime *curl_mime_init(void *easy)
  
    return mime;
  }
@@ -938,7 +938,7 @@ index b7e51aa..0021845 100644
  
  /* Initialize a mime part. */
  void Curl_mime_initpart(curl_mimepart *part)
-@@ -1256,6 +1268,13 @@ curl_mimepart *curl_mime_addpart(curl_mime *mime)
+@@ -1257,6 +1269,13 @@ curl_mimepart *curl_mime_addpart(curl_mime *mime)
  
    return part;
  }
@@ -952,7 +952,7 @@ index b7e51aa..0021845 100644
  
  /* Set mime part name. */
  CURLcode curl_mime_name(curl_mimepart *part, const char *name)
-@@ -1273,6 +1292,12 @@ CURLcode curl_mime_name(curl_mimepart *part, const char *name)
+@@ -1274,6 +1293,12 @@ CURLcode curl_mime_name(curl_mimepart *part, const char *name)
  
    return CURLE_OK;
  }
@@ -965,7 +965,7 @@ index b7e51aa..0021845 100644
  
  /* Set mime part remote filename. */
  CURLcode curl_mime_filename(curl_mimepart *part, const char *filename)
-@@ -1290,6 +1315,13 @@ CURLcode curl_mime_filename(curl_mimepart *part, const char *filename)
+@@ -1291,6 +1316,13 @@ CURLcode curl_mime_filename(curl_mimepart *part, const char *filename)
  
    return CURLE_OK;
  }
@@ -979,7 +979,7 @@ index b7e51aa..0021845 100644
  
  /* Set mime part content from memory data. */
  CURLcode curl_mime_data(curl_mimepart *part, const char *data, size_t datasize)
-@@ -1317,6 +1349,12 @@ CURLcode curl_mime_data(curl_mimepart *part, const char *data, size_t datasize)
+@@ -1318,6 +1350,12 @@ CURLcode curl_mime_data(curl_mimepart *part, const char *data, size_t datasize)
  
    return CURLE_OK;
  }
@@ -992,7 +992,7 @@ index b7e51aa..0021845 100644
  
  /* Set mime part content from named local file. */
  CURLcode curl_mime_filedata(curl_mimepart *part, const char *filename)
-@@ -1365,6 +1403,13 @@ CURLcode curl_mime_filedata(curl_mimepart *part, const char *filename)
+@@ -1366,6 +1404,13 @@ CURLcode curl_mime_filedata(curl_mimepart *part, const char *filename)
    }
    return result;
  }
@@ -1006,7 +1006,7 @@ index b7e51aa..0021845 100644
  
  /* Set mime part type. */
  CURLcode curl_mime_type(curl_mimepart *part, const char *mimetype)
-@@ -1382,6 +1427,12 @@ CURLcode curl_mime_type(curl_mimepart *part, const char *mimetype)
+@@ -1383,6 +1428,12 @@ CURLcode curl_mime_type(curl_mimepart *part, const char *mimetype)
  
    return CURLE_OK;
  }
@@ -1019,7 +1019,7 @@ index b7e51aa..0021845 100644
  
  static const struct mime_encoder encoders[] = {
    { "binary", encoder_nop_read, encoder_nop_size },
-@@ -1414,6 +1465,13 @@ CURLcode curl_mime_encoder(curl_mimepart *part, const char *encoding)
+@@ -1415,6 +1466,13 @@ CURLcode curl_mime_encoder(curl_mimepart *part, const char *encoding)
  
    return result;
  }
@@ -1033,7 +1033,7 @@ index b7e51aa..0021845 100644
  
  /* Set mime part headers. */
  CURLcode curl_mime_headers(curl_mimepart *part,
-@@ -1432,6 +1490,13 @@ CURLcode curl_mime_headers(curl_mimepart *part,
+@@ -1433,6 +1491,13 @@ CURLcode curl_mime_headers(curl_mimepart *part,
      part->flags |= MIME_USERHEADERS_OWNER;
    return CURLE_OK;
  }
@@ -1047,7 +1047,7 @@ index b7e51aa..0021845 100644
  
  /* Set mime part content from callback. */
  CURLcode curl_mime_data_cb(curl_mimepart *part, curl_off_t datasize,
-@@ -1455,6 +1520,13 @@ CURLcode curl_mime_data_cb(curl_mimepart *part, curl_off_t datasize,
+@@ -1456,6 +1521,13 @@ CURLcode curl_mime_data_cb(curl_mimepart *part, curl_off_t datasize,
  
    return CURLE_OK;
  }
@@ -1061,7 +1061,7 @@ index b7e51aa..0021845 100644
  
  /* Set mime part content from subparts. */
  CURLcode Curl_mime_set_subparts(curl_mimepart *part,
-@@ -1512,6 +1584,13 @@ CURLcode curl_mime_subparts(curl_mimepart *part, curl_mime *subparts)
+@@ -1513,6 +1585,13 @@ CURLcode curl_mime_subparts(curl_mimepart *part, curl_mime *subparts)
  {
    return Curl_mime_set_subparts(part, subparts, TRUE);
  }
@@ -1075,7 +1075,7 @@ index b7e51aa..0021845 100644
  
  /* Readback from top mime. */
  /* Argument is the dummy top part. */
-@@ -2154,17 +2233,36 @@ curl_mime *curl_mime_init(CURL *easy)
+@@ -2169,17 +2248,36 @@ curl_mime *curl_mime_init(CURL *easy)
    (void)easy;
    return NULL;
  }
@@ -1112,7 +1112,7 @@ index b7e51aa..0021845 100644
  
  CURLcode curl_mime_name(curl_mimepart *part, const char *name)
  {
-@@ -2172,6 +2270,12 @@ CURLcode curl_mime_name(curl_mimepart *part, const char *name)
+@@ -2187,6 +2285,12 @@ CURLcode curl_mime_name(curl_mimepart *part, const char *name)
    (void)name;
    return CURLE_NOT_BUILT_IN;
  }
@@ -1125,7 +1125,7 @@ index b7e51aa..0021845 100644
  
  CURLcode curl_mime_filename(curl_mimepart *part, const char *filename)
  {
-@@ -2179,6 +2283,13 @@ CURLcode curl_mime_filename(curl_mimepart *part, const char *filename)
+@@ -2194,6 +2298,13 @@ CURLcode curl_mime_filename(curl_mimepart *part, const char *filename)
    (void)filename;
    return CURLE_NOT_BUILT_IN;
  }
@@ -1139,7 +1139,7 @@ index b7e51aa..0021845 100644
  
  CURLcode curl_mime_type(curl_mimepart *part, const char *mimetype)
  {
-@@ -2186,6 +2297,12 @@ CURLcode curl_mime_type(curl_mimepart *part, const char *mimetype)
+@@ -2201,6 +2312,12 @@ CURLcode curl_mime_type(curl_mimepart *part, const char *mimetype)
    (void)mimetype;
    return CURLE_NOT_BUILT_IN;
  }
@@ -1152,7 +1152,7 @@ index b7e51aa..0021845 100644
  
  CURLcode curl_mime_encoder(curl_mimepart *part, const char *encoding)
  {
-@@ -2193,6 +2310,13 @@ CURLcode curl_mime_encoder(curl_mimepart *part, const char *encoding)
+@@ -2208,6 +2325,13 @@ CURLcode curl_mime_encoder(curl_mimepart *part, const char *encoding)
    (void)encoding;
    return CURLE_NOT_BUILT_IN;
  }
@@ -1166,7 +1166,7 @@ index b7e51aa..0021845 100644
  
  CURLcode curl_mime_data(curl_mimepart *part, const char *data, size_t datasize)
  {
-@@ -2201,6 +2325,12 @@ CURLcode curl_mime_data(curl_mimepart *part, const char *data, size_t datasize)
+@@ -2216,6 +2340,12 @@ CURLcode curl_mime_data(curl_mimepart *part, const char *data, size_t datasize)
    (void)datasize;
    return CURLE_NOT_BUILT_IN;
  }
@@ -1179,7 +1179,7 @@ index b7e51aa..0021845 100644
  
  CURLcode curl_mime_filedata(curl_mimepart *part, const char *filename)
  {
-@@ -2208,6 +2338,13 @@ CURLcode curl_mime_filedata(curl_mimepart *part, const char *filename)
+@@ -2223,6 +2353,13 @@ CURLcode curl_mime_filedata(curl_mimepart *part, const char *filename)
    (void)filename;
    return CURLE_NOT_BUILT_IN;
  }
@@ -1193,7 +1193,7 @@ index b7e51aa..0021845 100644
  
  CURLcode curl_mime_data_cb(curl_mimepart *part, curl_off_t datasize,
                             curl_read_callback readfunc,
-@@ -2223,6 +2360,13 @@ CURLcode curl_mime_data_cb(curl_mimepart *part, curl_off_t datasize,
+@@ -2238,6 +2375,13 @@ CURLcode curl_mime_data_cb(curl_mimepart *part, curl_off_t datasize,
    (void)arg;
    return CURLE_NOT_BUILT_IN;
  }
@@ -1207,7 +1207,7 @@ index b7e51aa..0021845 100644
  
  CURLcode curl_mime_subparts(curl_mimepart *part, curl_mime *subparts)
  {
-@@ -2230,6 +2374,13 @@ CURLcode curl_mime_subparts(curl_mimepart *part, curl_mime *subparts)
+@@ -2245,6 +2389,13 @@ CURLcode curl_mime_subparts(curl_mimepart *part, curl_mime *subparts)
    (void)subparts;
    return CURLE_NOT_BUILT_IN;
  }
@@ -1221,7 +1221,7 @@ index b7e51aa..0021845 100644
  
  CURLcode curl_mime_headers(curl_mimepart *part,
                             struct curl_slist *headers, int take_ownership)
-@@ -2239,6 +2390,13 @@ CURLcode curl_mime_headers(curl_mimepart *part,
+@@ -2254,6 +2405,13 @@ CURLcode curl_mime_headers(curl_mimepart *part,
    (void)take_ownership;
    return CURLE_NOT_BUILT_IN;
  }
@@ -1236,10 +1236,10 @@ index b7e51aa..0021845 100644
  CURLcode Curl_mime_add_header(struct curl_slist **slp, const char *fmt, ...)
  {
 diff --git a/lib/mprintf.c b/lib/mprintf.c
-index 6eaea66..8a613664 100644
+index 06f6129..6976d9e 100644
 --- a/lib/mprintf.c
 +++ b/lib/mprintf.c
-@@ -1128,6 +1128,13 @@ int curl_mvsnprintf(char *buffer, size_t maxlength, const char *format,
+@@ -1125,6 +1125,13 @@ int curl_mvsnprintf(char *buffer, size_t maxlength, const char *format,
    }
    return retcode;
  }
@@ -1253,7 +1253,7 @@ index 6eaea66..8a613664 100644
  
  int curl_msnprintf(char *buffer, size_t maxlength, const char *format, ...)
  {
-@@ -1138,6 +1145,12 @@ int curl_msnprintf(char *buffer, size_t maxlength, const char *format, ...)
+@@ -1135,6 +1142,12 @@ int curl_msnprintf(char *buffer, size_t maxlength, const char *format, ...)
    va_end(args);
    return retcode;
  }
@@ -1266,7 +1266,7 @@ index 6eaea66..8a613664 100644
  
  /* fputc() look-alike */
  static int alloc_addbyter(unsigned char outc, void *f)
-@@ -1183,6 +1196,12 @@ char *curl_mvaprintf(const char *format, va_list args)
+@@ -1180,6 +1193,12 @@ char *curl_mvaprintf(const char *format, va_list args)
      return curlx_dyn_ptr(info.b);
    return curlx_strdup("");
  }
@@ -1279,7 +1279,7 @@ index 6eaea66..8a613664 100644
  
  char *curl_maprintf(const char *format, ...)
  {
-@@ -1193,6 +1212,12 @@ char *curl_maprintf(const char *format, ...)
+@@ -1190,6 +1209,12 @@ char *curl_maprintf(const char *format, ...)
    va_end(args);
    return s;
  }
@@ -1292,7 +1292,7 @@ index 6eaea66..8a613664 100644
  
  static int storebuffer(unsigned char outc, void *f)
  {
-@@ -1212,6 +1237,12 @@ int curl_msprintf(char *buffer, const char *format, ...)
+@@ -1209,6 +1234,12 @@ int curl_msprintf(char *buffer, const char *format, ...)
    *buffer = 0; /* we terminate this with a zero byte */
    return retcode;
  }
@@ -1305,7 +1305,7 @@ index 6eaea66..8a613664 100644
  
  static int fputc_wrapper(unsigned char outc, void *f)
  {
-@@ -1230,6 +1261,12 @@ int curl_mprintf(const char *format, ...)
+@@ -1227,6 +1258,12 @@ int curl_mprintf(const char *format, ...)
    va_end(args);
    return retcode;
  }
@@ -1318,7 +1318,7 @@ index 6eaea66..8a613664 100644
  
  int curl_mfprintf(FILE *fd, const char *format, ...)
  {
-@@ -1240,6 +1277,12 @@ int curl_mfprintf(FILE *fd, const char *format, ...)
+@@ -1237,6 +1274,12 @@ int curl_mfprintf(FILE *fd, const char *format, ...)
    va_end(args);
    return retcode;
  }
@@ -1331,7 +1331,7 @@ index 6eaea66..8a613664 100644
  
  int curl_mvsprintf(char *buffer, const char *format, va_list args)
  {
-@@ -1247,13 +1290,31 @@ int curl_mvsprintf(char *buffer, const char *format, va_list args)
+@@ -1244,13 +1287,31 @@ int curl_mvsprintf(char *buffer, const char *format, va_list args)
    *buffer = 0; /* we terminate this with a zero byte */
    return retcode;
  }
@@ -1364,7 +1364,7 @@ index 6eaea66..8a613664 100644
 +__asm__(".symver __curl_compat_curl_mvfprintf, curl_mvfprintf@CURL_GNUTLS_3");
 +#endif
 diff --git a/lib/multi.c b/lib/multi.c
-index a0012d8..de6b750 100644
+index 1948bbd..86dc202 100644
 --- a/lib/multi.c
 +++ b/lib/multi.c
 @@ -361,6 +361,13 @@ CURLM *curl_multi_init(void)
@@ -1482,7 +1482,7 @@ index a0012d8..de6b750 100644
  
  /*
   * multi_ischanged() is called
-@@ -2868,6 +2927,13 @@ CURLMcode curl_multi_perform(CURLM *m, int *running_handles)
+@@ -2942,6 +3001,13 @@ CURLMcode curl_multi_perform(CURLM *m, int *running_handles)
  
    return multi_perform(multi, running_handles);
  }
@@ -1496,7 +1496,7 @@ index a0012d8..de6b750 100644
  
  CURLMcode curl_multi_cleanup(CURLM *m)
  {
-@@ -2964,6 +3030,13 @@ CURLMcode curl_multi_cleanup(CURLM *m)
+@@ -3038,6 +3104,13 @@ CURLMcode curl_multi_cleanup(CURLM *m)
    }
    return CURLM_BAD_HANDLE;
  }
@@ -1510,7 +1510,7 @@ index a0012d8..de6b750 100644
  
  /*
   * curl_multi_info_read()
-@@ -3002,6 +3075,13 @@ CURLMsg *curl_multi_info_read(CURLM *m, int *msgs_in_queue)
+@@ -3076,6 +3149,13 @@ CURLMsg *curl_multi_info_read(CURLM *m, int *msgs_in_queue)
    }
    return NULL;
  }
@@ -1524,7 +1524,7 @@ index a0012d8..de6b750 100644
  
  void Curl_multi_will_close(struct Curl_easy *data, curl_socket_t s)
  {
-@@ -3350,6 +3430,13 @@ CURLMcode curl_multi_setopt(CURLM *m, CURLMoption option, ...)
+@@ -3424,6 +3504,13 @@ CURLMcode curl_multi_setopt(CURLM *m, CURLMoption option, ...)
    va_end(param);
    return mresult;
  }
@@ -1538,7 +1538,7 @@ index a0012d8..de6b750 100644
  
  /* we define curl_multi_socket() in the public multi.h header */
  #undef curl_multi_socket
-@@ -3363,6 +3450,13 @@ CURLMcode curl_multi_socket(CURLM *m, curl_socket_t s, int *running_handles)
+@@ -3437,6 +3524,13 @@ CURLMcode curl_multi_socket(CURLM *m, curl_socket_t s, int *running_handles)
      return CURLM_RECURSIVE_API_CALL;
    return multi_socket(multi, FALSE, s, 0, running_handles);
  }
@@ -1552,7 +1552,7 @@ index a0012d8..de6b750 100644
  
  CURLMcode curl_multi_socket_action(CURLM *m, curl_socket_t s,
                                     int ev_bitmask, int *running_handles)
-@@ -3374,6 +3468,15 @@ CURLMcode curl_multi_socket_action(CURLM *m, curl_socket_t s,
+@@ -3448,6 +3542,15 @@ CURLMcode curl_multi_socket_action(CURLM *m, curl_socket_t s,
      return CURLM_RECURSIVE_API_CALL;
    return multi_socket(multi, FALSE, s, ev_bitmask, running_handles);
  }
@@ -1568,7 +1568,7 @@ index a0012d8..de6b750 100644
  
  CURLMcode curl_multi_socket_all(CURLM *m, int *running_handles)
  {
-@@ -3384,6 +3487,14 @@ CURLMcode curl_multi_socket_all(CURLM *m, int *running_handles)
+@@ -3458,6 +3561,14 @@ CURLMcode curl_multi_socket_all(CURLM *m, int *running_handles)
      return CURLM_RECURSIVE_API_CALL;
    return multi_socket(multi, TRUE, CURL_SOCKET_BAD, 0, running_handles);
  }
@@ -1583,7 +1583,7 @@ index a0012d8..de6b750 100644
  
  static bool multi_has_dirties(struct Curl_multi *multi)
  {
-@@ -3483,6 +3594,13 @@ CURLMcode curl_multi_timeout(CURLM *m,
+@@ -3557,6 +3668,13 @@ CURLMcode curl_multi_timeout(CURLM *m,
    multi_timeout(multi, &expire_time, timeout_ms);
    return CURLM_OK;
  }
@@ -1597,7 +1597,7 @@ index a0012d8..de6b750 100644
  
  /*
   * Tell the application it should update its timers, if it subscribes to the
-@@ -3735,6 +3853,13 @@ CURLMcode curl_multi_assign(CURLM *m, curl_socket_t sockfd,
+@@ -3809,6 +3927,13 @@ CURLMcode curl_multi_assign(CURLM *m, curl_socket_t sockfd,
  
    return Curl_multi_ev_assign(multi, sockfd, sockp);
  }
@@ -1611,7 +1611,7 @@ index a0012d8..de6b750 100644
  
  static void move_pending_to_connect(struct Curl_multi *multi,
                                      struct Curl_easy *data)
-@@ -3838,6 +3963,14 @@ CURL **curl_multi_get_handles(CURLM *m)
+@@ -3912,6 +4037,14 @@ CURL **curl_multi_get_handles(CURLM *m)
    }
    return a;
  }
@@ -1626,7 +1626,7 @@ index a0012d8..de6b750 100644
  
  CURLMcode curl_multi_get_offt(CURLM *m,
                                CURLMinfo_offt info,
-@@ -3878,6 +4011,13 @@ CURLMcode curl_multi_get_offt(CURLM *m,
+@@ -3952,6 +4085,13 @@ CURLMcode curl_multi_get_offt(CURLM *m,
      return CURLM_UNKNOWN_OPTION;
    }
  }
@@ -1640,7 +1640,7 @@ index a0012d8..de6b750 100644
  
  CURLcode Curl_multi_xfer_buf_borrow(struct Curl_easy *data,
                                      char **pbuf, size_t *pbuflen)
-@@ -4082,6 +4222,15 @@ CURLMcode curl_multi_notify_enable(CURLM *m, unsigned int notification)
+@@ -4156,6 +4296,15 @@ CURLMcode curl_multi_notify_enable(CURLM *m, unsigned int notification)
      return CURLM_BAD_HANDLE;
    return Curl_mntfy_enable(multi, notification);
  }
@@ -1656,7 +1656,7 @@ index a0012d8..de6b750 100644
  
  CURLMcode curl_multi_notify_disable(CURLM *m, unsigned int notification)
  {
-@@ -4091,6 +4240,15 @@ CURLMcode curl_multi_notify_disable(CURLM *m, unsigned int notification)
+@@ -4165,6 +4314,15 @@ CURLMcode curl_multi_notify_disable(CURLM *m, unsigned int notification)
      return CURLM_BAD_HANDLE;
    return Curl_mntfy_disable(multi, notification);
  }
@@ -1673,10 +1673,10 @@ index a0012d8..de6b750 100644
  #ifdef DEBUGBUILD
  static void multi_xfer_dump(struct Curl_multi *multi, uint32_t mid,
 diff --git a/lib/parsedate.c b/lib/parsedate.c
-index ce358bd..f445593 100644
+index b194231..4025330 100644
 --- a/lib/parsedate.c
 +++ b/lib/parsedate.c
-@@ -593,6 +593,12 @@ time_t curl_getdate(const char *p, const time_t *unused)
+@@ -597,6 +597,12 @@ time_t curl_getdate(const char *p, const time_t *unused)
    /* everything else is fail */
    return -1;
  }
@@ -1690,10 +1690,10 @@ index ce358bd..f445593 100644
  /* Curl_getdate_capped() differs from curl_getdate() in that this will return
     TIME_T_MAX in case the parsed time value was too big, instead of an
 diff --git a/lib/setopt.c b/lib/setopt.c
-index b8a6327..d52b122 100644
+index e67a3c8..5a79af8 100644
 --- a/lib/setopt.c
 +++ b/lib/setopt.c
-@@ -2931,3 +2931,10 @@ CURLcode curl_easy_setopt(CURL *curl, CURLoption option, ...)
+@@ -2959,3 +2959,10 @@ CURLcode curl_easy_setopt(CURL *curl, CURLoption option, ...)
      failf(data, "setopt 0x%x got bad argument", option);
    return result;
  }
@@ -1761,7 +1761,7 @@ index a352fda..9cc8972 100644
 +__asm__(".symver __curl_compat_curl_strnequal, curl_strnequal@CURL_GNUTLS_3");
 +#endif
 diff --git a/lib/strerror.c b/lib/strerror.c
-index 1e97c28..126c61f 100644
+index e1089f3..fa4eb03 100644
 --- a/lib/strerror.c
 +++ b/lib/strerror.c
 @@ -322,6 +322,13 @@ const char *curl_easy_strerror(CURLcode error)
@@ -1821,10 +1821,10 @@ index 1e97c28..126c61f 100644
  #ifdef USE_WINDOWS_SSPI
  /*
 diff --git a/lib/urlapi.c b/lib/urlapi.c
-index 103e0a6..268e681 100644
+index 9fd0889..dec75f6 100644
 --- a/lib/urlapi.c
 +++ b/lib/urlapi.c
-@@ -1282,6 +1282,12 @@ CURLU *curl_url(void)
+@@ -1312,6 +1312,12 @@ CURLU *curl_url(void)
  {
    return curlx_calloc(1, sizeof(struct Curl_URL));
  }
@@ -1837,7 +1837,7 @@ index 103e0a6..268e681 100644
  
  void curl_url_cleanup(CURLU *u)
  {
-@@ -1290,6 +1296,13 @@ void curl_url_cleanup(CURLU *u)
+@@ -1320,6 +1326,13 @@ void curl_url_cleanup(CURLU *u)
      curlx_free(u);
    }
  }
@@ -1851,7 +1851,7 @@ index 103e0a6..268e681 100644
  
  #define DUP(dest, src, name)                    \
    do {                                          \
-@@ -1323,6 +1336,12 @@ fail:
+@@ -1353,6 +1366,12 @@ fail:
    curl_url_cleanup(u);
    return NULL;
  }
@@ -1864,7 +1864,7 @@ index 103e0a6..268e681 100644
  
  #ifndef USE_IDN
  #define host_decode(x, y) CURLUE_LACKS_IDN
-@@ -1623,6 +1642,12 @@ CURLUcode curl_url_get(const CURLU *u, CURLUPart what,
+@@ -1653,6 +1672,12 @@ CURLUcode curl_url_get(const CURLU *u, CURLUPart what,
  
    return ifmissing;
  }
@@ -1877,7 +1877,7 @@ index 103e0a6..268e681 100644
  
  static CURLUcode set_url_scheme(CURLU *u, const char *scheme,
                                  unsigned int flags)
-@@ -1988,6 +2013,12 @@ nomem:
+@@ -2021,6 +2046,12 @@ nomem:
    }
    return CURLUE_OK;
  }
@@ -1891,7 +1891,7 @@ index 103e0a6..268e681 100644
  bool Curl_url_same_origin(CURLU *base, CURLU *href)
  {
 diff --git a/lib/version.c b/lib/version.c
-index b3b0a46..5001d64 100644
+index 6522f09..f0c67d7 100644
 --- a/lib/version.c
 +++ b/lib/version.c
 @@ -278,6 +278,12 @@ char *curl_version(void)
@@ -1907,7 +1907,7 @@ index b3b0a46..5001d64 100644
  
  /* data for curl_version_info
  
-@@ -674,3 +680,10 @@ curl_version_info_data *curl_version_info(CURLversion stamp)
+@@ -677,3 +683,10 @@ curl_version_info_data *curl_version_info(CURLversion stamp)
  
    return &version_info;
  }
