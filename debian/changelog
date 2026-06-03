@@ -1,3 +1,14 @@
+curl (8.21.0~rc1-1+exp1) experimental; urgency=medium
+
+  * New upstream version 8.21.0~rc1
+  * d/p/event-fix-wakeup-consumption.patch: Drop patch applied upstream
+  * Refresh patches:
+    - Implement-symbol-versioning-for-CURL_GNUTLS_3.patch
+    - ZZZgnutls-build.patch
+    - build-Divide-mit-krb5-gssapi-link-flags-between-LDFLAGS-a.patch
+
+ -- Samuel Henrique <samueloph@debian.org>  Tue, 02 Jun 2026 21:22:01 -0700
+
 curl (8.20.0-5) unstable; urgency=medium
 
   * d/control: Mark libcurl3t64-gnutls as Arch: any, M-A: same.
