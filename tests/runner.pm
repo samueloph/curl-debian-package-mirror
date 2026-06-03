@@ -29,7 +29,7 @@
 # (in controlleripccall) which is later read from and the arguments
 # unmarshalled (in ipcrecv) before the desired function is called normally.
 # The function return values are then marshalled and written into another pipe
-# (again in ipcrecv) when is later read from and unmarshalled (in runnerar)
+# (again in ipcrecv) which is later read from and unmarshalled (in runnerar)
 # before being returned to the caller.
 
 package runner;
@@ -241,8 +241,10 @@ sub runner_init {
     }
 
     $controllerw{$thisrunnerid} = $thiscontrollerw;
-    $runnerr = $thisrunnerr;
-    $runnerw = $thisrunnerw;
+    if(!$multiprocess) {
+        $runnerr = $thisrunnerr;
+        $runnerw = $thisrunnerw;
+    }
     $controllerr{$thisrunnerid} = $thiscontrollerr;
 
     return $thisrunnerid;
@@ -251,7 +253,7 @@ sub runner_init {
 #######################################################################
 # Loop to execute incoming IPC calls until the shutdown call
 sub event_loop {
-    while() {
+    while(1) {
         if(ipcrecv()) {
             last;
         }
@@ -666,7 +668,7 @@ sub singletest_setenv {
         if($s =~ /([^=]*)(.*)/) {
             my ($var, $content) = ($1, $2);
             # remember current setting, to restore it once test runs
-            $oldenv{$var} = ($ENV{$var}) ? "$ENV{$var}" : 'notset';
+            $oldenv{$var} = $ENV{$var} ? $ENV{$var} : 'notset';
 
             if($content =~ /^=(.*)/) {
                 # assign it
@@ -708,6 +710,9 @@ sub singletest_precheck {
                 }
                 $cmd = join(" ", @p);
             }
+
+            # provide an environment variable
+            $ENV{'CURL_TESTNUM'} = $testnum;
 
             my @o = `$cmd 2> $LOGDIR/precheck-$testnum`;
             if($o[0]) {
@@ -1331,6 +1336,7 @@ sub controlleripccall {
     my $margs = freeze \@_;
 
     # Send IPC call via pipe
+    length($margs) < 1000 || die "A large IPC write risks blocking on some platforms";
     my $err;
     while(! defined ($err = syswrite($controllerw{$runnerid}, (pack "L", length($margs)) . $margs)) || $err <= 0) {
         if((!defined $err && ! $!{EINTR}) || (defined $err && $err == 0)) {

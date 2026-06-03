@@ -597,15 +597,15 @@ static CURLcode imap_perform_login(struct Curl_easy *data,
 
   /* Check we have a username and password to authenticate with and end the
      connect phase if we do not */
-  if(!data->state.aptr.user) {
+  if(!conn->creds) {
     imap_state(data, imapc, IMAP_STOP);
 
     return result;
   }
 
   /* Make sure the username and password are in the correct atom format */
-  user = imap_atom(conn->user, FALSE);
-  passwd = imap_atom(conn->passwd, FALSE);
+  user = imap_atom(Curl_creds_user(conn->creds), FALSE);
+  passwd = imap_atom(Curl_creds_passwd(conn->creds), FALSE);
 
   /* Send the LOGIN command */
   result = imap_sendf(data, imapc, "LOGIN %s %s", user ? user : "",
@@ -712,7 +712,6 @@ static CURLcode imap_perform_authentication(struct Curl_easy *data,
   /* Calculate the SASL login details */
   result = Curl_sasl_start(&imapc->sasl, data, (bool)imapc->ir_supported,
                            &progress);
-
   if(!result) {
     if(progress == SASL_INPROGRESS)
       imap_state(data, imapc, IMAP_AUTHENTICATE);
@@ -911,12 +910,12 @@ static CURLcode imap_perform_append(struct Curl_easy *data,
   if(data->set.upload_flags) {
     int i;
     struct ulbits ulflag[] = {
-      {CURLULFLAG_ANSWERED, "Answered"},
-      {CURLULFLAG_DELETED, "Deleted"},
-      {CURLULFLAG_DRAFT, "Draft"},
-      {CURLULFLAG_FLAGGED, "Flagged"},
-      {CURLULFLAG_SEEN, "Seen"},
-      {0, NULL}
+      { CURLULFLAG_ANSWERED, "Answered" },
+      { CURLULFLAG_DELETED, "Deleted" },
+      { CURLULFLAG_DRAFT, "Draft" },
+      { CURLULFLAG_FLAGGED, "Flagged" },
+      { CURLULFLAG_SEEN, "Seen" },
+      { 0, NULL }
     };
 
     result = CURLE_OUT_OF_MEMORY;
@@ -1044,7 +1043,7 @@ static CURLcode imap_state_capability_resp(struct Curl_easy *data,
 
       /* Extract the word */
       for(wordlen = 0; line[wordlen] && !ISBLANK(line[wordlen]) &&
-            !ISNEWLINE(line[wordlen]);)
+                       !ISNEWLINE(line[wordlen]);)
         wordlen++;
 
       /* Does the server support the STARTTLS capability? */
@@ -1796,7 +1795,7 @@ static CURLcode imap_parse_url_options(struct connectdata *conn,
 static CURLcode imap_parse_url_path(struct Curl_easy *data,
                                     struct IMAP *imap)
 {
-  /* The imap struct is already initialised in imap_connect() */
+  /* The imap struct is already initialized in imap_connect() */
   CURLcode result = CURLE_OK;
   const char *begin = &data->state.up.path[1]; /* skip leading slash */
   const char *ptr = begin;

@@ -45,11 +45,11 @@ class TestProxy:
             os.makedirs(push_dir)
         if env.have_nghttpx():
             nghttpx_fwd.start_if_needed()
-        env.make_data_file(indir=env.gen_dir, fname="data-100k", fsize=100*1024)
-        env.make_data_file(indir=env.gen_dir, fname="data-10m", fsize=10*1024*1024)
+        env.make_data_file(indir=env.gen_dir, fname="data-100k", fsize=100 * 1024)
+        env.make_data_file(indir=env.gen_dir, fname="data-10m", fsize=10 * 1024 * 1024)
         indir = httpd.docs_dir
-        env.make_data_file(indir=indir, fname="data-100k", fsize=100*1024)
-        env.make_data_file(indir=indir, fname="data-1m", fsize=1024*1024)
+        env.make_data_file(indir=indir, fname="data-100k", fsize=100 * 1024)
+        env.make_data_file(indir=indir, fname="data-1m", fsize=1024 * 1024)
 
     def get_tunnel_proto_used(self, r: ExecResult):
         for line in r.trace_lines:
@@ -397,7 +397,7 @@ class TestProxy:
         xargs.append('-6')
         r = curl.http_download(urls=[url], alpn_proto='http/1.1', with_stats=True,
                                extra_args=xargs)
-        r.check_exit_code(0), f'{r}'
+        r.check_exit_code(0)
         r.check_response(count=1, http_status=200, protocol='HTTP/1.1')
 
     # download via http: ipv6 proxy (no tunnel) using IP address, IPv4 only
@@ -411,5 +411,15 @@ class TestProxy:
         xargs.append('-4')
         r = curl.http_download(urls=[url], alpn_proto='http/1.1', with_stats=True,
                                extra_args=xargs)
-        r.check_exit_code(0), f'{r}'
+        r.check_exit_code(0)
         r.check_response(count=1, http_status=200, protocol='HTTP/1.1')
+
+    # download via http: proxy (no tunnel), check connection reuse
+    def test_10_17_proxy_http(self, env: Env, httpd):
+        curl = CurlClient(env=env)
+        url1 = f'http://localhost:{env.http_port}/data.json'
+        url2 = f'http://127.0.0.1:{env.http_port}/data.json'
+        r = curl.http_download(urls=[url1, url2], alpn_proto='http/1.1', with_stats=True,
+                               extra_args=curl.get_proxy_args(proxys=False))
+        r.check_response(count=2, http_status=200)
+        assert r.total_connects == 1, r.dump_logs()

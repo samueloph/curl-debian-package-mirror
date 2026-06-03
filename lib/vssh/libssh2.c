@@ -57,7 +57,7 @@
 #include "curlx/fopen.h"
 #include "vssh/vssh.h"
 #include "curlx/strparse.h"
-#include "curlx/base64.h" /* for base64 encoding/decoding */
+#include "curlx/base64.h" /* for curlx_base64_encode() */
 
 static const char *sftp_libssh2_strerror(unsigned long err)
 {
@@ -148,11 +148,12 @@ static void kbd_callback(const char *name, int name_len,
 #endif /* CURL_LIBSSH2_DEBUG */
   if(num_prompts == 1) {
     struct connectdata *conn = data->conn;
+    const char *passwd = Curl_creds_passwd(conn->creds);
     /* this function must allocate memory that can be freed by libssh2, which
        uses the LIBSSH2_FREE_FUNC callback */
-    responses[0].text = Curl_cstrdup(conn->passwd);
+    responses[0].text = Curl_cstrdup(passwd);
     responses[0].length =
-      responses[0].text == NULL ? 0 : curlx_uztoui(strlen(conn->passwd));
+      responses[0].text == NULL ? 0 : curlx_uztoui(strlen(passwd));
   }
   (void)prompts;
 } /* kbd_callback */
@@ -361,9 +362,9 @@ static CURLcode ssh_knownhost(struct Curl_easy *data,
         rc = CURLKHSTAT_REJECT;
       else {
         keycheck = libssh2_knownhost_checkp(sshc->kh,
-                                            conn->host.name,
-                                            (conn->remote_port != PORT_SSH) ?
-                                            conn->remote_port : -1,
+                                            conn->origin->hostname,
+                                            (conn->origin->port != PORT_SSH) ?
+                                            conn->origin->port : -1,
                                             remotekey, keylen,
                                             LIBSSH2_KNOWNHOST_TYPE_PLAIN|
                                             LIBSSH2_KNOWNHOST_KEYENC_RAW|
@@ -427,14 +428,14 @@ static CURLcode ssh_knownhost(struct Curl_easy *data,
         /* the found host+key did not match but has been told to be fine
            anyway so we add it in memory */
         int addrc = libssh2_knownhost_add(sshc->kh,
-                                          conn->host.name, NULL,
+                                          conn->origin->hostname, NULL,
                                           remotekey, keylen,
                                           LIBSSH2_KNOWNHOST_TYPE_PLAIN|
                                           LIBSSH2_KNOWNHOST_KEYENC_RAW|
                                           keybit, NULL);
         if(addrc)
           infof(data, "WARNING: adding the known host %s failed",
-                conn->host.name);
+                conn->origin->hostname);
         else if(rc == CURLKHSTAT_FINE_ADD_TO_FILE ||
                 rc == CURLKHSTAT_FINE_REPLACE) {
           /* now we write the entire in-memory list of known hosts to the
@@ -642,16 +643,16 @@ static CURLcode ssh_force_knownhost_key_type(struct Curl_easy *data,
             }
             p = kh_name_end + 2; /* start of port number */
             if(!curlx_str_number(&p, &port, 0xffff) &&
-               (kh_name_end && (port == conn->remote_port))) {
+               (kh_name_end && (port == conn->origin->port))) {
               kh_name_size = strlen(store->name) - 1 - strlen(kh_name_end);
               if(strncmp(store->name + 1,
-                         conn->host.name, kh_name_size) == 0) {
+                         conn->origin->hostname, kh_name_size) == 0) {
                 found = TRUE;
                 break;
               }
             }
           }
-          else if(strcmp(store->name, conn->host.name) == 0) {
+          else if(strcmp(store->name, conn->origin->hostname) == 0) {
             found = TRUE;
             break;
           }
@@ -667,7 +668,7 @@ static CURLcode ssh_force_knownhost_key_type(struct Curl_easy *data,
       int rc;
       const char *hostkey_method = NULL;
       infof(data, "Found host %s in %s",
-            conn->host.name, data->set.str[STRING_SSH_KNOWNHOSTS]);
+            conn->origin->hostname, data->set.str[STRING_SSH_KNOWNHOSTS]);
 
       switch(store->typemask & LIBSSH2_KNOWNHOST_KEY_MASK) {
       case LIBSSH2_KNOWNHOST_KEY_ED25519:
@@ -710,7 +711,7 @@ static CURLcode ssh_force_knownhost_key_type(struct Curl_easy *data,
     }
     else {
       infof(data, "Did not find host %s in %s",
-            conn->host.name, data->set.str[STRING_SSH_KNOWNHOSTS]);
+            conn->origin->hostname, data->set.str[STRING_SSH_KNOWNHOSTS]);
     }
   }
 
@@ -1146,7 +1147,7 @@ static CURLcode ssh_state_pkey_init(struct Curl_easy *data,
       return CURLE_OUT_OF_MEMORY;
     }
 
-    sshc->passphrase = data->set.ssl.key_passwd;
+    sshc->passphrase = data->set.ssl.primary.key_passwd;
     if(!sshc->passphrase)
       sshc->passphrase = "";
 
@@ -1496,9 +1497,9 @@ static CURLcode ssh_state_authlist(struct Curl_easy *data,
    * Therefore always specify it here.
    */
   struct connectdata *conn = data->conn;
+  const char *user = Curl_creds_user(conn->creds);
   sshc->authlist = libssh2_userauth_list(sshc->ssh_session,
-                                         conn->user,
-                                         curlx_uztoui(strlen(conn->user)));
+                                         user, curlx_uztoui(strlen(user)));
 
   if(!sshc->authlist) {
     int rc;
@@ -1527,11 +1528,11 @@ static CURLcode ssh_state_auth_pkey(struct Curl_easy *data,
   /* The function below checks if the files exists, no need to stat() here.
    */
   struct connectdata *conn = data->conn;
+  const char *user = Curl_creds_user(conn->creds);
   int rc =
     libssh2_userauth_publickey_fromfile_ex(sshc->ssh_session,
-                                           conn->user,
-                                           curlx_uztoui(
-                                             strlen(conn->user)),
+                                           user,
+                                           curlx_uztoui(strlen(user)),
                                            sshc->rsa_pub,
                                            sshc->rsa, sshc->passphrase);
   if(rc == LIBSSH2_ERROR_EAGAIN)
@@ -1579,11 +1580,13 @@ static CURLcode ssh_state_auth_pass(struct Curl_easy *data,
                                     struct ssh_conn *sshc)
 {
   struct connectdata *conn = data->conn;
+  const char *user = Curl_creds_user(conn->creds);
+  const char *passwd = Curl_creds_passwd(conn->creds);
   int rc =
-    libssh2_userauth_password_ex(sshc->ssh_session, conn->user,
-                                 curlx_uztoui(strlen(conn->user)),
-                                 conn->passwd,
-                                 curlx_uztoui(strlen(conn->passwd)),
+    libssh2_userauth_password_ex(sshc->ssh_session, user,
+                                 curlx_uztoui(strlen(user)),
+                                 passwd,
+                                 curlx_uztoui(strlen(passwd)),
                                  NULL);
   if(rc == LIBSSH2_ERROR_EAGAIN) {
     return CURLE_AGAIN;
@@ -1680,7 +1683,7 @@ static CURLcode ssh_state_auth_agent(struct Curl_easy *data,
 
   if(rc == 0) {
     struct connectdata *conn = data->conn;
-    rc = libssh2_agent_userauth(sshc->ssh_agent, conn->user,
+    rc = libssh2_agent_userauth(sshc->ssh_agent, Curl_creds_user(conn->creds),
                                 sshc->sshagent_identity);
 
     if(rc < 0) {
@@ -1727,11 +1730,10 @@ static CURLcode ssh_state_auth_key(struct Curl_easy *data,
 {
   /* Authentication failed. Continue with keyboard-interactive now. */
   struct connectdata *conn = data->conn;
+  const char *user = Curl_creds_user(conn->creds);
   int rc =
     libssh2_userauth_keyboard_interactive_ex(sshc->ssh_session,
-                                             conn->user,
-                                             curlx_uztoui(
-                                               strlen(conn->user)),
+                                             user, curlx_uztoui(strlen(user)),
                                              &kbd_callback);
   if(rc == LIBSSH2_ERROR_EAGAIN)
     return CURLE_AGAIN;
@@ -3452,9 +3454,9 @@ static CURLcode ssh_connect(struct Curl_easy *data, bool *done)
   if(!sshc)
     return CURLE_FAILED_INIT;
 
-  infof(data, "User: '%s'", conn->user);
+  infof(data, "User: '%s'", Curl_creds_user(conn->creds));
 #ifdef CURL_LIBSSH2_DEBUG
-  infof(data, "Password: %s", conn->passwd);
+  infof(data, "Password: %s", Curl_creds_passwd(conn->creds));
   sock = conn->sock[FIRSTSOCKET];
 #endif /* CURL_LIBSSH2_DEBUG */
 

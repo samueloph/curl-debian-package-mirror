@@ -71,7 +71,7 @@ struct cert_chain_engine_config_win8 {
   DWORD dwExclusiveFlags;
 };
 
-/* Offered by mingw-w64 v4+. MS SDK ~10+/~VS2017+. */
+/* Offered by mingw-w64 v4+, MS SDK 8.0/~VS2012+ */
 #ifndef CERT_CHAIN_EXCLUSIVE_ENABLE_CA_FLAG
 #define CERT_CHAIN_EXCLUSIVE_ENABLE_CA_FLAG 0x00000001
 #endif
@@ -91,11 +91,6 @@ struct cert_chain_engine_config_win7 {
   HCERTSTORE hExclusiveRoot;
   HCERTSTORE hExclusiveTrustedPeople;
 };
-
-static int is_cr_or_lf(char c)
-{
-  return c == '\r' || c == '\n';
-}
 
 /* Search the substring needle,needlelen into string haystack,haystacklen
  * Strings do not need to be terminated by a '\0'.
@@ -134,10 +129,11 @@ static CURLcode add_certs_data_to_store(HCERTSTORE trust_store,
 
   while(more_certs && (current_ca_file_ptr < ca_buffer_limit)) {
     const char *begin_cert_ptr = c_memmem(current_ca_file_ptr,
-                                          ca_buffer_limit-current_ca_file_ptr,
+                                          ca_buffer_limit -
+                                          current_ca_file_ptr - 1,
                                           BEGIN_CERT,
                                           begin_cert_len);
-    if(!begin_cert_ptr || !is_cr_or_lf(begin_cert_ptr[begin_cert_len])) {
+    if(!begin_cert_ptr || !ISNEWLINE(begin_cert_ptr[begin_cert_len])) {
       more_certs = 0;
     }
     else {
@@ -362,7 +358,7 @@ static DWORD cert_get_name_string(struct Curl_easy *data,
 
   /* CERT_NAME_SEARCH_ALL_NAMES_FLAG is available from Windows 8 onwards. */
   if(Win8_compat) {
-/* Offered by mingw-w64 v4+. MS SDK ~10+/~VS2017+. */
+/* Offered by mingw-w64 v4+, MS SDK 8.0/~VS2012+ */
 #ifndef CERT_NAME_SEARCH_ALL_NAMES_FLAG
 #define CERT_NAME_SEARCH_ALL_NAMES_FLAG 0x2
 #endif
@@ -509,7 +505,7 @@ CURLcode Curl_verify_host(struct Curl_cfilter *cf, struct Curl_easy *data)
   SECURITY_STATUS sspi_status;
   TCHAR *cert_hostname_buff = NULL;
   size_t cert_hostname_buff_index = 0;
-  const char *conn_hostname = connssl->peer.hostname;
+  const char *conn_hostname = connssl->peer.dest->hostname;
   size_t hostlen = strlen(conn_hostname);
   DWORD len = 0;
   DWORD actual_len = 0;
@@ -724,15 +720,15 @@ CURLcode Curl_verify_certificate(struct Curl_cfilter *cf,
 
           if(ca_info_blob) {
             result = add_certs_data_to_store(trust_store,
-                                              (const char *)ca_info_blob->data,
-                                              ca_info_blob->len,
-                                              "(memory blob)",
-                                              data);
+                                             (const char *)ca_info_blob->data,
+                                             ca_info_blob->len,
+                                             "(memory blob)",
+                                             data);
           }
           else {
             result = add_certs_file_to_store(trust_store,
-                                              conn_config->CAfile,
-                                              data);
+                                             conn_config->CAfile,
+                                             data);
           }
           if(result == CURLE_OK) {
             if(Curl_schannel_set_cached_cert_store(cf, data, trust_store)) {
@@ -780,9 +776,13 @@ CURLcode Curl_verify_certificate(struct Curl_cfilter *cf,
 
   if(result == CURLE_OK) {
     CERT_CHAIN_PARA ChainPara;
+    LPSTR serverAuthOID = CURL_UNCONST(szOID_PKIX_KP_SERVER_AUTH);
 
     memset(&ChainPara, 0, sizeof(ChainPara));
     ChainPara.cbSize = sizeof(ChainPara);
+    ChainPara.RequestedUsage.dwType = USAGE_MATCH_TYPE_AND;
+    ChainPara.RequestedUsage.Usage.cUsageIdentifier = 1;
+    ChainPara.RequestedUsage.Usage.rgpszUsageIdentifier = &serverAuthOID;
 
     if(!CertGetCertificateChain(cert_chain_engine,
                                 pCertContextServer,
@@ -805,7 +805,7 @@ CURLcode Curl_verify_certificate(struct Curl_cfilter *cf,
       DWORD dwTrustErrorMask = ~(DWORD)(CERT_TRUST_IS_NOT_TIME_NESTED);
       dwTrustErrorMask &= pSimpleChain->TrustStatus.dwErrorStatus;
 
-      if(data->set.ssl.revoke_best_effort) {
+      if(ssl_config->revoke_best_effort) {
         /* Ignore errors when root certificates are missing the revocation
          * list URL, or when the list could not be downloaded because the
          * server is currently unreachable. */

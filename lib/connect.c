@@ -63,6 +63,7 @@
 #include "curlx/inet_ntop.h"
 #include "curlx/strparse.h"
 #include "vtls/vtls.h" /* for vtls cfilters */
+#include "vquic/vquic.h" /* for QUIC cfilters */
 #include "progress.h"
 #include "conncache.h"
 #include "multihandle.h"
@@ -347,6 +348,8 @@ static CURLcode cf_setup_connect(struct Curl_cfilter *cf,
 {
   struct cf_setup_ctx *ctx = cf->ctx;
   CURLcode result = CURLE_OK;
+  struct Curl_peer *first_peer =
+    Curl_conn_get_first_peer(cf->conn, cf->sockindex);
 
   if(cf->connected) {
     *done = TRUE;
@@ -355,6 +358,7 @@ static CURLcode cf_setup_connect(struct Curl_cfilter *cf,
 
   /* connect current sub-chain */
 connect_sub_chain:
+  VERBOSE(Curl_conn_trc_filters(data, cf->sockindex, "cf_setup_connect"));
 
   if(cf->next && !cf->next->connected) {
     result = Curl_conn_cf_connect(cf->next, data, done);
@@ -363,10 +367,38 @@ connect_sub_chain:
   }
 
   if(ctx->state < CF_SETUP_CNNCT_EYEBALLS) {
-    result = cf_ip_happy_insert_after(cf, data, ctx->transport);
+    /* What type of thing we do connect to first?
+     * - without a proxy, `ctx->transport` defines it
+     * - with non-tunneling proxy, `ctx->transport` also applies, but
+     *   for QUIC we need the cf-h3-proxy, not the standard vquic one
+     * - with tunneling proxy, transport is defined by the proxytype
+     *   chosen and `ctx->transport` is tunneled through it.
+     */
+    uint8_t transport_out = ctx->transport;
+    bool tunnel_proxy = FALSE;
+#if !defined(CURL_DISABLE_PROXY) && !defined(CURL_DISABLE_HTTP)
+    CURL_TRC_CF(data, cf, "happy eyeballing, httpproxy=%d, type=%d, "
+                "transport=%d",
+                cf->conn->bits.httpproxy, cf->conn->http_proxy.proxytype,
+                ctx->transport);
+    if(cf->conn->bits.httpproxy && cf->conn->bits.tunnel_proxy) {
+      transport_out =
+        Curl_http_proxy_transport(cf->conn->http_proxy.proxytype);
+      tunnel_proxy = TRUE;
+      if((transport_out == TRNSPRT_QUIC) && (cf->conn->bits.socksproxy)) {
+        failf(data, "HTTP/3 proxy not possible via SOCKS");
+        return CURLE_UNSUPPORTED_PROTOCOL;
+      }
+    }
+#endif /* !CURL_DISABLE_PROXY && !CURL_DISABLE_HTTP */
+
+    result = cf_ip_happy_insert_after(cf, data, first_peer,
+                                      ctx->transport, transport_out,
+                                      tunnel_proxy);
     if(result)
       return result;
-    ctx->state = CF_SETUP_CNNCT_EYEBALLS;
+    ctx->state = (tunnel_proxy && (transport_out == TRNSPRT_QUIC)) ?
+      CF_SETUP_CNNCT_HTTP_PROXY : CF_SETUP_CNNCT_EYEBALLS;
     if(!cf->next || !cf->next->connected)
       goto connect_sub_chain;
   }
@@ -374,29 +406,27 @@ connect_sub_chain:
   /* sub-chain connected, do we need to add more? */
 #ifndef CURL_DISABLE_PROXY
   if(ctx->state < CF_SETUP_CNNCT_SOCKS && cf->conn->bits.socksproxy) {
-    /* for the secondary socket (FTP), use the "connect to host"
-     * but ignore the "connect to port" (use the secondary port)
-     */
-    const char *hostname =
-      cf->conn->bits.httpproxy ?
-      cf->conn->http_proxy.host.name :
-      cf->conn->bits.conn_to_host ?
-      cf->conn->conn_to_host.name :
-      cf->sockindex == SECONDARYSOCKET ?
-      cf->conn->secondaryhostname : cf->conn->host.name;
-    uint16_t port =
-      cf->conn->bits.httpproxy ? cf->conn->http_proxy.port :
-      cf->sockindex == SECONDARYSOCKET ? cf->conn->secondary_port :
-      cf->conn->bits.conn_to_port ? cf->conn->conn_to_port :
-      cf->conn->remote_port;
-    const char *user = cf->conn->socks_proxy.user;
-    const char *passwd = cf->conn->socks_proxy.passwd;
+    struct Curl_peer *dest; /* where SOCKS should tunnel to */
+
+    if(cf->conn->bits.httpproxy)
+      dest = cf->conn->http_proxy.peer;
+    else
+      dest = Curl_conn_get_destination(cf->conn, cf->sockindex);
+    if(!dest)
+      return CURLE_FAILED_INIT;
 
     result = Curl_cf_socks_proxy_insert_after(
-      cf, data, hostname, port, cf->conn->ip_version,
-      cf->conn->socks_proxy.proxytype, user, passwd);
-    if(result)
+      cf, data, dest, cf->conn->ip_version,
+      cf->conn->socks_proxy.proxytype,
+      cf->conn->socks_proxy.creds);
+
+    if(result) {
+      /* 'dest' might be freed now so it can't be dereferenced */
+      CURL_TRC_CF(data, cf, "added SOCKS filter failed -> %d", result);
       return result;
+    }
+    CURL_TRC_CF(data, cf, "added SOCKS filter to %s:%u -> %d",
+                dest->hostname, dest->port, result);
     ctx->state = CF_SETUP_CNNCT_SOCKS;
     if(!cf->next || !cf->next->connected)
       goto connect_sub_chain;
@@ -414,7 +444,10 @@ connect_sub_chain:
 
 #ifndef CURL_DISABLE_HTTP
     if(cf->conn->bits.tunnel_proxy) {
-      result = Curl_cf_http_proxy_insert_after(cf, data);
+      struct Curl_peer *dest; /* where HTTP should tunnel to */
+      dest = Curl_conn_get_destination(cf->conn, cf->sockindex);
+      result = Curl_cf_http_proxy_insert_after(
+        cf, data, dest, ctx->transport, cf->conn->http_proxy.proxytype);
       if(result)
         return result;
     }
@@ -428,9 +461,8 @@ connect_sub_chain:
   if(ctx->state < CF_SETUP_CNNCT_HAPROXY) {
 #ifndef CURL_DISABLE_PROXY
     if(data->set.haproxyprotocol) {
-      if(Curl_conn_is_ssl(cf->conn, cf->sockindex)) {
-        failf(data, "haproxy protocol not supported with SSL "
-              "encryption in place (QUIC?)");
+      if(ctx->transport == TRNSPRT_QUIC) {
+        failf(data, "haproxy protocol not support QUIC");
         return CURLE_UNSUPPORTED_PROTOCOL;
       }
       result = Curl_cf_haproxy_insert_after(cf, data);
@@ -443,20 +475,40 @@ connect_sub_chain:
       goto connect_sub_chain;
   }
 
-  if(ctx->state < CF_SETUP_CNNCT_SSL) {
-#ifdef USE_SSL
-    if((ctx->ssl_mode == CURL_CF_SSL_ENABLE ||
-        (ctx->ssl_mode != CURL_CF_SSL_DISABLE &&
-         cf->conn->scheme->flags & PROTOPT_SSL)) &&  /* we want SSL */
-       !Curl_conn_is_ssl(cf->conn, cf->sockindex)) { /* it is missing */
-      result = Curl_cf_ssl_insert_after(cf, data);
+  /* Adding Curl_cf_quic_insert_after() because now we
+     need the next filter to be QUIC/HTTP/3 (which has SSL) */
+#if !defined(CURL_DISABLE_HTTP) && defined(USE_HTTP3) && \
+  defined(USE_PROXY_HTTP3)
+  if(ctx->transport == TRNSPRT_QUIC && cf->conn->bits.httpproxy &&
+     cf->conn->bits.tunnel_proxy &&
+     (data->state.http_neg.wanted == CURL_HTTP_V3x)) {
+    if(ctx->state < CF_SETUP_CNNCT_SSL) {
+      result = Curl_cf_quic_insert_after(cf);
       if(result)
         return result;
+      ctx->state = CF_SETUP_CNNCT_SSL;
     }
-#endif /* USE_SSL */
-    ctx->state = CF_SETUP_CNNCT_SSL;
     if(!cf->next || !cf->next->connected)
       goto connect_sub_chain;
+  }
+  else
+#endif /* !CURL_DISABLE_HTTP && USE_HTTP3 && USE_PROXY_HTTP3 */
+  {
+    if(ctx->state < CF_SETUP_CNNCT_SSL) {
+#ifdef USE_SSL
+      if((ctx->ssl_mode == CURL_CF_SSL_ENABLE ||
+          (ctx->ssl_mode != CURL_CF_SSL_DISABLE &&
+           cf->conn->scheme->flags & PROTOPT_SSL)) && /* we want SSL */
+         !Curl_conn_is_ssl(cf->conn, cf->sockindex)) { /* it is missing */
+        result = Curl_cf_ssl_insert_after(cf, data);
+        if(result)
+          return result;
+      }
+#endif /* USE_SSL */
+      ctx->state = CF_SETUP_CNNCT_SSL;
+      if(!cf->next || !cf->next->connected)
+        goto connect_sub_chain;
+    }
   }
 
   ctx->state = CF_SETUP_DONE;
@@ -576,15 +628,18 @@ out:
 CURLcode Curl_conn_setup(struct Curl_easy *data,
                          struct connectdata *conn,
                          int sockindex,
-                         struct Curl_dns_entry *dns,
                          int ssl_mode)
 {
   CURLcode result = CURLE_OK;
+  struct Curl_peer *peer = Curl_conn_get_first_peer(conn, sockindex);
   uint8_t dns_queries;
 
   DEBUGASSERT(data);
   DEBUGASSERT(conn->scheme);
   DEBUGASSERT(!conn->cfilter[sockindex]);
+
+  if(!peer)
+    return CURLE_FAILED_INIT;
 
 #ifndef CURL_DISABLE_HTTP
   if(!conn->cfilter[sockindex] &&
@@ -609,28 +664,12 @@ CURLcode Curl_conn_setup(struct Curl_easy *data,
   if(sockindex == FIRSTSOCKET)
     dns_queries |= CURL_DNSQ_HTTPS;
 #endif
-  result = Curl_cf_dns_add(data, conn, sockindex, dns_queries,
-                           conn->transport_wanted, dns);
+  result = Curl_cf_dns_add(data, conn, sockindex, peer, dns_queries,
+                           conn->transport_wanted);
   DEBUGASSERT(conn->cfilter[sockindex]);
 out:
   return result;
 }
-
-#ifdef USE_UNIX_SOCKETS
-const char *Curl_conn_get_unix_path(struct connectdata *conn)
-{
-  const char *unix_path = conn->unix_domain_socket;
-
-#ifndef CURL_DISABLE_PROXY
-  if(!unix_path && conn->bits.proxy && conn->socks_proxy.host.name &&
-     !strncmp(UNIX_SOCKET_PREFIX "/",
-              conn->socks_proxy.host.name, sizeof(UNIX_SOCKET_PREFIX)))
-    unix_path = conn->socks_proxy.host.name + sizeof(UNIX_SOCKET_PREFIX) - 1;
-#endif
-
-  return unix_path;
-}
-#endif /* USE_UNIX_SOCKETS */
 
 void Curl_conn_set_multiplex(struct connectdata *conn)
 {
@@ -640,4 +679,30 @@ void Curl_conn_set_multiplex(struct connectdata *conn)
       Curl_multi_connchanged(conn->attached_multi);
     }
   }
+}
+
+struct Curl_peer *Curl_conn_get_destination(struct connectdata *conn,
+                                            int sockindex)
+{
+#ifndef CURL_DISABLE_PROXY
+  if(conn->http_proxy.peer && !conn->bits.tunnel_proxy)
+    return conn->http_proxy.peer;
+#endif
+  return (sockindex == SECONDARYSOCKET) ?
+    (conn->via_peer2 ? conn->via_peer2 : conn->origin2) :
+    (conn->via_peer ? conn->via_peer : conn->origin);
+}
+
+struct Curl_peer *Curl_conn_get_first_peer(struct connectdata *conn,
+                                           int sockindex)
+{
+#ifndef CURL_DISABLE_PROXY
+  if(conn->socks_proxy.peer)
+    return conn->socks_proxy.peer;
+  if(conn->http_proxy.peer)
+    return conn->http_proxy.peer;
+#endif
+  return (sockindex == SECONDARYSOCKET) ?
+    (conn->via_peer2 ? conn->via_peer2 : conn->origin2) :
+    (conn->via_peer ? conn->via_peer : conn->origin);
 }

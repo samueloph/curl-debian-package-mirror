@@ -72,6 +72,8 @@ CURLcode Curl_vquic_tls_init(struct curl_tls_ctx *ctx,
   return CURLE_FAILED_INIT;
 #endif
   (void)session_reuse_cb;
+  if(peer->dest)
+    Curl_ssl_peer_cleanup(peer);
   result = Curl_ssl_peer_init(peer, cf, tls_id, TRNSPRT_QUIC);
   if(result)
     return result;
@@ -178,7 +180,7 @@ CURLcode Curl_vquic_tls_verify_peer(struct curl_tls_ctx *ctx,
                                      NULL) == WOLFSSL_FAILURE))
       result = CURLE_PEER_FAILED_VERIFICATION;
     else if(!peer->sni &&
-            (wolfSSL_X509_check_ip_asc(cert, peer->hostname,
+            (wolfSSL_X509_check_ip_asc(cert, peer->dest->hostname,
                                        0) == WOLFSSL_FAILURE))
       result = CURLE_PEER_FAILED_VERIFICATION;
     wolfSSL_X509_free(cert);

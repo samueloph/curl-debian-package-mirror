@@ -45,7 +45,7 @@
 
 #ifdef USE_WIN32_LDAP           /* Use Windows LDAP implementation. */
 #  include <winldap.h>
-/* Undefine indirect <wincrypt.h> symbols conflicting with BoringSSL/AWS-LC. */
+/* Undefine indirect <wincrypt.h> symbols conflicting with AWS-LC/BoringSSL. */
 #  undef X509_NAME
 #  undef X509_EXTENSIONS
 #  undef PKCS7_ISSUER_AND_SERIAL
@@ -252,10 +252,13 @@ static CURLcode ldap_do(struct Curl_easy *data, bool *done)
 #else
   char *host = NULL;
 #endif
-  char *user = NULL;
-  char *passwd = NULL;
+  const char *user = Curl_creds_has_user(data->state.creds) ?
+    data->state.creds->user : NULL;
+  const char *passwd = Curl_creds_has_passwd(data->state.creds) ?
+    data->state.creds->passwd : NULL;
   struct ip_quadruple ipquad;
   bool is_ipv6;
+  BerElement *ber = NULL;
 
   *done = TRUE; /* unconditionally */
   infof(data, "LDAP local: LDAP Vendor = %s ; LDAP Version = %d",
@@ -284,20 +287,15 @@ static CURLcode ldap_do(struct Curl_easy *data, bool *done)
         ldap_ssl ? "encrypted" : "cleartext");
 
 #ifdef USE_WIN32_LDAP
-  host = curlx_convert_UTF8_to_tchar(conn->host.name);
+  host = curlx_convert_UTF8_to_tchar(conn->origin->hostname);
   if(!host) {
     result = CURLE_OUT_OF_MEMORY;
 
     goto quit;
   }
 #else
-  host = conn->host.name;
+  host = conn->origin->hostname;
 #endif
-
-  if(data->state.aptr.user) {
-    user = conn->user;
-    passwd = conn->passwd;
-  }
 
 #ifdef USE_WIN32_LDAP
   if(ldap_ssl)
@@ -307,7 +305,7 @@ static CURLcode ldap_do(struct Curl_easy *data, bool *done)
     server = ldap_init(host, (curl_ldap_num_t)ipquad.remote_port);
   if(!server) {
     failf(data, "LDAP: cannot setup connect to %s:%u",
-          conn->host.dispname, ipquad.remote_port);
+          conn->origin->user_hostname, ipquad.remote_port);
     result = CURLE_COULDNT_CONNECT;
     goto quit;
   }
@@ -316,6 +314,9 @@ static CURLcode ldap_do(struct Curl_easy *data, bool *done)
   ldap_set_option(server, LDAP_OPT_NETWORK_TIMEOUT, &ldap_timeout);
 #endif
   ldap_set_option(server, LDAP_OPT_PROTOCOL_VERSION, &ldap_proto);
+
+  /* Do not chase referrals. */
+  ldap_set_option(server, LDAP_OPT_REFERRALS, LDAP_OPT_OFF);
 
   if(ldap_ssl) {
 #ifdef HAVE_LDAP_SSL
@@ -328,8 +329,8 @@ static CURLcode ldap_do(struct Curl_easy *data, bool *done)
 #ifdef LDAP_OPT_X_TLS
     if(conn->ssl_config.verifypeer) {
       /* OpenLDAP SDK supports BASE64 files. */
-      if(data->set.ssl.cert_type &&
-         !curl_strequal(data->set.ssl.cert_type, "PEM")) {
+      if(data->set.ssl.primary.cert_type &&
+         !curl_strequal(data->set.ssl.primary.cert_type, "PEM")) {
         failf(data, "LDAP local: ERROR OpenLDAP only supports PEM cert-type");
         result = CURLE_SSL_CERTPROBLEM;
         goto quit;
@@ -427,7 +428,6 @@ static CURLcode ldap_do(struct Curl_easy *data, bool *done)
   for(entryIterator = ldap_first_entry(server, ldapmsg);
       entryIterator;
       entryIterator = ldap_next_entry(server, entryIterator), num++) {
-    BerElement *ber = NULL;
 #ifdef USE_WIN32_LDAP
     TCHAR *attribute;
 #else
@@ -477,11 +477,8 @@ static CURLcode ldap_do(struct Curl_easy *data, bool *done)
 #ifdef USE_WIN32_LDAP
       char *attr = curlx_convert_tchar_to_UTF8(attribute);
       if(!attr) {
-        if(ber)
-          ber_free(ber, 0);
-
+        ldap_memfree(attribute);
         result = CURLE_OUT_OF_MEMORY;
-
         goto quit;
       }
 #else
@@ -497,9 +494,6 @@ static CURLcode ldap_do(struct Curl_easy *data, bool *done)
             ldap_value_free_len(vals);
             FREE_ON_WINLDAP(attr);
             ldap_memfree(attribute);
-            if(ber)
-              ber_free(ber, 0);
-
             goto quit;
           }
 
@@ -508,9 +502,6 @@ static CURLcode ldap_do(struct Curl_easy *data, bool *done)
             ldap_value_free_len(vals);
             FREE_ON_WINLDAP(attr);
             ldap_memfree(attribute);
-            if(ber)
-              ber_free(ber, 0);
-
             goto quit;
           }
 
@@ -519,9 +510,6 @@ static CURLcode ldap_do(struct Curl_easy *data, bool *done)
             ldap_value_free_len(vals);
             FREE_ON_WINLDAP(attr);
             ldap_memfree(attribute);
-            if(ber)
-              ber_free(ber, 0);
-
             goto quit;
           }
 
@@ -536,9 +524,6 @@ static CURLcode ldap_do(struct Curl_easy *data, bool *done)
                 ldap_value_free_len(vals);
                 FREE_ON_WINLDAP(attr);
                 ldap_memfree(attribute);
-                if(ber)
-                  ber_free(ber, 0);
-
                 goto quit;
               }
 
@@ -550,9 +535,6 @@ static CURLcode ldap_do(struct Curl_easy *data, bool *done)
                   ldap_value_free_len(vals);
                   FREE_ON_WINLDAP(attr);
                   ldap_memfree(attribute);
-                  if(ber)
-                    ber_free(ber, 0);
-
                   goto quit;
                 }
               }
@@ -565,9 +547,6 @@ static CURLcode ldap_do(struct Curl_easy *data, bool *done)
               ldap_value_free_len(vals);
               FREE_ON_WINLDAP(attr);
               ldap_memfree(attribute);
-              if(ber)
-                ber_free(ber, 0);
-
               goto quit;
             }
           }
@@ -577,9 +556,6 @@ static CURLcode ldap_do(struct Curl_easy *data, bool *done)
             ldap_value_free_len(vals);
             FREE_ON_WINLDAP(attr);
             ldap_memfree(attribute);
-            if(ber)
-              ber_free(ber, 0);
-
             goto quit;
           }
         }
@@ -597,11 +573,15 @@ static CURLcode ldap_do(struct Curl_easy *data, bool *done)
         goto quit;
     }
 
-    if(ber)
+    if(ber) {
       ber_free(ber, 0);
+      ber = NULL;
+    }
   }
 
 quit:
+  if(ber)
+    ber_free(ber, 0);
   if(ldapmsg) {
     ldap_msgfree(ldapmsg);
     LDAP_TRACE(("Received %d entries\n", num));
@@ -681,8 +661,8 @@ static size_t num_entries(const char *s)
  * Syntax:
  *   ldap://<hostname>:<port>/<base_dn>?<attributes>?<scope>?<filter>?<ext>
  *
- * <hostname> already known from 'conn->host.name'.
- * <port>     already known from 'conn->remote_port'.
+ * <hostname> already known from 'conn->origin->hostname'.
+ * <port>     already known from 'conn->origin->port'.
  * extract the rest from 'data->state.path+1'. All fields are optional.
  * e.g.
  *   ldap://<hostname>:<port>/?<attributes>?<scope>?<filter>
@@ -708,8 +688,8 @@ static curl_ldap_num_t ldap_url_parse2_low(struct Curl_easy *data,
     return LDAP_INVALID_SYNTAX;
 
   ludp->lud_scope = LDAP_SCOPE_BASE;
-  ludp->lud_port  = conn->remote_port;
-  ludp->lud_host  = conn->host.name;
+  ludp->lud_port  = conn->origin->port;
+  ludp->lud_host  = conn->origin->hostname;
 
   /* Duplicate the path */
   p = path = curlx_strdup(data->state.up.path + 1);

@@ -156,6 +156,7 @@ static void cf_quiche_ctx_close(struct cf_quiche_ctx *ctx)
     quiche_config_free(ctx->cfg);
     ctx->cfg = NULL;
   }
+  Curl_ssl_peer_cleanup(&ctx->peer);
 }
 
 static CURLcode cf_flush_egress(struct Curl_cfilter *cf,
@@ -1658,7 +1659,8 @@ CURLcode Curl_cf_quiche_create(struct Curl_cfilter **pcf,
     goto out;
   cf->conn = conn;
 
-  result = Curl_cf_udp_create(&cf->next, data, conn, addr, TRNSPRT_QUIC);
+  result = Curl_cf_udp_create(&cf->next, data, conn, addr,
+                              TRNSPRT_QUIC, TRNSPRT_QUIC);
   if(result)
     goto out;
   cf->next->conn = cf->conn;

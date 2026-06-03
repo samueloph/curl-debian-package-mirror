@@ -70,12 +70,12 @@ class TestVsFTPD:
         if not os.path.exists(vsftpds.docs_dir):
             os.makedirs(vsftpds.docs_dir)
         self._make_docs_file(docs_dir=vsftpds.docs_dir, fname='data-1k', fsize=1024)
-        self._make_docs_file(docs_dir=vsftpds.docs_dir, fname='data-10k', fsize=10*1024)
-        self._make_docs_file(docs_dir=vsftpds.docs_dir, fname='data-1m', fsize=1024*1024)
-        self._make_docs_file(docs_dir=vsftpds.docs_dir, fname='data-10m', fsize=10*1024*1024)
+        self._make_docs_file(docs_dir=vsftpds.docs_dir, fname='data-10k', fsize=10 * 1024)
+        self._make_docs_file(docs_dir=vsftpds.docs_dir, fname='data-1m', fsize=1024 * 1024)
+        self._make_docs_file(docs_dir=vsftpds.docs_dir, fname='data-10m', fsize=10 * 1024 * 1024)
         env.make_data_file(indir=env.gen_dir, fname="upload-1k", fsize=1024)
-        env.make_data_file(indir=env.gen_dir, fname="upload-100k", fsize=100*1024)
-        env.make_data_file(indir=env.gen_dir, fname="upload-1m", fsize=1024*1024)
+        env.make_data_file(indir=env.gen_dir, fname="upload-100k", fsize=100 * 1024)
+        env.make_data_file(indir=env.gen_dir, fname="upload-1m", fsize=1024 * 1024)
 
     def test_31_01_list_dir(self, env: Env, vsftpds: VsFTPD):
         curl = CurlClient(env=env)
@@ -191,7 +191,7 @@ class TestVsFTPD:
         line_length = 21
         srcfile = os.path.join(env.gen_dir, docname)
         dstfile = os.path.join(vsftpds.docs_dir, docname)
-        env.make_data_file(indir=env.gen_dir, fname=docname, fsize=100*1024,
+        env.make_data_file(indir=env.gen_dir, fname=docname, fsize=100 * 1024,
                            line_length=line_length)
         srcsize = os.path.getsize(srcfile)
         self._rmf(dstfile)
@@ -269,6 +269,30 @@ class TestVsFTPD:
         r.check_exit_code(0)
         dstfile = os.path.join(vsftpds.docs_dir, docname)
         assert os.path.exists(dstfile), f'{r.dump_logs()}'
+
+    # connection reuse with STARTTLS required
+    # 1st download without STARTTLS, 2nd with --ssl-reqd
+    @pytest.mark.skipif(condition=not Env.curl_is_debug(), reason="needs curl debug")
+    def test_31_13_starttls_reuse(self, env: Env, vsftpds: VsFTPD):
+        run_env = os.environ.copy()
+        run_env['CURL_DBG_NO_USE_SSL_ON_FIRST'] = '1'
+        curl = CurlClient(env=env, run_env=run_env)
+        url1 = f'ftp://{env.ftp_domain}:{vsftpds.port}/data-1k'
+        url2 = f'ftp://{env.ftp_domain}:{vsftpds.port}/data-10k'
+        r = curl.run_direct(with_stats=True, args=[
+            '-svv', '--resolve', f'{env.ftp_domain}:{vsftpds.port}:127.0.0.1',
+            '--cacert', env.ca.cert_file,
+            url1, '--out-null',
+            url2, '--out-null', '--ssl-reqd'
+        ])
+        r.check_exit_code(0)
+        r.check_stats(count=2, http_status=226)
+        # expect 4 connections to have been made:
+        # 1. 1st CONTROL without STARTTLS
+        # 2. 1st DATA for download
+        # 3. 2nd CONTROL with STARTTLS (not reuse of 1)
+        # 4. 2nd DATA for download
+        assert r.total_connects == 4, f'{r.dump_logs()}'
 
     def check_downloads(self, client, srcfile: str, count: int,
                         complete: bool = True):

@@ -69,7 +69,7 @@
 #define SCH_DEV_SHOWBOOL(x) do {} while(0)
 #endif
 
-/* Offered by mingw-w64 v8+. MS SDK 7.0A+. */
+/* Offered by mingw-w64 v8+, MS SDK 7.0A/VS2010+ */
 #ifndef SP_PROT_TLS1_0_CLIENT
 #define SP_PROT_TLS1_0_CLIENT           SP_PROT_TLS1_CLIENT
 #endif
@@ -80,15 +80,16 @@
 #define SP_PROT_TLS1_2_CLIENT           0x00000800
 #endif
 
-/* Offered by mingw-w64 v8+. MS SDK ~10+/~VS2017+. */
+/* Offered by mingw-w64 v8+, MS SDK 10.0.15063.0/VS2017 15.1+ */
 #ifndef SP_PROT_TLS1_3_CLIENT
 #define SP_PROT_TLS1_3_CLIENT           0x00002000
 #endif
+/* Offered by mingw-w64 v8+, MS SDK 8.1/~VS2013+ */
 #ifndef SCH_USE_STRONG_CRYPTO
 #define SCH_USE_STRONG_CRYPTO           0x00400000
 #endif
 
-/* Offered by mingw-w64 v10+. MS SDK 7.0A+. */
+/* Offered by mingw-w64 v10+, MS SDK 7.0A/VS2010+ */
 #ifndef SECBUFFER_ALERT
 #define SECBUFFER_ALERT                 17
 #endif
@@ -105,12 +106,12 @@
  * #define failf(x, y, ...) curl_mprintf(y, __VA_ARGS__)
  */
 
-/* Offered by mingw-w64 v4+. MS SDK 6.0A+. */
+/* Offered by mingw-w64 v4+, MS SDK 6.0A/VS2008+ */
 #ifndef PKCS12_NO_PERSIST_KEY
 #define PKCS12_NO_PERSIST_KEY 0x00008000
 #endif
 
-/* Offered by mingw-w64 v4+. MS SDK ~10+/~VS2017+. */
+/* Offered by mingw-w64 v4+, MS SDK 8.0/~VS2012+ */
 #ifndef CERT_FIND_HAS_PRIVATE_KEY
 #define CERT_FIND_HAS_PRIVATE_KEY (21 << CERT_COMPARE_SHIFT)
 #endif
@@ -252,12 +253,12 @@ static const struct algo algs[] = {
   CIPHEROPTION(CALG_SHA_384),
   CIPHEROPTION(CALG_SHA_512),
   CIPHEROPTION(CALG_ECDH),
-/* Offered by mingw-w64 v4+. MS SDK 6.0A+. */
+/* Offered by mingw-w64 v4+, MS SDK 6.0A/VS2008+ */
 #ifdef CALG_ECMQV
   CIPHEROPTION(CALG_ECMQV),
 #endif
   CIPHEROPTION(CALG_ECDSA),
-/* Offered by mingw-w64 v7+. MS SDK 7.0A+. */
+/* Offered by mingw-w64 v7+, MS SDK 7.0A/VS2010+ */
 #ifdef CALG_ECDH_EPHEM
   CIPHEROPTION(CALG_ECDH_EPHEM),
 #endif
@@ -414,8 +415,8 @@ static CURLcode get_client_cert(struct Curl_easy *data,
       }
     }
 
-    if((fInCert || blob) && data->set.ssl.cert_type &&
-       !curl_strequal(data->set.ssl.cert_type, "P12")) {
+    if((fInCert || blob) && data->set.ssl.primary.cert_type &&
+       !curl_strequal(data->set.ssl.primary.cert_type, "P12")) {
       failf(data, "schannel: certificate format compatibility error "
             "for %s",
             blob ? "(memory blob)" : data->set.ssl.primary.clientcert);
@@ -465,15 +466,15 @@ static CURLcode get_client_cert(struct Curl_easy *data,
       datablob.pbData = (BYTE *)certdata;
       datablob.cbData = (DWORD)certsize;
 
-      if(data->set.ssl.key_passwd)
-        pwd_len = strlen(data->set.ssl.key_passwd);
+      if(data->set.ssl.primary.key_passwd)
+        pwd_len = strlen(data->set.ssl.primary.key_passwd);
       pszPassword = (WCHAR *)curlx_malloc(sizeof(WCHAR) * (pwd_len + 1));
       if(pszPassword) {
         int str_w_len = 0;
         if(pwd_len > 0)
           str_w_len = MultiByteToWideChar(CP_UTF8,
                                           MB_ERR_INVALID_CHARS,
-                                          data->set.ssl.key_passwd,
+                                          data->set.ssl.primary.key_passwd,
                                           (int)pwd_len,
                                           pszPassword, (int)(pwd_len + 1));
 
@@ -653,6 +654,11 @@ static CURLcode acquire_sspi_handle(struct Curl_cfilter *cf,
 
     if(ciphers) {
       if((enabled_protocols & SP_PROT_TLS1_3_CLIENT)) {
+        if(!(enabled_protocols & ~SP_PROT_TLS1_3_CLIENT)) {
+          failf(data, "schannel: TLS 1.3 is not supported with a cipher list; "
+                "remove the cipher list or allow a lower TLS version");
+          return CURLE_SSL_CONNECT_ERROR;
+        }
         infof(data, "schannel: WARNING: This version of Schannel "
               "negotiates a less-secure TLS version than TLS 1.3 because the "
               "user set an algorithm cipher list.");
@@ -843,7 +849,7 @@ static CURLcode schannel_connect_step1(struct Curl_cfilter *cf,
 
   DEBUGASSERT(backend);
   DEBUGF(infof(data, "schannel: SSL/TLS connection with %s port %d (step 1/3)",
-               connssl->peer.hostname, connssl->peer.port));
+               connssl->peer.dest->hostname, connssl->peer.dest->port));
 
 #ifdef HAS_ALPN_SCHANNEL
   backend->use_alpn = connssl->alpn && s_win_has_alpn;
@@ -895,7 +901,8 @@ static CURLcode schannel_connect_step1(struct Curl_cfilter *cf,
 
     /* A hostname associated with the credential is needed by
        InitializeSecurityContext for SNI and other reasons. */
-    snihost = connssl->peer.sni ? connssl->peer.sni : connssl->peer.hostname;
+    snihost = connssl->peer.sni ?
+      connssl->peer.sni : connssl->peer.dest->hostname;
     backend->cred->sni_hostname = curlx_convert_UTF8_to_tchar(snihost);
     if(!backend->cred->sni_hostname)
       return CURLE_OUT_OF_MEMORY;
@@ -1238,7 +1245,7 @@ static CURLcode schannel_connect_step2(struct Curl_cfilter *cf,
   connssl->io_need = CURL_SSL_IO_NEED_NONE;
 
   DEBUGF(infof(data, "schannel: SSL/TLS connection with %s port %d (step 2/3)",
-               connssl->peer.hostname, connssl->peer.port));
+               connssl->peer.dest->hostname, connssl->peer.dest->port));
 
   if(!backend->cred || !backend->ctxt)
     return CURLE_SSL_CONNECT_ERROR;
@@ -1590,7 +1597,7 @@ static CURLcode schannel_connect_step3(struct Curl_cfilter *cf,
   DEBUGASSERT(backend);
 
   DEBUGF(infof(data, "schannel: SSL/TLS connection with %s port %d (step 3/3)",
-               connssl->peer.hostname, connssl->peer.port));
+               connssl->peer.dest->hostname, connssl->peer.dest->port));
 
   if(!backend->cred)
     return CURLE_SSL_CONNECT_ERROR;
@@ -1732,7 +1739,7 @@ static CURLcode schannel_connect(struct Curl_cfilter *cf,
   if(ssl_connect_done == connssl->connecting_state) {
     connssl->state = ssl_connection_complete;
 
-#ifdef SECPKG_ATTR_ENDPOINT_BINDINGS  /* mingw-w64 v9+. MS SDK 7.0A+. */
+#ifdef SECPKG_ATTR_ENDPOINT_BINDINGS  /* mingw-w64 v9+, MS SDK 7.0A/VS2010+ */
     /* When SSPI is used in combination with Schannel
      * we need the Schannel context to create the Schannel
      * binding to pass the IIS extended protection checks.
@@ -2428,7 +2435,7 @@ static CURLcode schannel_shutdown(struct Curl_cfilter *cf,
   *done = FALSE;
   if(backend->ctxt) {
     infof(data, "schannel: shutting down SSL/TLS connection with %s port %d",
-          connssl->peer.hostname, connssl->peer.port);
+          connssl->peer.dest->hostname, connssl->peer.dest->port);
   }
 
   if(!backend->ctxt || cf->shutdown) {
@@ -2633,15 +2640,23 @@ static CURLcode schannel_random(struct Curl_easy *data,
   return Curl_win32_random(entropy, length);
 }
 
-static void schannel_checksum(const unsigned char *input,
-                              size_t inputlen,
-                              unsigned char *checksum,
-                              size_t checksumlen,
-                              DWORD provType,
-                              const unsigned int algId)
+static CURLcode schannel_checksum(const unsigned char *input,
+                                  size_t inputlen,
+                                  unsigned char *checksum,
+                                  size_t checksumlen,
+                                  DWORD provType,
+                                  const unsigned int algId)
 {
+  CURLcode result = CURLE_FAILED_INIT;
+
   HCRYPTPROV hProv = 0;
   HCRYPTHASH hHash = 0;
+
+  size_t off;
+
+  DWORD cbHashSize;
+  DWORD dwHashSizeLen;
+  DWORD dwChecksumLen;
 
   /* since this can fail in multiple ways, zero memory first so we never
    * return old data
@@ -2650,37 +2665,45 @@ static void schannel_checksum(const unsigned char *input,
 
   if(!CryptAcquireContext(&hProv, NULL, NULL, provType,
                           CRYPT_VERIFYCONTEXT | CRYPT_SILENT))
-    return; /* failed */
+    goto out;
 
-  do {
-    DWORD cbHashSize = 0;
-    DWORD dwHashSizeLen = (DWORD)sizeof(cbHashSize);
-    DWORD dwChecksumLen = (DWORD)checksumlen;
+  if(!CryptCreateHash(hProv, algId, 0, 0, &hHash))
+    goto out;
 
-    if(!CryptCreateHash(hProv, algId, 0, 0, &hHash))
-      break; /* failed */
+  result = CURLE_BAD_FUNCTION_ARGUMENT;
 
-    if(!CryptHashData(hHash, input, (DWORD)inputlen, 0))
-      break; /* failed */
+  off = 0;
+  while(off < inputlen) {
+    DWORD chunk = (DWORD)CURLMIN(inputlen - off, 0xffffffffUL);
+    if(!CryptHashData(hHash, input + off, chunk, 0))
+      goto out;
+    off += chunk;
+  }
 
-    /* get hash size */
-    if(!CryptGetHashParam(hHash, HP_HASHSIZE, (BYTE *)&cbHashSize,
-                          &dwHashSizeLen, 0))
-      break; /* failed */
+  /* get hash size */
+  cbHashSize = 0;
+  dwHashSizeLen = (DWORD)sizeof(cbHashSize);
+  if(!CryptGetHashParam(hHash, HP_HASHSIZE, (BYTE *)&cbHashSize,
+                        &dwHashSizeLen, 0))
+    goto out;
 
-    /* check hash size */
-    if(checksumlen < cbHashSize)
-      break; /* failed */
+  /* check if hash fits into the return buffer */
+  if(checksumlen < cbHashSize)
+    goto out;
 
-    if(CryptGetHashParam(hHash, HP_HASHVAL, checksum, &dwChecksumLen, 0))
-      break; /* failed */
-  } while(0);
+  dwChecksumLen = (DWORD)checksumlen;
+  if(CryptGetHashParam(hHash, HP_HASHVAL, checksum, &dwChecksumLen, 0) &&
+     dwChecksumLen == cbHashSize)
+    result = CURLE_OK;
 
+out:
   if(hHash)
     CryptDestroyHash(hHash);
 
   if(hProv)
     CryptReleaseContext(hProv, 0);
+
+  return result;
 }
 
 static CURLcode schannel_sha256sum(const unsigned char *input,
@@ -2688,9 +2711,8 @@ static CURLcode schannel_sha256sum(const unsigned char *input,
                                    unsigned char *sha256sum,
                                    size_t sha256len)
 {
-  schannel_checksum(input, inputlen, sha256sum, sha256len,
-                    PROV_RSA_AES, CALG_SHA_256);
-  return CURLE_OK;
+  return schannel_checksum(input, inputlen, sha256sum, sha256len,
+                           PROV_RSA_AES, CALG_SHA_256);
 }
 
 static void *schannel_get_internals(struct ssl_connect_data *connssl,
@@ -2748,10 +2770,11 @@ HCERTSTORE Curl_schannel_get_cached_cert_store(struct Curl_cfilter *cf,
     if(share->CAinfo_blob_size != ca_info_blob->len) {
       return NULL;
     }
-    schannel_sha256sum((const unsigned char *)ca_info_blob->data,
-                       ca_info_blob->len,
-                       info_blob_digest,
-                       CURL_SHA256_DIGEST_LENGTH);
+    if(schannel_sha256sum((const unsigned char *)ca_info_blob->data,
+                          ca_info_blob->len,
+                          info_blob_digest,
+                          CURL_SHA256_DIGEST_LENGTH))
+      return NULL;
     if(memcmp(share->CAinfo_blob_digest, info_blob_digest,
               CURL_SHA256_DIGEST_LENGTH)) {
       return NULL;
@@ -2789,7 +2812,7 @@ bool Curl_schannel_set_cached_cert_store(struct Curl_cfilter *cf,
   struct Curl_multi *multi = data->multi;
   const struct curl_blob *ca_info_blob = conn_config->ca_info_blob;
   struct schannel_cert_share *share;
-  size_t CAinfo_blob_size = 0;
+  unsigned char digest[CURL_SHA256_DIGEST_LENGTH];
   char *CAfile = NULL;
 
   DEBUGASSERT(multi);
@@ -2798,12 +2821,26 @@ bool Curl_schannel_set_cached_cert_store(struct Curl_cfilter *cf,
     return FALSE;
   }
 
+  if(ca_info_blob) {
+    if(schannel_sha256sum((const unsigned char *)ca_info_blob->data,
+                          ca_info_blob->len, digest, sizeof(digest))) {
+      return FALSE;
+    }
+  }
+  else if(conn_config->CAfile) {
+    CAfile = curlx_strdup(conn_config->CAfile);
+    if(!CAfile) {
+      return FALSE;
+    }
+  }
+
   share = Curl_hash_pick(&multi->proto_hash,
                          CURL_UNCONST(MPROTO_SCHANNEL_CERT_SHARE_KEY),
                          sizeof(MPROTO_SCHANNEL_CERT_SHARE_KEY) - 1);
   if(!share) {
     share = curlx_calloc(1, sizeof(*share));
     if(!share) {
+      curlx_free(CAfile);
       return FALSE;
     }
     if(!Curl_hash_add2(&multi->proto_hash,
@@ -2811,23 +2848,8 @@ bool Curl_schannel_set_cached_cert_store(struct Curl_cfilter *cf,
                        sizeof(MPROTO_SCHANNEL_CERT_SHARE_KEY) - 1,
                        share, schannel_cert_share_free)) {
       curlx_free(share);
+      curlx_free(CAfile);
       return FALSE;
-    }
-  }
-
-  if(ca_info_blob) {
-    schannel_sha256sum((const unsigned char *)ca_info_blob->data,
-                       ca_info_blob->len,
-                       share->CAinfo_blob_digest,
-                       CURL_SHA256_DIGEST_LENGTH);
-    CAinfo_blob_size = ca_info_blob->len;
-  }
-  else {
-    if(conn_config->CAfile) {
-      CAfile = curlx_strdup(conn_config->CAfile);
-      if(!CAfile) {
-        return FALSE;
-      }
     }
   }
 
@@ -2837,9 +2859,15 @@ bool Curl_schannel_set_cached_cert_store(struct Curl_cfilter *cf,
   }
   curlx_free(share->CAfile);
 
+  if(ca_info_blob) {
+    memcpy(share->CAinfo_blob_digest, digest, sizeof(digest));
+    share->CAinfo_blob_size = ca_info_blob->len;
+  }
+  else
+    share->CAinfo_blob_size = 0;
+
   share->time = curlx_now();
   share->cert_store = cert_store;
-  share->CAinfo_blob_size = CAinfo_blob_size;
   share->CAfile = CAfile;
   return TRUE;
 }

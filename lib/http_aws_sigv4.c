@@ -384,7 +384,7 @@ static CURLcode make_headers(struct Curl_easy *data,
   char date_full_hdr[DATE_FULL_HDR_LEN];
   struct curl_slist *head = NULL;
   struct curl_slist *tmp_head = NULL;
-  CURLcode ret = CURLE_OUT_OF_MEMORY;
+  CURLcode result = CURLE_OUT_OF_MEMORY;
   struct curl_slist *l;
   bool again = TRUE;
 
@@ -516,8 +516,8 @@ static CURLcode make_headers(struct Curl_easy *data,
     }
   } while(again);
 
-  ret = merge_duplicate_headers(head);
-  if(ret)
+  result = merge_duplicate_headers(head);
+  if(result)
     goto fail;
 
   for(l = head; l; l = l->next) {
@@ -540,11 +540,11 @@ static CURLcode make_headers(struct Curl_easy *data,
       goto fail;
   }
 
-  ret = CURLE_OK;
+  result = CURLE_OK;
 fail:
   curl_slist_free_all(head);
 
-  return ret;
+  return result;
 }
 
 #define CONTENT_SHA256_KEY_LEN (MAX_SIGV4_LEN + sizeof("X--Content-Sha256"))
@@ -618,12 +618,12 @@ static CURLcode calc_s3_payload_hash(struct Curl_easy *data,
   bool empty_payload = (empty_method || data->set.filesize == 0);
   /* The POST payload is in memory */
   bool post_payload = (httpreq == HTTPREQ_POST && data->set.postfields);
-  CURLcode ret = CURLE_OUT_OF_MEMORY;
+  CURLcode result = CURLE_OUT_OF_MEMORY;
 
   if(empty_payload || post_payload) {
     /* Calculate a real hash when we know the request payload */
-    ret = calc_payload_hash(data, sha_hash, sha_hex);
-    if(ret)
+    result = calc_payload_hash(data, sha_hash, sha_hex);
+    if(result)
       goto fail;
   }
   else {
@@ -638,9 +638,9 @@ static CURLcode calc_s3_payload_hash(struct Curl_easy *data,
   curl_msnprintf(header, CONTENT_SHA256_HDR_LEN,
                  "x-%.*s-content-sha256: %s", (int)plen, provider1, sha_hex);
 
-  ret = CURLE_OK;
+  result = CURLE_OK;
 fail:
-  return ret;
+  return result;
 }
 
 static int compare_func(const void *a, const void *b)
@@ -827,7 +827,7 @@ CURLcode Curl_output_aws_sigv4(struct Curl_easy *data)
   struct Curl_str provider1;
   struct Curl_str region = { NULL, 0 };
   struct Curl_str service = { NULL, 0 };
-  const char *hostname = conn->host.name;
+  const char *hostname = conn->origin->hostname;
   time_t clock;
   struct tm tm;
   char timestamp[TIMESTAMP_SIZE];
@@ -848,7 +848,8 @@ CURLcode Curl_output_aws_sigv4(struct Curl_easy *data)
   char *request_type = NULL;
   char *credential_scope = NULL;
   char *str_to_sign = NULL;
-  const char *user = data->state.aptr.user ? data->state.aptr.user : "";
+  const char *user = Curl_creds_user(data->state.creds);
+  const char *passwd = Curl_creds_passwd(data->state.creds);
   char *secret = NULL;
   unsigned char sign0[CURL_SHA256_DIGEST_LENGTH] = { 0 };
   unsigned char sign1[CURL_SHA256_DIGEST_LENGTH] = { 0 };
@@ -1068,8 +1069,7 @@ CURLcode Curl_output_aws_sigv4(struct Curl_easy *data)
         str_to_sign);
 
   secret = curl_maprintf("%.*s4%s", (int)curlx_strlen(&provider0),
-                         curlx_str(&provider0), data->state.aptr.passwd ?
-                         data->state.aptr.passwd : "");
+                         curlx_str(&provider0), passwd);
   if(!secret)
     goto fail;
   /* make provider0 part done uppercase */
@@ -1113,8 +1113,8 @@ CURLcode Curl_output_aws_sigv4(struct Curl_easy *data)
   Curl_strntoupper(&auth_headers[sizeof("Authorization: ") - 1],
                    curlx_str(&provider0), curlx_strlen(&provider0));
 
-  curlx_free(data->req.userpwd);
-  data->req.userpwd = auth_headers;
+  curlx_free(data->req.hd_auth);
+  data->req.hd_auth = auth_headers;
   data->state.authhost.done = TRUE;
   result = CURLE_OK;
 

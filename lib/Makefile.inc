@@ -96,6 +96,7 @@ LIB_VTLS_CFILES =           \
   vtls/schannel.c           \
   vtls/schannel_verify.c    \
   vtls/vtls.c               \
+  vtls/vtls_config.c        \
   vtls/vtls_scache.c        \
   vtls/vtls_spack.c         \
   vtls/wolfssl.c            \
@@ -113,6 +114,7 @@ LIB_VTLS_HFILES =           \
   vtls/schannel.h           \
   vtls/schannel_int.h       \
   vtls/vtls.h               \
+  vtls/vtls_config.h        \
   vtls/vtls_int.h           \
   vtls/vtls_scache.h        \
   vtls/vtls_spack.h         \
@@ -150,8 +152,11 @@ LIB_CFILES =         \
   bufq.c             \
   bufref.c           \
   cf-dns.c           \
+  capsule.c          \
+  cf-capsule.c       \
   cf-h1-proxy.c      \
   cf-h2-proxy.c      \
+  cf-h3-proxy.c      \
   cf-haproxy.c       \
   cf-https-connect.c \
   cf-ip-happy.c      \
@@ -161,6 +166,7 @@ LIB_CFILES =         \
   connect.c          \
   content_encoding.c \
   cookie.c           \
+  creds.c            \
   cshutdn.c          \
   curl_addrinfo.c    \
   curl_endian.c      \
@@ -233,6 +239,7 @@ LIB_CFILES =         \
   noproxy.c          \
   openldap.c         \
   parsedate.c        \
+  peer.c             \
   pingpong.c         \
   pop3.c             \
   progress.c         \
@@ -280,8 +287,11 @@ LIB_HFILES =         \
   bufq.h             \
   bufref.h           \
   cf-dns.h           \
+  capsule.h          \
+  cf-capsule.h       \
   cf-h1-proxy.h      \
   cf-h2-proxy.h      \
+  cf-h3-proxy.h      \
   cf-haproxy.h       \
   cf-https-connect.h \
   cf-ip-happy.h      \
@@ -292,6 +302,7 @@ LIB_HFILES =         \
   connect.h          \
   content_encoding.h \
   cookie.h           \
+  creds.h            \
   curl_addrinfo.h    \
   curl_ctype.h       \
   curl_endian.h      \
@@ -364,6 +375,7 @@ LIB_HFILES =         \
   netrc.h            \
   noproxy.h          \
   parsedate.h        \
+  peer.h             \
   pingpong.h         \
   pop3.h             \
   progress.h         \

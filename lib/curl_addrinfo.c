@@ -49,6 +49,7 @@
 #include "curl_addrinfo.h"
 #include "fake_addrinfo.h"
 #include "curlx/inet_pton.h"
+#include "curlx/strparse.h"
 
 /*
  * Curl_freeaddrinfo()
@@ -59,7 +60,7 @@
  * any function call which actually allocates a Curl_addrinfo struct.
  */
 
-#if defined(__INTEL_COMPILER) && (__INTEL_COMPILER == 910) && \
+#if defined(__INTEL_COMPILER) && (__INTEL_COMPILER == 910) &&     \
   defined(__OPTIMIZE__) && defined(__unix__) && defined(__i386__)
   /* workaround icc 9.1 optimizer issue */
 #  define vqualifier volatile
@@ -443,6 +444,48 @@ bool Curl_is_ipaddr(const char *address)
   return FALSE;
 }
 
+bool Curl_looks_like_ipv6(const char *s, size_t len, bool maybe_url_encoded,
+                          struct Curl_str *host, struct Curl_str *zone)
+{
+  const char *zonep = NULL;
+  size_t i = 0, hlen = 0, zlen = 0;
+
+  if(host)
+    memset(host, 0, sizeof(*host));
+  if(zone)
+    memset(zone, 0, sizeof(*zone));
+
+  for(i = 0; i < len; ++i, ++hlen) {
+    if(!s[i] || !(ISXDIGIT(s[i]) || (s[i] == ':') || (s[i] == '.')))
+      break;
+  }
+
+  if((i < len) && (s[i] == '%')) { /* address followed by a zone? */
+    i += 1;
+    if(maybe_url_encoded && !strncmp("25", s + i, 2))
+      i += 2;
+    zonep = s + i;
+    for(; i < len; ++i, ++zlen) {
+      /* Allow unreserved characters as defined in RFC 3986 */
+      if(!s[i] || !(ISALPHA(s[i]) || ISXDIGIT(s[i]) || (s[i] == '-') ||
+                    (s[i] == '.') || (s[i] == '_') || (s[i] == '~')))
+        break;
+    }
+  }
+
+  if(i != len)
+    return FALSE; /* invalid chars in zone */
+  if(host && hlen) {
+    host->str = s;
+    host->len = hlen;
+  }
+  if(zone && zlen) {
+    zone->str = zonep;
+    zone->len = zlen;
+  }
+  return TRUE;
+}
+
 #ifdef USE_UNIX_SOCKETS
 /**
  * Given a path to a Unix domain socket, return a newly allocated Curl_addrinfo
@@ -560,7 +603,7 @@ int curl_dbg_getaddrinfo(const char *hostname,
 
 #if defined(HAVE_GETADDRINFO) && defined(USE_RESOLVE_ON_IPS)
 /*
- * Work-arounds the sin6_port is always zero bug on iOS 9.3.2 and macOS
+ * Works around the sin6_port is always zero bug on iOS 9.3.2 and macOS
  * 10.11.5.
  */
 void Curl_addrinfo_set_port(struct Curl_addrinfo *addrinfo, int port)

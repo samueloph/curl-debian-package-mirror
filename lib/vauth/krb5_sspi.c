@@ -79,9 +79,8 @@ bool Curl_auth_is_gssapi_supported(void)
  * Returns CURLE_OK on success.
  */
 CURLcode Curl_auth_create_gssapi_user_message(struct Curl_easy *data,
-                                              const char *userp,
-                                              const char *passwdp,
-                                              const char *service,
+                                              struct Curl_creds *creds,
+                                              const char *default_service,
                                               const char *host,
                                               const bool mutual_auth,
                                               const struct bufref *chlg,
@@ -97,6 +96,8 @@ CURLcode Curl_auth_create_gssapi_user_message(struct Curl_easy *data,
   SecBufferDesc resp_desc;
   SECURITY_STATUS status;
   unsigned long attrs;
+  const char *service = Curl_creds_has_sasl_service(creds) ?
+    Curl_creds_sasl_service(creds) : default_service;
 
   if(!krb5->spn) {
     /* Generate our SPN */
@@ -128,9 +129,10 @@ CURLcode Curl_auth_create_gssapi_user_message(struct Curl_easy *data,
 
   if(!krb5->credentials) {
     /* Do we have credentials to use or are we using single sign-on? */
-    if(userp && *userp) {
+    if(Curl_creds_has_user(creds)) {
       /* Populate our identity structure */
-      result = Curl_create_sspi_identity(userp, passwdp, &krb5->identity);
+      result = Curl_create_sspi_identity(
+        creds->user, creds->passwd, &krb5->identity);
       if(result)
         return result;
 
@@ -152,8 +154,10 @@ CURLcode Curl_auth_create_gssapi_user_message(struct Curl_easy *data,
                                  SECPKG_CRED_OUTBOUND, NULL,
                                  krb5->p_identity, NULL, NULL,
                                  krb5->credentials, NULL);
-    if(status != SEC_E_OK)
+    if(status != SEC_E_OK) {
+      curlx_safefree(krb5->credentials);
       return CURLE_LOGIN_DENIED;
+    }
 
     /* Allocate our new context handle */
     krb5->context = curlx_calloc(1, sizeof(CtxtHandle));
@@ -428,15 +432,13 @@ void Curl_auth_cleanup_gssapi(struct kerberos5data *krb5)
   /* Free our security context */
   if(krb5->context) {
     Curl_pSecFn->DeleteSecurityContext(krb5->context);
-    curlx_free(krb5->context);
-    krb5->context = NULL;
+    curlx_safefree(krb5->context);
   }
 
   /* Free our credentials handle */
   if(krb5->credentials) {
     Curl_pSecFn->FreeCredentialsHandle(krb5->credentials);
-    curlx_free(krb5->credentials);
-    krb5->credentials = NULL;
+    curlx_safefree(krb5->credentials);
   }
 
   /* Free our identity */

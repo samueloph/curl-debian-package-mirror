@@ -117,29 +117,28 @@ CURLcode Curl_cf_def_query(struct Curl_cfilter *cf,
 }
 
 #ifdef CURLVERBOSE
-static void conn_trc_filters(struct Curl_easy *data,
-                                  int sockindex,
-                                  const char *info)
+void Curl_conn_trc_filters(struct Curl_easy *data,
+                           int sockindex, const char *info)
 {
   if(CURL_TRC_M_is_verbose(data) && data->conn) {
     struct Curl_cfilter *cf = data->conn->cfilter[sockindex];
 
     if(cf) {
-      struct dynbuf msg;
-      CURLcode result = CURLE_OK;
+      char msg[256], *buf;
+      int blen, n;
 
-      curlx_dyn_init(&msg, 1024);
-      result = curlx_dyn_addf(&msg, "%s [%d]", info, sockindex);
-      for(; cf && !result; cf = cf->next) {
-        result = curlx_dyn_addf(&msg, "[%s%s]",
-                                cf->connected ? "" : "!", cf->cft->name);
+      buf = msg;
+      blen = sizeof(msg) - 1;
+      n = curl_msnprintf(buf, blen, "%s [%d]", info, sockindex);
+      buf += n;
+      blen -= n;
+      for(; cf && blen; cf = cf->next) {
+        n = curl_msnprintf(buf, blen, "[%s%s]",
+                           cf->connected ? "" : "!", cf->cft->name);
+        buf += n;
+        blen -= n;
       }
-      if(!result)
-        CURL_TRC_M(data, "%s", curlx_dyn_ptr(&msg));
-      else
-        CURL_TRC_M(data, "%s [%d] error %d tracing chain",
-                   info, sockindex, result);
-      curlx_dyn_free(&msg);
+      CURL_TRC_M(data, "%s%s", msg, blen ? "" : "...");
     }
     else
       CURL_TRC_M(data, "%s [%d][-]", info, sockindex);
@@ -591,14 +590,14 @@ CURLcode Curl_conn_connect(struct Curl_easy *data,
       conn_report_connect_stats(cf, data);
       data->conn->keepalive = *Curl_pgrs_now(data);
       VERBOSE(result = cf_verboseconnect(data, cf));
-      VERBOSE(conn_trc_filters(data, sockindex, "connected"));
+      VERBOSE(Curl_conn_trc_filters(data, sockindex, "connected"));
       conn_remove_setup_filters(data, sockindex);
-      VERBOSE(conn_trc_filters(data, sockindex, "reduced to"));
+      VERBOSE(Curl_conn_trc_filters(data, sockindex, "reduced to"));
       goto out;
     }
     else if(result) {
       CURL_TRC_CF(data, cf, "Curl_conn_connect(), filter returned %d", result);
-      VERBOSE(conn_trc_filters(data, sockindex, "failed to connect"));
+      VERBOSE(Curl_conn_trc_filters(data, sockindex, "failed to connect"));
       conn_report_connect_stats(cf, data);
       goto out;
     }
@@ -691,7 +690,9 @@ bool Curl_conn_is_ip_connected(struct Curl_easy *data, int sockindex)
 static bool cf_is_ssl(struct Curl_cfilter *cf)
 {
   for(; cf; cf = cf->next) {
-    if(cf->cft->flags & CF_TYPE_SSL)
+    /* A tunneling proxy does not offer end2end encryption, even if
+     * it does SSL itself (e.g. QUIC H3 proxy) */
+    if((cf->cft->flags & CF_TYPE_SSL) && !(cf->cft->flags & CF_TYPE_PROXY))
       return TRUE;
     if(cf->cft->flags & CF_TYPE_IP_CONNECT)
       return FALSE;
@@ -890,8 +891,19 @@ CURLcode Curl_conn_adjust_pollset(struct Curl_easy *data,
 
   DEBUGASSERT(data);
   DEBUGASSERT(conn);
-  for(i = 0; (i < 2) && !result; ++i) {
-    result = Curl_conn_cf_adjust_pollset(conn->cfilter[i], data, ps);
+  /* During connect time, connection filters may add sockets to the pollset
+   * even when the transfer neither wants to send nor receive. And those
+   * sockets, when having events, are served.
+   * Once connected however, a transfer that neither wants to send nor receive
+   * will never call the connection filters. Any sockets added by the filters
+   * will not change state and POLLIN/POLLOUT events will trigger forever,
+   * making us busy loop. See #21671 */
+  if(ps->n || !Curl_conn_is_connected(conn, FIRSTSOCKET) ||
+     (conn->cfilter[SECONDARYSOCKET] &&
+      !Curl_conn_is_connected(conn, SECONDARYSOCKET))) {
+    for(i = 0; (i < 2) && !result && conn; ++i) {
+      result = Curl_conn_cf_adjust_pollset(conn->cfilter[i], data, ps);
+    }
   }
   return result;
 }
@@ -953,8 +965,8 @@ void Curl_conn_get_current_host(struct Curl_easy *data, int sockindex,
                                        &portarg, CURL_UNCONST(phost))) {
     /* Everything connected or query unsuccessful, the overall
      * connection's destination is the answer */
-    *phost = data->conn->host.name;
-    portarg = data->conn->remote_port;
+    *phost = data->conn->origin->hostname;
+    portarg = data->conn->origin->port;
   }
   if(pport)
     *pport = portarg;
@@ -1018,8 +1030,8 @@ const char *Curl_conn_cf_get_alpn_negotiated(struct Curl_cfilter *cf,
   return NULL;
 }
 
-static const struct Curl_sockaddr_ex *
-cf_get_remote_addr(struct Curl_cfilter *cf, struct Curl_easy *data)
+static const struct Curl_sockaddr_ex *cf_get_remote_addr(
+  struct Curl_cfilter *cf, struct Curl_easy *data)
 {
   const struct Curl_sockaddr_ex *remote_addr = NULL;
   if(cf &&
@@ -1057,8 +1069,8 @@ curl_socket_t Curl_conn_get_first_socket(struct Curl_easy *data)
   return data->conn->sock[FIRSTSOCKET];
 }
 
-const struct Curl_sockaddr_ex *
-Curl_conn_get_remote_addr(struct Curl_easy *data, int sockindex)
+const struct Curl_sockaddr_ex *Curl_conn_get_remote_addr(
+  struct Curl_easy *data, int sockindex)
 {
   struct Curl_cfilter *cf =
     (data->conn && CONN_SOCK_IDX_VALID(sockindex)) ?

@@ -54,6 +54,30 @@ CURL_CHECK_OPTION_RT
 CURL_CHECK_OPTION_HTTPSRR
 CURL_CHECK_OPTION_ECH
 CURL_CHECK_OPTION_SSLS_EXPORT
+AC_MSG_CHECKING([whether to enable HTTP/3 proxy support])
+OPT_PROXY_HTTP3="default"
+AC_ARG_ENABLE(proxy-http3,
+AS_HELP_STRING([--enable-proxy-http3],[Enable HTTP/3 proxy support (experimental)])
+AS_HELP_STRING([--disable-proxy-http3],[Disable HTTP/3 proxy support (experimental)]),
+  OPT_PROXY_HTTP3=$enableval)
+case "$OPT_PROXY_HTTP3" in
+  no)
+    want_proxy_http3="no"
+    curl_proxy_http3_msg="no      (--enable-proxy-http3)"
+    AC_MSG_RESULT([no])
+    ;;
+  default)
+    want_proxy_http3="no"
+    curl_proxy_http3_msg="no      (--enable-proxy-http3)"
+    AC_MSG_RESULT([no])
+    ;;
+  *)
+    want_proxy_http3="yes"
+    curl_proxy_http3_msg="enabled (--disable-proxy-http3)"
+    AC_MSG_RESULT([yes])
+    ;;
+esac
+USE_PROXY_HTTP3=0
 
 XC_CHECK_PATH_SEPARATOR
 
@@ -317,6 +341,22 @@ AS_HELP_STRING([--with-test-caddy=PATH],[where to find caddy for testing]),
   fi
 )
 AC_SUBST(CADDY)
+
+if test -x /usr/local/bin/h2o; then
+  H2O=/usr/local/bin/h2o
+elif test -x /usr/bin/h2o; then
+  H2O=/usr/bin/h2o
+elif test -x "`brew --prefix 2>/dev/null`/bin/h2o"; then
+  H2O=`brew --prefix`/bin/h2o
+fi
+AC_ARG_WITH(test-h2o,dnl
+AS_HELP_STRING([--with-test-h2o=PATH],[where to find h2o for testing]),
+  H2O=$withval
+  if test "x$H2O" = "xno"; then
+    H2O=""
+  fi
+)
+AC_SUBST(H2O)
 
 if test -x /usr/sbin/vsftpd; then
   VSFTPD=/usr/sbin/vsftpd
@@ -678,8 +718,8 @@ esac
 
 AM_CONDITIONAL(BUILD_UNITTESTS, test "$supports_unittests" = "yes")
 
-dnl In order to detect support of sendmmsg() and accept4(), we need to escape the POSIX
-dnl jail by defining _GNU_SOURCE or <sys/socket.h> will not expose it.
+dnl In order to detect support of sendmmsg() and accept4(), we need to escape
+dnl the POSIX jail by defining _GNU_SOURCE or <sys/socket.h> does not expose it.
 case $host_os in
   *linux*|cygwin*|msys*|gnu*)
     CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE"
@@ -694,8 +734,10 @@ dnl **********************************************************************
 
 CURL_CHECK_WIN32_CRYPTO
 
+curl_cv_android='no'
 curl_cv_apple='no'
 case $host in
+  *-*-android*) curl_cv_android='yes';;
   *-apple-*) curl_cv_apple='yes';;
 esac
 
@@ -733,7 +775,7 @@ AS_HELP_STRING([--disable-unity],[Disable unity (default)]),
     AC_MSG_RESULT([no])
 )
 if test -z "$PERL" && test "$want_unity" = "yes"; then
-  AC_MSG_WARN([perl was not found. Will not enable unity.])
+  AC_MSG_WARN([perl was not found. Cannot enable unity.])
   want_unity='no'
 fi
 AM_CONDITIONAL([USE_UNITY], [test "$want_unity" = "yes"])
@@ -1150,7 +1192,7 @@ AS_HELP_STRING([--disable-docs],[Disable documentation]),
     BUILD_DOCS=1
 )
 if test -z "$PERL" && test "$BUILD_DOCS" != "0"; then
-  AC_MSG_WARN([perl was not found. Will not build documentation.])
+  AC_MSG_WARN([perl was not found. Cannot build documentation.])
   BUILD_DOCS=0
 fi
 
@@ -1512,7 +1554,10 @@ else
     dnl replace 'HAVE_LIBZ' in the automake makefile.ams
     AMFIXLIB="1"
     AC_MSG_NOTICE([found both libz and libz.h header])
-    LIBCURL_PC_REQUIRES_PRIVATE="$LIBCURL_PC_REQUIRES_PRIVATE zlib"
+    dnl Android does not provide zlib.pc
+    if test "$curl_cv_android" = "no"; then
+      LIBCURL_PC_REQUIRES_PRIVATE="$LIBCURL_PC_REQUIRES_PRIVATE zlib"
+    fi
     curl_zlib_msg="enabled"
   fi
 fi
@@ -2083,7 +2128,7 @@ Use --with-openssl, --with-gnutls, --with-wolfssl, --with-mbedtls, --with-schann
     dnl explicitly built without TLS
     ;;
   xD*)
-    AC_MSG_ERROR([--without-ssl has been set together with an explicit option to use an ssl library
+    AC_MSG_ERROR([--without-ssl has been set together with an explicit option to use an SSL library
 (e.g. --with-openssl, --with-gnutls, --with-wolfssl, --with-mbedtls, --with-schannel, --with-amissl, --with-rustls).
 Since these are conflicting parameters, verify which is the desired one and drop the other.])
     ;;
@@ -2413,7 +2458,7 @@ if test "x$OPT_LIBSSH2" != "xno"; then
   CPPFLAGS="$CPPFLAGS $CPP_SSH2"
   LIBS="$LIB_SSH2 $LIBS"
 
-  dnl check for function added in libssh2 version 1.9.0
+  dnl check for function added in libssh2 v1.9.0
   AC_CHECK_LIB(ssh2, libssh2_agent_get_identity_path)
 
   AC_CHECK_HEADER(libssh2.h,
@@ -3873,7 +3918,7 @@ case "$OPT_ZSH_FPATH" in
     ;;
 esac
 if test -z "$PERL" && test -n "$ZSH_FUNCTIONS_DIR"; then
-  AC_MSG_WARN([perl was not found. Will not install zsh completions.])
+  AC_MSG_WARN([perl was not found. Cannot install zsh completions.])
   ZSH_FUNCTIONS_DIR=''
 fi
 AM_CONDITIONAL(USE_ZSH_COMPLETION, test -n "$ZSH_FUNCTIONS_DIR")
@@ -3908,7 +3953,7 @@ case "$OPT_FISH_FPATH" in
     ;;
 esac
 if test -z "$PERL" && test -n "$FISH_FUNCTIONS_DIR"; then
-  AC_MSG_WARN([perl was not found. Will not install fish completions.])
+  AC_MSG_WARN([perl was not found. Cannot install fish completions.])
   FISH_FUNCTIONS_DIR=''
 fi
 AM_CONDITIONAL(USE_FISH_COMPLETION, test -n "$FISH_FUNCTIONS_DIR")
@@ -4152,6 +4197,11 @@ if test "$curl_cv_native_windows" != "yes"; then
   CURL_CHECK_FUNC_STRCASECMP
   CURL_CHECK_FUNC_STRCMPI
   CURL_CHECK_FUNC_STRICMP
+
+  CURL_CHECK_FUNC_MEMSET_S
+  if test "$curl_cv_func_memset_s" = "no"; then
+    AC_CHECK_FUNCS([memset_explicit])
+  fi
 fi
 
 if test -z "$ssl_backends"; then
@@ -5018,6 +5068,28 @@ if test "$want_ssls_export" != "no"; then
   fi
 fi
 
+dnl *************************************************************
+dnl check whether experimental HTTP/3 proxy support is enabled
+dnl
+if test "$want_proxy_http3" = "yes"; then
+  AC_MSG_CHECKING([whether HTTP/3 proxy support is available])
+
+  if test "$CURL_DISABLE_PROXY" = "1"; then
+    AC_MSG_ERROR([--enable-proxy-http3 requires proxy support])
+  elif test "$CURL_DISABLE_HTTP" = "1"; then
+    AC_MSG_ERROR([--enable-proxy-http3 requires HTTP support])
+  elif test "$USE_NGTCP2_H3" != "1"; then
+    AC_MSG_ERROR([--enable-proxy-http3 requires ngtcp2 + nghttp3])
+  elif test "x$OPENSSL_ENABLED" != "x1"; then
+    AC_MSG_ERROR([--enable-proxy-http3 currently requires OpenSSL])
+  else
+    AC_DEFINE(USE_PROXY_HTTP3, 1, [if HTTP/3 proxy support is available])
+    USE_PROXY_HTTP3=1
+    AC_MSG_RESULT([yes])
+    experimental="$experimental proxy-HTTP3"
+  fi
+fi
+
 dnl ************************************************************
 dnl hiding of library internal symbols
 dnl
@@ -5129,6 +5201,10 @@ fi
 
 if test "$curl_psl_msg" = "enabled"; then
   SUPPORT_FEATURES="$SUPPORT_FEATURES PSL"
+fi
+
+if test "$USE_PROXY_HTTP3" = "1"; then
+  SUPPORT_FEATURES="$SUPPORT_FEATURES proxy-HTTP3"
 fi
 
 if test "$curl_gsasl_msg" = "enabled"; then
@@ -5475,6 +5551,7 @@ AC_MSG_NOTICE([Configured to build curl/libcurl:
   HTTP1:            ${curl_h1_msg}
   HTTP2:            ${curl_h2_msg}
   HTTP3:            ${curl_h3_msg}
+  proxy-HTTP3:      ${curl_proxy_http3_msg}
   ECH:              ${curl_ech_msg}
   HTTPS RR:         ${curl_httpsrr_msg}
   SSLS-EXPORT:      ${curl_ssls_export_msg}

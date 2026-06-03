@@ -78,8 +78,8 @@
 /* On a debug build, we want to fail hard on multi handles that
  * are not NULL, but no longer have the MAGIC touch. This gives
  * us early warning on things only discovered by valgrind otherwise. */
-#define GOOD_MULTI_HANDLE(x) \
-  (((x) && (x)->magic == CURL_MULTI_HANDLE)? TRUE:      \
+#define GOOD_MULTI_HANDLE(x)                         \
+  (((x) && (x)->magic == CURL_MULTI_HANDLE) ? TRUE : \
   (DEBUGASSERT(!(x)), FALSE))
 #else
 #define GOOD_MULTI_HANDLE(x) \
@@ -404,7 +404,7 @@ static CURLMcode multi_xfers_add(struct Curl_multi *multi,
 
   if(capacity < max_capacity) {
     /* We want `multi->xfers` to have "sufficient" free rows, so that we do
-     * have to reuse the `mid` from a removed easy right away.
+     * not have to reuse the `mid` from a removed easy right away.
      * Since uint_tbl and uint_bset are memory efficient,
      * regard less than 25% free as insufficient.
      * (for low capacities, e.g. multi_easy, 4 or less). */
@@ -420,7 +420,7 @@ static CURLMcode multi_xfers_add(struct Curl_multi *multi,
         new_size = max_capacity; /* can not be larger than this */
       }
       else {
-        /* make it a 64 multiple, since our bitsets frow by that and
+        /* make it a 64 multiple, since our bitsets grow by that and
          * small (easy_multi) grows to at least 64 on first resize. */
         new_size = (((used + min_unused) + 63) / 64) * 64;
       }
@@ -1707,9 +1707,13 @@ CURLMcode curl_multi_wakeup(CURLM *m)
  */
 static bool multi_ischanged(struct Curl_multi *multi, bool clear)
 {
-  bool retval = (bool)multi->recheckstate;
-  if(clear)
-    multi->recheckstate = FALSE;
+  bool retval = FALSE;
+  DEBUGASSERT(multi);
+  if(multi) {
+    retval = (bool)multi->recheckstate;
+    if(clear)
+      multi->recheckstate = FALSE;
+  }
   return retval;
 }
 
@@ -1773,16 +1777,16 @@ static CURLcode multi_do(struct Curl_easy *data, bool *done)
  * stage DO state which (wrongly) was introduced to support FTP's second
  * connection.
  *
- * 'complete' can return 0 for incomplete, 1 for done and -1 for go back to
- * DOING state there is more work to do!
+ * 'complete' can return DOMORE_INCOMPLETE, DOMORE_DONE or DOMORE_GOBACK
+ * (to DOING state when there is more work to do)
  */
 
-static CURLcode multi_do_more(struct Curl_easy *data, int *complete)
+static CURLcode multi_do_more(struct Curl_easy *data, domore *complete)
 {
   CURLcode result = CURLE_OK;
   struct connectdata *conn = data->conn;
 
-  *complete = 0;
+  *complete = DOMORE_INCOMPLETE;
 
   if(conn->scheme->run->do_more)
     result = conn->scheme->run->do_more(data, complete);
@@ -2000,9 +2004,9 @@ static CURLcode mspeed_check(struct Curl_easy *data)
   return CURLE_OK;
 }
 
-static CURLMcode state_performing(struct Curl_easy *data,
-                                  bool *stream_errorp,
-                                  CURLcode *resultp)
+static CURLMcode multistate_performing(struct Curl_easy *data,
+                                       bool *stream_errorp,
+                                       CURLcode *resultp)
 {
   char *newurl = NULL;
   bool retry = FALSE;
@@ -2139,9 +2143,9 @@ static CURLMcode state_performing(struct Curl_easy *data,
   return mresult;
 }
 
-static CURLMcode state_do(struct Curl_easy *data,
-                          bool *stream_errorp,
-                          CURLcode *resultp)
+static CURLMcode multistate_do(struct Curl_easy *data,
+                               bool *stream_errorp,
+                               CURLcode *resultp)
 {
   CURLMcode mresult = CURLM_OK;
   CURLcode result = CURLE_OK;
@@ -2276,8 +2280,8 @@ end:
   return mresult;
 }
 
-static CURLMcode state_ratelimiting(struct Curl_easy *data,
-                                    CURLcode *resultp)
+static CURLMcode multistate_ratelimiting(struct Curl_easy *data,
+                                         CURLcode *resultp)
 {
   CURLcode result = CURLE_OK;
   CURLMcode mresult = CURLM_OK;
@@ -2301,9 +2305,9 @@ static CURLMcode state_ratelimiting(struct Curl_easy *data,
   return mresult;
 }
 
-static CURLMcode state_connect(struct Curl_multi *multi,
-                               struct Curl_easy *data,
-                               CURLcode *resultp)
+static CURLMcode multistate_connect(struct Curl_multi *multi,
+                                    struct Curl_easy *data,
+                                    CURLcode *resultp)
 {
   /* Connect. We want to get a connection identifier filled in. This state can
      be entered from SETUP and from PENDING. */
@@ -2449,16 +2453,240 @@ static void handle_completed(struct Curl_multi *multi,
     multi_assess_wakeup(multi);
 }
 
+static CURLMcode multistate_init(struct Curl_easy *data, CURLcode *result)
+{
+  *result = Curl_pretransfer(data);
+  if(*result)
+    return CURLM_OK;
+
+  /* after init, go SETUP */
+  multistate(data, MSTATE_SETUP);
+  Curl_pgrsTime(data, TIMER_STARTOP);
+  return CURLM_CALL_MULTI_PERFORM;
+}
+
+static CURLMcode multistate_setup(struct Curl_easy *data)
+{
+  Curl_pgrsTime(data, TIMER_STARTSINGLE);
+  if(data->set.timeout)
+    Curl_expire(data, data->set.timeout, EXPIRE_TIMEOUT);
+  if(data->set.connecttimeout)
+    /* Since a connection might go to pending and back to CONNECT several
+       times before it actually takes off, we need to set the timeout once
+       in SETUP before we enter CONNECT the first time. */
+    Curl_expire(data, data->set.connecttimeout, EXPIRE_CONNECTTIMEOUT);
+
+  multistate(data, MSTATE_CONNECT);
+  return CURLM_CALL_MULTI_PERFORM;
+}
+
+static CURLMcode multistate_connecting(struct Curl_easy *data,
+                                       bool *stream_error,
+                                       CURLcode *result)
+{
+  bool connected;
+
+  if(!data->conn) {
+    DEBUGASSERT(0);
+    *result = CURLE_FAILED_INIT;
+    return CURLM_OK;
+  }
+  if(!Curl_xfer_recv_is_paused(data)) {
+    *result = Curl_conn_connect(data, FIRSTSOCKET, FALSE, &connected);
+    if(connected && !(*result)) {
+      if(!data->conn->bits.reuse &&
+         Curl_conn_is_multiplex(data->conn, FIRSTSOCKET)) {
+        /* new connection, can multiplex, wake pending handles */
+        process_pending_handles(data->multi);
+      }
+      multistate(data, MSTATE_PROTOCONNECT);
+      return CURLM_CALL_MULTI_PERFORM;
+    }
+    else if(*result) {
+      /* failure detected */
+      CURL_TRC_M(data, "connect failed -> %d", *result);
+      multi_posttransfer(data);
+      multi_done(data, *result, TRUE);
+      *stream_error = TRUE;
+      return CURLM_OK;
+    }
+  }
+  return CURLM_OK;
+}
+
+static CURLMcode multistate_protoconnect(struct Curl_easy *data,
+                                         bool *stream_error,
+                                         CURLcode *result)
+{
+  bool protocol_connected = FALSE;
+
+  if(!(*result) && data->conn->bits.reuse) {
+    /* ftp seems to hang when protoconnect on reused connection since we
+     * handle PROTOCONNECT in general inside the filters, it seems wrong to
+     * restart this on a reused connection.
+     */
+    multistate(data, MSTATE_DO);
+    return CURLM_CALL_MULTI_PERFORM;
+  }
+  if(!(*result))
+    *result = protocol_connect(data, &protocol_connected);
+  if(!(*result) && !protocol_connected) {
+    /* switch to waiting state */
+    multistate(data, MSTATE_PROTOCONNECTING);
+    return CURLM_CALL_MULTI_PERFORM;
+  }
+  else if(!(*result)) {
+    /* protocol connect has completed, go WAITDO or DO */
+    multistate(data, MSTATE_DO);
+    return CURLM_CALL_MULTI_PERFORM;
+  }
+
+  /* failure detected */
+  multi_posttransfer(data);
+  multi_done(data, *result, TRUE);
+  *stream_error = TRUE;
+  return CURLM_OK;
+}
+
+static CURLMcode multistate_protoconnecting(struct Curl_easy *data,
+                                            bool *stream_error,
+                                            CURLcode *result)
+{
+  bool protocol_connected = FALSE;
+
+  /* protocol-specific connect phase */
+  *result = protocol_connecting(data, &protocol_connected);
+  if(!(*result) && protocol_connected) {
+    /* after the connect has completed, go WAITDO or DO */
+    multistate(data, MSTATE_DO);
+    return CURLM_CALL_MULTI_PERFORM;
+  }
+  else if(*result) {
+    /* failure detected */
+    multi_posttransfer(data);
+    multi_done(data, *result, TRUE);
+    *stream_error = TRUE;
+  }
+  return CURLM_OK;
+}
+
+static CURLMcode multistate_doing(struct Curl_easy *data,
+                                  bool *stream_error,
+                                  CURLcode *result)
+{
+  bool dophase_done = FALSE;
+
+  /* we continue DOING until the DO phase is complete */
+  DEBUGASSERT(data->conn);
+  *result = protocol_doing(data, &dophase_done);
+  if(!(*result)) {
+    if(dophase_done) {
+      /* after DO, go DO_DONE or DO_MORE */
+      multistate(data, data->conn->bits.do_more ?
+                 MSTATE_DOING_MORE : MSTATE_DID);
+      return CURLM_CALL_MULTI_PERFORM;
+    } /* dophase_done */
+  }
+  else {
+    /* failure detected */
+    multi_posttransfer(data);
+    multi_done(data, *result, FALSE);
+    *stream_error = TRUE;
+  }
+  return CURLM_OK;
+}
+
+static CURLMcode multistate_doing_more(struct Curl_easy *data,
+                                       bool *stream_error,
+                                       CURLcode *result)
+{
+  domore control;
+
+  /*
+   * When we are connected, DOING MORE and then go DID
+   */
+  DEBUGASSERT(data->conn);
+  *result = multi_do_more(data, &control);
+
+  if(!(*result)) {
+    if(control != DOMORE_INCOMPLETE) {
+      /* if DONE, advance to DO_DONE
+         if GOBACK, go back to DOING */
+      multistate(data, control == DOMORE_DONE ? MSTATE_DID : MSTATE_DOING);
+      return CURLM_CALL_MULTI_PERFORM;
+    }
+    /* else
+       stay in DO_MORE */
+  }
+  else {
+    /* failure detected */
+    multi_posttransfer(data);
+    multi_done(data, *result, FALSE);
+    *stream_error = TRUE;
+  }
+  return CURLM_OK;
+}
+
+static CURLMcode multistate_did(struct Curl_multi *multi,
+                                struct Curl_easy *data)
+{
+  DEBUGASSERT(data->conn);
+  if(data->conn->bits.multiplex)
+    /* Check if we can move pending requests to send pipe */
+    process_pending_handles(multi); /* multiplexed */
+
+  /* Only perform the transfer if there is a good socket to work with.
+     Having both BAD is a signal to skip immediately to DONE */
+  if(CONN_SOCK_IDX_VALID(data->conn->recv_idx) ||
+     CONN_SOCK_IDX_VALID(data->conn->send_idx))
+    multistate(data, MSTATE_PERFORMING);
+  else {
+#ifndef CURL_DISABLE_FTP
+    if(data->state.wildcardmatch &&
+       ((data->conn->scheme->flags & PROTOPT_WILDCARD) == 0)) {
+      data->wildcard->state = CURLWC_DONE;
+    }
+#endif
+    multistate(data, MSTATE_DONE);
+  }
+  return CURLM_CALL_MULTI_PERFORM;
+}
+
+static CURLMcode multistate_done(struct Curl_easy *data, CURLcode *presult)
+{
+  if(data->conn) {
+    CURLcode result;
+
+    /* post-transfer command */
+    result = multi_done(data, *presult, FALSE);
+
+    /* allow a previously set error code take precedence */
+    if(!(*presult))
+      *presult = result;
+  }
+
+#ifndef CURL_DISABLE_FTP
+  if(data->state.wildcardmatch) {
+    if(data->wildcard->state != CURLWC_DONE) {
+      /* if a wildcard is set and we are not ending -> lets start again
+         with MSTATE_INIT */
+      multistate(data, MSTATE_INIT);
+      return CURLM_CALL_MULTI_PERFORM;
+    }
+  }
+#endif
+  /* after we have DONE what we are supposed to do, go COMPLETED, and
+     it does not matter what the multi_done() returned! */
+  multistate(data, MSTATE_COMPLETED);
+  return CURLM_CALL_MULTI_PERFORM;
+}
+
 static CURLMcode multi_runsingle(struct Curl_multi *multi,
                                  struct Curl_easy *data,
                                  struct Curl_sigpipe_ctx *sigpipe_ctx)
 {
-  bool connected;
-  bool protocol_connected = FALSE;
-  bool dophase_done = FALSE;
   CURLMcode mresult;
   CURLcode result = CURLE_OK;
-  int control;
 
   if(!GOOD_EASY_HANDLE(data))
     return CURLM_BAD_EASY_HANDLE;
@@ -2479,6 +2707,11 @@ static CURLMcode multi_runsingle(struct Curl_multi *multi,
   Curl_uint32_bset_remove(&multi->dirty, data->mid);
 
   if(data == multi->admin) {
+#ifdef ENABLE_WAKEUP
+    /* Consume any pending wakeup signals before processing.
+     * This is necessary for event based processing. See #21547 */
+    (void)Curl_wakeup_consume(multi->wakeup_pair, TRUE);
+#endif
 #ifdef USE_RESOLV_THREADED
     Curl_async_thrdd_multi_process(multi);
 #endif
@@ -2517,217 +2750,63 @@ static CURLMcode multi_runsingle(struct Curl_multi *multi,
     case MSTATE_INIT:
       /* Transitional state. init this transfer. A handle never comes back to
          this state. */
-      result = Curl_pretransfer(data);
-      if(result)
-        break;
-
-      /* after init, go SETUP */
-      multistate(data, MSTATE_SETUP);
-      Curl_pgrsTime(data, TIMER_STARTOP);
-      FALLTHROUGH();
+      mresult = multistate_init(data, &result);
+      break;
 
     case MSTATE_SETUP:
       /* Transitional state. Setup things for a new transfer. The handle
          can come back to this state on a redirect. */
-      Curl_pgrsTime(data, TIMER_STARTSINGLE);
-      if(data->set.timeout)
-        Curl_expire(data, data->set.timeout, EXPIRE_TIMEOUT);
-      if(data->set.connecttimeout)
-        /* Since a connection might go to pending and back to CONNECT several
-           times before it actually takes off, we need to set the timeout once
-           in SETUP before we enter CONNECT the first time. */
-        Curl_expire(data, data->set.connecttimeout, EXPIRE_CONNECTTIMEOUT);
-
-      multistate(data, MSTATE_CONNECT);
-      FALLTHROUGH();
+      mresult = multistate_setup(data);
+      break;
 
     case MSTATE_CONNECT:
-      mresult = state_connect(multi, data, &result);
+      mresult = multistate_connect(multi, data, &result);
       break;
 
     case MSTATE_CONNECTING:
       /* awaiting a completion of an asynch TCP connect */
-      if(!data->conn) {
-        DEBUGASSERT(0);
-        result = CURLE_FAILED_INIT;
-        break;
-      }
-      else if(!Curl_xfer_recv_is_paused(data)) {
-        result = Curl_conn_connect(data, FIRSTSOCKET, FALSE, &connected);
-        if(connected && !result) {
-          if(!data->conn->bits.reuse &&
-             Curl_conn_is_multiplex(data->conn, FIRSTSOCKET)) {
-            /* new connection, can multiplex, wake pending handles */
-            process_pending_handles(data->multi);
-          }
-          mresult = CURLM_CALL_MULTI_PERFORM;
-          multistate(data, MSTATE_PROTOCONNECT);
-        }
-        else if(result) {
-          /* failure detected */
-          CURL_TRC_M(data, "connect failed -> %d", result);
-          multi_posttransfer(data);
-          multi_done(data, result, TRUE);
-          stream_error = TRUE;
-          break;
-        }
-      }
+      mresult = multistate_connecting(data, &stream_error, &result);
       break;
 
     case MSTATE_PROTOCONNECT:
-      if(!result && data->conn->bits.reuse) {
-        /* ftp seems to hang when protoconnect on reused connection since we
-         * handle PROTOCONNECT in general inside the filers, it seems wrong to
-         * restart this on a reused connection.
-         */
-        multistate(data, MSTATE_DO);
-        mresult = CURLM_CALL_MULTI_PERFORM;
-        break;
-      }
-      if(!result)
-        result = protocol_connect(data, &protocol_connected);
-      if(!result && !protocol_connected) {
-        /* switch to waiting state */
-        multistate(data, MSTATE_PROTOCONNECTING);
-        mresult = CURLM_CALL_MULTI_PERFORM;
-      }
-      else if(!result) {
-        /* protocol connect has completed, go WAITDO or DO */
-        multistate(data, MSTATE_DO);
-        mresult = CURLM_CALL_MULTI_PERFORM;
-      }
-      else {
-        /* failure detected */
-        multi_posttransfer(data);
-        multi_done(data, result, TRUE);
-        stream_error = TRUE;
-      }
+      mresult = multistate_protoconnect(data, &stream_error, &result);
       break;
 
     case MSTATE_PROTOCONNECTING:
       /* protocol-specific connect phase */
-      result = protocol_connecting(data, &protocol_connected);
-      if(!result && protocol_connected) {
-        /* after the connect has completed, go WAITDO or DO */
-        multistate(data, MSTATE_DO);
-        mresult = CURLM_CALL_MULTI_PERFORM;
-      }
-      else if(result) {
-        /* failure detected */
-        multi_posttransfer(data);
-        multi_done(data, result, TRUE);
-        stream_error = TRUE;
-      }
+      mresult = multistate_protoconnecting(data, &stream_error, &result);
       break;
 
     case MSTATE_DO:
-      mresult = state_do(data, &stream_error, &result);
+      mresult = multistate_do(data, &stream_error, &result);
       break;
 
     case MSTATE_DOING:
       /* we continue DOING until the DO phase is complete */
-      DEBUGASSERT(data->conn);
-      result = protocol_doing(data, &dophase_done);
-      if(!result) {
-        if(dophase_done) {
-          /* after DO, go DO_DONE or DO_MORE */
-          multistate(data, data->conn->bits.do_more ?
-                     MSTATE_DOING_MORE : MSTATE_DID);
-          mresult = CURLM_CALL_MULTI_PERFORM;
-        } /* dophase_done */
-      }
-      else {
-        /* failure detected */
-        multi_posttransfer(data);
-        multi_done(data, result, FALSE);
-        stream_error = TRUE;
-      }
+      mresult = multistate_doing(data, &stream_error, &result);
       break;
 
     case MSTATE_DOING_MORE:
       /*
        * When we are connected, DOING MORE and then go DID
        */
-      DEBUGASSERT(data->conn);
-      result = multi_do_more(data, &control);
-
-      if(!result) {
-        if(control) {
-          /* if positive, advance to DO_DONE
-             if negative, go back to DOING */
-          multistate(data, control == 1 ? MSTATE_DID : MSTATE_DOING);
-          mresult = CURLM_CALL_MULTI_PERFORM;
-        }
-        /* else
-           stay in DO_MORE */
-      }
-      else {
-        /* failure detected */
-        multi_posttransfer(data);
-        multi_done(data, result, FALSE);
-        stream_error = TRUE;
-      }
+      mresult = multistate_doing_more(data, &stream_error, &result);
       break;
 
     case MSTATE_DID:
-      DEBUGASSERT(data->conn);
-      if(data->conn->bits.multiplex)
-        /* Check if we can move pending requests to send pipe */
-        process_pending_handles(multi); /* multiplexed */
-
-      /* Only perform the transfer if there is a good socket to work with.
-         Having both BAD is a signal to skip immediately to DONE */
-      if(CONN_SOCK_IDX_VALID(data->conn->recv_idx) ||
-         CONN_SOCK_IDX_VALID(data->conn->send_idx))
-        multistate(data, MSTATE_PERFORMING);
-      else {
-#ifndef CURL_DISABLE_FTP
-        if(data->state.wildcardmatch &&
-           ((data->conn->scheme->flags & PROTOPT_WILDCARD) == 0)) {
-          data->wildcard->state = CURLWC_DONE;
-        }
-#endif
-        multistate(data, MSTATE_DONE);
-      }
-      mresult = CURLM_CALL_MULTI_PERFORM;
+      mresult = multistate_did(multi, data);
       break;
 
     case MSTATE_RATELIMITING: /* limit-rate exceeded in either direction */
-      mresult = state_ratelimiting(data, &result);
+      mresult = multistate_ratelimiting(data, &result);
       break;
 
     case MSTATE_PERFORMING:
-      mresult = state_performing(data, &stream_error, &result);
+      mresult = multistate_performing(data, &stream_error, &result);
       break;
 
     case MSTATE_DONE:
-      /* this state is highly transient, so run another loop after this */
-      mresult = CURLM_CALL_MULTI_PERFORM;
-
-      if(data->conn) {
-        CURLcode res;
-
-        /* post-transfer command */
-        res = multi_done(data, result, FALSE);
-
-        /* allow a previously set error code take precedence */
-        if(!result)
-          result = res;
-      }
-
-#ifndef CURL_DISABLE_FTP
-      if(data->state.wildcardmatch) {
-        if(data->wildcard->state != CURLWC_DONE) {
-          /* if a wildcard is set and we are not ending -> lets start again
-             with MSTATE_INIT */
-          multistate(data, MSTATE_INIT);
-          break;
-        }
-      }
-#endif
-      /* after we have DONE what we are supposed to do, go COMPLETED, and
-         it does not matter what the multi_done() returned! */
-      multistate(data, MSTATE_COMPLETED);
+      mresult = multistate_done(data, &result);
       break;
 
     case MSTATE_COMPLETED:
@@ -3897,8 +3976,7 @@ CURLcode Curl_multi_xfer_buf_borrow(struct Curl_easy *data,
   if(data->multi->xfer_buf &&
      data->set.buffer_size > data->multi->xfer_buf_len) {
     /* not large enough, get a new one */
-    curlx_free(data->multi->xfer_buf);
-    data->multi->xfer_buf = NULL;
+    curlx_safefree(data->multi->xfer_buf);
     data->multi->xfer_buf_len = 0;
   }
 
@@ -3950,8 +4028,7 @@ CURLcode Curl_multi_xfer_ulbuf_borrow(struct Curl_easy *data,
   if(data->multi->xfer_ulbuf &&
      data->set.upload_buffer_size > data->multi->xfer_ulbuf_len) {
     /* not large enough, get a new one */
-    curlx_free(data->multi->xfer_ulbuf);
-    data->multi->xfer_ulbuf = NULL;
+    curlx_safefree(data->multi->xfer_ulbuf);
     data->multi->xfer_ulbuf_len = 0;
   }
 
@@ -3998,8 +4075,7 @@ CURLcode Curl_multi_xfer_sockbuf_borrow(struct Curl_easy *data,
 
   if(data->multi->xfer_sockbuf && blen > data->multi->xfer_sockbuf_len) {
     /* not large enough, get a new one */
-    curlx_free(data->multi->xfer_sockbuf);
-    data->multi->xfer_sockbuf = NULL;
+    curlx_safefree(data->multi->xfer_sockbuf);
     data->multi->xfer_sockbuf_len = 0;
   }
 
@@ -4054,6 +4130,9 @@ struct Curl_easy *Curl_multi_get_easy(struct Curl_multi *multi,
 
 unsigned int Curl_multi_xfers_running(struct Curl_multi *multi)
 {
+  DEBUGASSERT(multi);
+  if(!multi)
+    return 0;
   return multi->xfers_alive;
 }
 

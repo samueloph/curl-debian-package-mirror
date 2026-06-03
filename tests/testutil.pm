@@ -71,7 +71,7 @@ my @logmessages;  # array holding logged messages
 #
 # logmsg must only be called by one of the runner_* entry points and functions
 # called by them, or else logs risk being lost, since those are the only
-# functions that know about and will return buffered logs.
+# functions that know about and return buffered logs.
 sub logmsg {
     if(!scalar(@_)) {
         return;
@@ -164,7 +164,7 @@ sub subbase64 {
         # boundary. Then provide two alternatives.
         my $now = time();
         my $d = ($1 * 24 * 3600) + $now + 30;
-        $d = int($d/60) * 60;
+        $d = int($d / 60) * 60;
         my $d2 = $d + 60;
         $$thing =~ s/%%DAYS%%/%alternatives[$d,$d2]/;
     }

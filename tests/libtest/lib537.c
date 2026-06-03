@@ -23,6 +23,8 @@
  ***************************************************************************/
 #include "first.h"
 
+#if defined(HAVE_GETRLIMIT) && defined(HAVE_SETRLIMIT)
+
 #include "testutil.h"
 
 #define T537_SAFETY_MARGIN 11
@@ -32,8 +34,6 @@
 #else
 #define DEV_NULL "/dev/null"
 #endif
-
-#if defined(HAVE_GETRLIMIT) && defined(HAVE_SETRLIMIT)
 
 static int *t537_testfd = NULL;
 static struct rlimit t537_num_open;
@@ -57,8 +57,7 @@ static void t537_close_file_descriptors(void)
       t537_num_open.rlim_cur++)
     if(t537_testfd[t537_num_open.rlim_cur] > 0)
       curlx_close(t537_testfd[t537_num_open.rlim_cur]);
-  curlx_free(t537_testfd);
-  t537_testfd = NULL;
+  curlx_safefree(t537_testfd);
 }
 
 static int t537_fopen_works(void)
@@ -291,8 +290,7 @@ static int t537_test_rlimit(int keep_open)
     curl_msnprintf(strbuff, sizeof(strbuff), "opening of %s failed", DEV_NULL);
     t537_store_errmsg(strbuff, errno);
     curl_mfprintf(stderr, "%s\n", t537_msgbuff);
-    curlx_free(t537_testfd);
-    t537_testfd = NULL;
+    curlx_safefree(t537_testfd);
     curlx_free(memchunk);
     return -7;
   }

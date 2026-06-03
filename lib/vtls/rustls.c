@@ -337,7 +337,7 @@ static CURLcode cr_send(struct Curl_cfilter *cf, struct Curl_easy *data,
     }
     else
       blen = 0;
-    *pnwritten += (ssize_t)backend->plain_out_buffered;
+    *pnwritten += backend->plain_out_buffered;
     backend->plain_out_buffered = 0;
   }
 
@@ -370,7 +370,7 @@ static CURLcode cr_send(struct Curl_cfilter *cf, struct Curl_easy *data,
     goto out;
   }
   else
-    *pnwritten += (ssize_t)plainwritten;
+    *pnwritten += plainwritten;
 
 out:
   CURL_TRC_CF(data, cf, "rustls_send(len=%zu) -> %d, %zu",
@@ -845,14 +845,14 @@ init_config_builder_client_auth(struct Curl_easy *data,
   const struct rustls_certified_key *certified_key = NULL;
   CURLcode result = CURLE_OK;
 
-  if(conn_config->clientcert && !ssl_config->key) {
+  if(conn_config->clientcert && !ssl_config->primary.key) {
     failf(data, "rustls: must provide key with certificate '%s'",
           conn_config->clientcert);
     return CURLE_SSL_CERTPROBLEM;
   }
-  else if(!conn_config->clientcert && ssl_config->key) {
+  else if(!conn_config->clientcert && ssl_config->primary.key) {
     failf(data, "rustls: must provide certificate with key '%s'",
-          ssl_config->key);
+          ssl_config->primary.key);
     return CURLE_SSL_CERTPROBLEM;
   }
 
@@ -866,8 +866,9 @@ init_config_builder_client_auth(struct Curl_easy *data,
     goto cleanup;
   }
 
-  if(!read_file_into(ssl_config->key, &key_contents)) {
-    failf(data, "rustls: failed to read key file: '%s'", ssl_config->key);
+  if(!read_file_into(ssl_config->primary.key, &key_contents)) {
+    failf(data, "rustls: failed to read key file: '%s'",
+          ssl_config->primary.key);
     result = CURLE_SSL_CERTPROBLEM;
     goto cleanup;
   }
@@ -915,9 +916,9 @@ static bool cr_ech_need_httpsrr(struct Curl_easy *data)
 {
   if(!CURLECH_ENABLED(data))
     return FALSE;
-  if((data->set.tls_ech & CURLECH_GREASE) ||
-     (data->set.tls_ech & CURLECH_CLA_CFG))
-   return FALSE;
+  if((data->set.tls_ech == CURLECH_GREASE) ||
+     data->set.str[STRING_ECH_CONFIG])
+    return FALSE;
   return TRUE;
 }
 
@@ -957,7 +958,7 @@ init_config_builder_ech(struct Curl_easy *data,
     return CURLE_OK;
   }
 
-  if(data->set.tls_ech & CURLECH_CLA_CFG && data->set.str[STRING_ECH_CONFIG]) {
+  if(data->set.tls_ech && data->set.str[STRING_ECH_CONFIG]) {
     const char *b64 = data->set.str[STRING_ECH_CONFIG];
     size_t decode_result;
     if(!b64) {
@@ -997,7 +998,7 @@ init_config_builder_ech(struct Curl_easy *data,
   }
 cleanup:
   /* if we base64 decoded, we can free now */
-  if(data->set.tls_ech & CURLECH_CLA_CFG && data->set.str[STRING_ECH_CONFIG]) {
+  if(data->set.tls_ech && data->set.str[STRING_ECH_CONFIG]) {
     curlx_free(ech_config);
   }
   if(dns) {
@@ -1042,6 +1043,12 @@ static CURLcode cr_init_backend(struct Curl_cfilter *cf,
       config_builder, cr_verify_none);
   }
   else if(ssl_config->native_ca_store) {
+    if(conn_config->CRLfile) {
+      failf(data, "rustls: CRL file not supported with native CA store; "
+            "the platform verifier has no CRL attachment API");
+      rustls_client_config_builder_free(config_builder);
+      return CURLE_NOT_BUILT_IN;
+    }
     result = init_config_builder_platform_verifier(data, config_builder);
     if(result != CURLE_OK) {
       rustls_client_config_builder_free(config_builder);
@@ -1060,7 +1067,7 @@ static CURLcode cr_init_backend(struct Curl_cfilter *cf,
     }
   }
 
-  if(conn_config->clientcert || ssl_config->key) {
+  if(conn_config->clientcert || ssl_config->primary.key) {
     result = init_config_builder_client_auth(data,
                                              conn_config,
                                              ssl_config,
@@ -1074,7 +1081,7 @@ static CURLcode cr_init_backend(struct Curl_cfilter *cf,
 #ifdef USE_ECH
   if(CURLECH_ENABLED(data)) {
     result = init_config_builder_ech(data, cf, config_builder);
-    if(result != CURLE_OK && data->set.tls_ech & CURLECH_HARD) {
+    if((result != CURLE_OK) && (data->set.tls_ech == CURLECH_HARD)) {
       rustls_client_config_builder_free(config_builder);
       return result;
     }
@@ -1095,7 +1102,7 @@ static CURLcode cr_init_backend(struct Curl_cfilter *cf,
 
   DEBUGASSERT(rconn == NULL);
   rr = rustls_client_connection_new(backend->config,
-                                    connssl->peer.hostname,
+                                    connssl->peer.dest->hostname,
                                     &rconn);
   if(rr != RUSTLS_RESULT_OK) {
     rustls_failf(data, rr, "rustls_client_connection_new");

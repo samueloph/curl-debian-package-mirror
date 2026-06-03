@@ -240,17 +240,9 @@ static CURLcode httpauth(struct Curl_easy *data, bool proxy,
   if(auth != CURLAUTH_NONE) {
     int bitcheck = 0;
     bool authbits = FALSE;
-    /* the DIGEST_IE bit is only used to set a special marker, for all the
-       rest we need to handle it as normal DIGEST */
-    bool iestyle = !!(auth & CURLAUTH_DIGEST_IE);
-    if(proxy)
-      data->state.authproxy.iestyle = iestyle;
-    else
-      data->state.authhost.iestyle = iestyle;
-
     if(auth & CURLAUTH_DIGEST_IE) {
       auth |= CURLAUTH_DIGEST; /* set standard digest bit */
-      auth &= ~CURLAUTH_DIGEST_IE; /* unset ie digest bit */
+      auth &= ~CURLAUTH_DIGEST_IE; /* drop the legacy bit */
     }
 
     /* switch off bits we cannot support */
@@ -1027,23 +1019,35 @@ static CURLcode setopt_long_ssl(struct Curl_easy *data, CURLoption option,
 #endif /* !USE_SSL */
 }
 
+#ifndef CURL_DISABLE_PROXY
+static void changeproxy(struct Curl_easy *data)
+{
+  Curl_auth_digest_cleanup(&data->state.proxydigest);
+  memset(&data->state.authproxy, 0, sizeof(data->state.authproxy));
+}
+
 static CURLcode setopt_long_proxy(struct Curl_easy *data, CURLoption option,
                                   long arg)
 {
-#ifndef CURL_DISABLE_PROXY
   struct UserDefined *s = &data->set;
 
   switch(option) {
   case CURLOPT_PROXYPORT:
     if((arg < 0) || (arg > UINT16_MAX))
       return CURLE_BAD_FUNCTION_ARGUMENT;
+    if(arg != s->proxyport)
+      changeproxy(data);
     s->proxyport = (uint16_t)arg;
     break;
   case CURLOPT_PROXYAUTH:
     return httpauth(data, TRUE, (unsigned long)arg);
   case CURLOPT_PROXYTYPE:
-    if((arg < CURLPROXY_HTTP) || (arg > CURLPROXY_SOCKS5_HOSTNAME))
+    if((arg < CURLPROXY_HTTP) || (arg > CURLPROXY_HTTPS3))
       return CURLE_BAD_FUNCTION_ARGUMENT;
+#ifndef USE_PROXY_HTTP3
+    if(arg == CURLPROXY_HTTPS3)
+      return CURLE_NOT_BUILT_IN;
+#endif
     s->proxytype = (unsigned char)arg;
     break;
   case CURLOPT_SOCKS5_AUTH:
@@ -1055,13 +1059,17 @@ static CURLcode setopt_long_proxy(struct Curl_easy *data, CURLoption option,
     return CURLE_UNKNOWN_OPTION;
   }
   return CURLE_OK;
+}
 #else
+static CURLcode setopt_long_proxy(struct Curl_easy *data, CURLoption option,
+                                  long arg)
+{
   (void)data;
   (void)option;
   (void)arg;
   return CURLE_UNKNOWN_OPTION;
-#endif
 }
+#endif
 
 static CURLcode setopt_long_http(struct Curl_easy *data, CURLoption option,
                                  long arg)
@@ -1276,15 +1284,23 @@ static CURLcode setopt_long_misc(struct Curl_easy *data, CURLoption option,
           return CURLE_OUT_OF_MEMORY;
       }
     }
-    else
+    else if(!data->share || !data->share->hsts) {
+      /* throw away the HSTS cache unless shared */
       Curl_hsts_cleanup(&data->hsts);
+      /* flush all the entries */
+      curl_slist_free_all(data->state.hstslist);
+      data->state.hstslist = NULL;
+    }
+    else
+      /* detach from shared HSTS cache without freeing it */
+      data->hsts = NULL;
     break;
 #endif
 #ifndef CURL_DISABLE_ALTSVC
   case CURLOPT_ALTSVC_CTRL:
     return Curl_altsvc_ctrl(data, arg);
 #endif
-#ifdef HAVE_GSSAPI
+#if defined(HAVE_GSSAPI) || defined(USE_WINDOWS_SSPI)
   case CURLOPT_GSSAPI_DELEGATION:
     s->gssapi_delegation = (unsigned char)arg &
       (CURLGSSAPI_DELEGATION_POLICY_FLAG | CURLGSSAPI_DELEGATION_FLAG);
@@ -1515,13 +1531,10 @@ static CURLcode setopt_pointers(struct Curl_easy *data, CURLoption option,
 
 #ifdef USE_HTTP2
   case CURLOPT_STREAM_DEPENDS:
-  case CURLOPT_STREAM_DEPENDS_E: {
-    struct Curl_easy *dep = va_arg(param, struct Curl_easy *);
-    if(!dep || GOOD_EASY_HANDLE(dep))
-      return Curl_data_priority_add_child(dep, data,
-                                          option == CURLOPT_STREAM_DEPENDS_E);
+  case CURLOPT_STREAM_DEPENDS_E:
+    /* not doing stream dependencies any longer, but accept options
+     * for backward compatibility */
     break;
-  }
 #endif
 
   default:
@@ -1630,8 +1643,7 @@ static CURLcode setproxy(struct Curl_easy *data, const char *proxy)
      !strcmp(data->set.str[STRING_PROXY], proxy))
     return CURLE_OK; /* same one as before */
 
-  Curl_auth_digest_cleanup(&data->state.proxydigest);
-  memset(&data->state.authproxy, 0, sizeof(data->state.authproxy));
+  changeproxy(data);
   return Curl_setstropt(&data->set.str[STRING_PROXY], proxy);
 }
 
@@ -1650,16 +1662,16 @@ static CURLcode setopt_cptr_proxy(struct Curl_easy *data, CURLoption option,
     result = setstropt_userpwd(ptr, &u, &p);
 
     /* URL decode the components */
-    if(!result && u) {
+    if(!result) {
       curlx_safefree(s->str[STRING_PROXYUSERNAME]);
-      result = Curl_urldecode(u, 0, &s->str[STRING_PROXYUSERNAME], NULL,
-                              REJECT_ZERO);
-    }
-    if(!result && p) {
       curlx_safefree(s->str[STRING_PROXYPASSWORD]);
+      if(u)
+        result = Curl_urldecode(u, 0, &s->str[STRING_PROXYUSERNAME], NULL,
+                                REJECT_ZERO);
+    }
+    if(!result && p)
       result = Curl_urldecode(p, 0, &s->str[STRING_PROXYPASSWORD], NULL,
                               REJECT_ZERO);
-    }
     curlx_free(u);
     curlx_free(p);
     break;
@@ -1777,13 +1789,16 @@ static CURLcode setopt_cptr_proxy(struct Curl_easy *data, CURLoption option,
      * Set CRL file info for SSL connection for proxy. Specify filename of the
      * CRL to check certificates revocation
      */
-    return Curl_setstropt(&s->str[STRING_SSL_CRLFILE_PROXY], ptr);
+    if(Curl_ssl_supports(data, SSLSUPP_CRLFILE))
+      return Curl_setstropt(&s->str[STRING_SSL_CRLFILE_PROXY], ptr);
+    return CURLE_NOT_BUILT_IN;
   case CURLOPT_PROXY_ISSUERCERT:
     /*
-     * Set Issuer certificate file
-     * to check certificates issuer
+     * Set Issuer certificate file to check certificates issuer
      */
-    return Curl_setstropt(&s->str[STRING_SSL_ISSUERCERT_PROXY], ptr);
+    if(Curl_ssl_supports(data, SSLSUPP_ISSUERCERT))
+      return Curl_setstropt(&s->str[STRING_SSL_ISSUERCERT_PROXY], ptr);
+    return CURLE_NOT_BUILT_IN;
   case CURLOPT_PROXY_CAPATH:
     /*
      * Set CA path info for SSL connection proxy. Specify directory name of the
@@ -1842,6 +1857,45 @@ static CURLcode setopt_copypostfields(const char *ptr, struct UserDefined *s)
   s->method = HTTPREQ_POST;
   return result;
 }
+#endif
+
+#ifdef USE_ECH
+static CURLcode setopt_ech(struct Curl_easy *data, const char *ptr)
+{
+  struct UserDefined *s = &data->set;
+  CURLcode result = CURLE_OK;
+
+  if(!ptr || !strcmp(ptr, "false"))
+    s->tls_ech = CURLECH_DISABLE;
+  else {
+    size_t plen = strlen(ptr);
+    if(plen > CURL_MAX_INPUT_LENGTH)
+      result = CURLE_BAD_FUNCTION_ARGUMENT;
+    else {
+      if(!strcmp(ptr, "grease"))
+        s->tls_ech = CURLECH_GREASE;
+      else if(!strcmp(ptr, "true"))
+        s->tls_ech = CURLECH_ENABLE;
+      else if(!strcmp(ptr, "hard"))
+        s->tls_ech = CURLECH_HARD;
+      else if(plen > 4 && !strncmp(ptr, "ecl:", 4)) {
+        if(!s->tls_ech)
+          s->tls_ech = CURLECH_HARD;
+        result = Curl_setstropt(&s->str[STRING_ECH_CONFIG], ptr + 4);
+      }
+      else if(plen > 3 && !strncmp(ptr, "pn:", 3)) {
+        if(!s->tls_ech)
+          s->tls_ech = CURLECH_HARD;
+        result = Curl_setstropt(&s->str[STRING_ECH_PUBLIC], ptr + 3);
+      }
+      else
+        result = CURLE_BAD_FUNCTION_ARGUMENT;
+    }
+  }
+  return result;
+}
+#else
+#define setopt_ech(x,y) CURLE_NOT_BUILT_IN
 #endif
 
 static CURLcode setopt_cptr(struct Curl_easy *data, CURLoption option,
@@ -2297,6 +2351,12 @@ static CURLcode setopt_cptr(struct Curl_easy *data, CURLoption option,
      * for validation purposes.
      */
     return Curl_setstropt(&s->str[STRING_SSH_HOST_PUBLIC_KEY_MD5], ptr);
+  case CURLOPT_SSH_HOST_PUBLIC_KEY_SHA256:
+    /*
+     * Option to allow for the SHA256 of the host public key to be checked
+     * for validation purposes.
+     */
+    return Curl_setstropt(&s->str[STRING_SSH_HOST_PUBLIC_KEY_SHA256], ptr);
   case CURLOPT_SSH_KNOWNHOSTS:
     /*
      * Store the filename to read known hosts from.
@@ -2304,12 +2364,6 @@ static CURLcode setopt_cptr(struct Curl_easy *data, CURLoption option,
     return Curl_setstropt(&s->str[STRING_SSH_KNOWNHOSTS], ptr);
 #endif
 #ifdef USE_LIBSSH2
-  case CURLOPT_SSH_HOST_PUBLIC_KEY_SHA256:
-    /*
-     * Option to allow for the SHA256 of the host public key to be checked
-     * for validation purposes.
-     */
-    return Curl_setstropt(&s->str[STRING_SSH_HOST_PUBLIC_KEY_SHA256], ptr);
   case CURLOPT_SSH_HOSTKEYDATA:
     /*
      * Custom client data to pass to the SSH keyfunc callback
@@ -2481,38 +2535,8 @@ static CURLcode setopt_cptr(struct Curl_easy *data, CURLoption option,
       return Curl_altsvc_load(data->asi, ptr);
     break;
 #endif /* !CURL_DISABLE_ALTSVC */
-#ifdef USE_ECH
-  case CURLOPT_ECH: {
-    size_t plen = 0;
-
-    if(!ptr) {
-      s->tls_ech = CURLECH_DISABLE;
-      break;
-    }
-    plen = strlen(ptr);
-    if(plen > CURL_MAX_INPUT_LENGTH) {
-      s->tls_ech = CURLECH_DISABLE;
-      return CURLE_BAD_FUNCTION_ARGUMENT;
-    }
-    /* set tls_ech flag value, preserving CLA_CFG bit */
-    if(!strcmp(ptr, "false"))
-      s->tls_ech = (s->tls_ech & CURLECH_CLA_CFG) | CURLECH_DISABLE;
-    else if(!strcmp(ptr, "grease"))
-      s->tls_ech = (s->tls_ech & CURLECH_CLA_CFG) | CURLECH_GREASE;
-    else if(!strcmp(ptr, "true"))
-      s->tls_ech = (s->tls_ech & CURLECH_CLA_CFG) | CURLECH_ENABLE;
-    else if(!strcmp(ptr, "hard"))
-      s->tls_ech = (s->tls_ech & CURLECH_CLA_CFG) | CURLECH_HARD;
-    else if(plen > 5 && !strncmp(ptr, "ecl:", 4)) {
-      result = Curl_setstropt(&s->str[STRING_ECH_CONFIG], ptr + 4);
-      if(!result)
-        s->tls_ech |= CURLECH_CLA_CFG;
-    }
-    else if(plen > 4 && !strncmp(ptr, "pn:", 3))
-      result = Curl_setstropt(&s->str[STRING_ECH_PUBLIC], ptr + 3);
-    break;
-  }
-#endif
+  case CURLOPT_ECH:
+    return setopt_ech(data, ptr);
   default:
     return CURLE_UNKNOWN_OPTION;
   }
@@ -2819,15 +2843,19 @@ static CURLcode setopt_blob(struct Curl_easy *data, CURLoption option,
      * Specify entire PEM of the CA certificate
      */
 #ifdef USE_SSL
-    if(Curl_ssl_supports(data, SSLSUPP_CAINFO_BLOB))
+    if(Curl_ssl_supports(data, SSLSUPP_CAINFO_BLOB)) {
+      s->proxy_ssl.custom_cablob = TRUE;
       return Curl_setblobopt(&s->blobs[BLOB_CAINFO_PROXY], blob);
+    }
 #endif
     return CURLE_NOT_BUILT_IN;
   case CURLOPT_PROXY_ISSUERCERT_BLOB:
     /*
      * Blob that holds Issuer certificate to check certificates issuer
      */
-    return Curl_setblobopt(&s->blobs[BLOB_SSL_ISSUERCERT_PROXY], blob);
+    if(Curl_ssl_supports(data, SSLSUPP_ISSUERCERT_BLOB))
+      return Curl_setblobopt(&s->blobs[BLOB_SSL_ISSUERCERT_PROXY], blob);
+    return CURLE_NOT_BUILT_IN;
 #endif
   case CURLOPT_SSLKEY_BLOB:
     /*

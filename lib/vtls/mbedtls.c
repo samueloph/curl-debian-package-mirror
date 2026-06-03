@@ -179,10 +179,10 @@ static int mbedtls_bio_cf_read(void *bio, unsigned char *buf, size_t blen)
 #define PUB_DER_MAX_BYTES   (RSA_PUB_DER_MAX_BYTES > ECP_PUB_DER_MAX_BYTES ? \
                              RSA_PUB_DER_MAX_BYTES : ECP_PUB_DER_MAX_BYTES)
 
-static CURLcode
-mbed_set_ssl_version_min_max(struct Curl_easy *data,
-                             struct mbed_ssl_backend_data *backend,
-                             struct ssl_primary_config *conn_config)
+static CURLcode mbed_set_ssl_version_min_max(
+  struct Curl_easy *data,
+  struct mbed_ssl_backend_data *backend,
+  struct ssl_primary_config *conn_config)
 {
   mbedtls_ssl_protocol_version ver_min =
 #ifdef MBEDTLS_SSL_PROTO_TLS1_2
@@ -275,15 +275,15 @@ static uint16_t mbed_cipher_suite_walk_str(const char **str, const char **end)
   return id;
 }
 #else
-#define mbed_cipher_suite_get_str Curl_cipher_suite_get_str
+#define mbed_cipher_suite_get_str  Curl_cipher_suite_get_str
 #define mbed_cipher_suite_walk_str Curl_cipher_suite_walk_str
 #endif
 
-static CURLcode
-mbed_set_selected_ciphers(struct Curl_easy *data,
-                          struct mbed_ssl_backend_data *backend,
-                          const char *ciphers12,
-                          const char *ciphers13)
+static CURLcode mbed_set_selected_ciphers(
+  struct Curl_easy *data,
+  struct mbed_ssl_backend_data *backend,
+  const char *ciphers12,
+  const char *ciphers13)
 {
   const char *ciphers = ciphers12;
   const int *supported;
@@ -486,7 +486,7 @@ static CURLcode mbed_load_cacert(struct Curl_cfilter *cf,
   const char * const ssl_capath = conn_config->CApath;
 #ifdef MBEDTLS_PEM_PARSE_C
   struct ssl_config_data *ssl_config = Curl_ssl_cf_get_config(cf, data);
-  const char * const ssl_cert_type = ssl_config->cert_type;
+  const char * const ssl_cert_type = ssl_config->primary.cert_type;
 #endif
   int ret = -1;
   char errorbuf[128];
@@ -581,7 +581,7 @@ static CURLcode mbed_load_clicert(struct Curl_cfilter *cf,
   char * const ssl_cert = ssl_config->primary.clientcert;
   const struct curl_blob *ssl_cert_blob = ssl_config->primary.cert_blob;
 #ifdef MBEDTLS_PEM_PARSE_C
-  const char * const ssl_cert_type = ssl_config->cert_type;
+  const char * const ssl_cert_type = ssl_config->primary.cert_type;
 #endif
   int ret = -1;
   char errorbuf[128];
@@ -662,12 +662,12 @@ static CURLcode mbed_load_privkey(struct Curl_cfilter *cf,
 
   mbedtls_pk_init(&backend->pk);
 
-  if(ssl_config->key || ssl_config->key_blob) {
-    if(ssl_config->key) {
+  if(ssl_config->primary.key || ssl_config->primary.key_blob) {
+    if(ssl_config->primary.key) {
 #ifdef MBEDTLS_FS_IO
 #if MBEDTLS_VERSION_NUMBER >= 0x04000000
-      ret = mbedtls_pk_parse_keyfile(&backend->pk, ssl_config->key,
-                                     ssl_config->key_passwd);
+      ret = mbedtls_pk_parse_keyfile(&backend->pk, ssl_config->primary.key,
+                                     ssl_config->primary.key_passwd);
       if(ret == 0 &&
          !(mbedtls_pk_can_do_psa(&backend->pk,
                                  PSA_ALG_RSA_PKCS1V15_SIGN(PSA_ALG_ANY_HASH),
@@ -677,8 +677,8 @@ static CURLcode mbed_load_privkey(struct Curl_cfilter *cf,
                                  PSA_KEY_USAGE_SIGN_HASH)))
         ret = MBEDTLS_ERR_PK_TYPE_MISMATCH;
 #else
-      ret = mbedtls_pk_parse_keyfile(&backend->pk, ssl_config->key,
-                                     ssl_config->key_passwd,
+      ret = mbedtls_pk_parse_keyfile(&backend->pk, ssl_config->primary.key,
+                                     ssl_config->primary.key_passwd,
                                      mbedtls_ctr_drbg_random,
                                      &rng.drbg);
       if(ret == 0 && !(mbedtls_pk_can_do(&backend->pk, MBEDTLS_PK_RSA) ||
@@ -689,7 +689,7 @@ static CURLcode mbed_load_privkey(struct Curl_cfilter *cf,
       if(ret) {
         mbedtls_strerror(ret, errorbuf, sizeof(errorbuf));
         failf(data, "mbedTLS: error reading private key %s: (-0x%04X) %s",
-              ssl_config->key, -ret, errorbuf);
+              ssl_config->primary.key, -ret, errorbuf);
         return CURLE_SSL_CERTPROBLEM;
       }
 #else
@@ -698,12 +698,18 @@ static CURLcode mbed_load_privkey(struct Curl_cfilter *cf,
 #endif
     }
     else {
-      const struct curl_blob *ssl_key_blob = ssl_config->key_blob;
-      const unsigned char *key_data =
-        (const unsigned char *)ssl_key_blob->data;
-      const char *passwd = ssl_config->key_passwd;
+      const struct curl_blob *ssl_key_blob = ssl_config->primary.key_blob;
+      const char *passwd = ssl_config->primary.key_passwd;
+      /* Unfortunately, mbedtls_pk_parse_key() requires the data to be
+         null-terminated if the data is PEM encoded (even when provided the
+         exact length). */
+      unsigned char *newblob = curlx_memdup0(ssl_key_blob->data,
+                                             ssl_key_blob->len);
+      if(!newblob)
+        return CURLE_OUT_OF_MEMORY;
+
 #if MBEDTLS_VERSION_NUMBER >= 0x04000000
-      ret = mbedtls_pk_parse_key(&backend->pk, key_data, ssl_key_blob->len,
+      ret = mbedtls_pk_parse_key(&backend->pk, newblob, ssl_key_blob->len,
                                  (const unsigned char *)passwd,
                                  passwd ? strlen(passwd) : 0);
       if(ret == 0 &&
@@ -715,7 +721,7 @@ static CURLcode mbed_load_privkey(struct Curl_cfilter *cf,
                                  PSA_KEY_USAGE_SIGN_HASH)))
         ret = MBEDTLS_ERR_PK_TYPE_MISMATCH;
 #else
-      ret = mbedtls_pk_parse_key(&backend->pk, key_data, ssl_key_blob->len,
+      ret = mbedtls_pk_parse_key(&backend->pk, newblob, ssl_key_blob->len,
                                  (const unsigned char *)passwd,
                                  passwd ? strlen(passwd) : 0,
                                  mbedtls_ctr_drbg_random,
@@ -724,6 +730,7 @@ static CURLcode mbed_load_privkey(struct Curl_cfilter *cf,
                        mbedtls_pk_can_do(&backend->pk, MBEDTLS_PK_ECKEY)))
         ret = MBEDTLS_ERR_PK_TYPE_MISMATCH;
 #endif
+      curlx_free(newblob);
 
       if(ret) {
         mbedtls_strerror(ret, errorbuf, sizeof(errorbuf));
@@ -738,7 +745,7 @@ static CURLcode mbed_load_privkey(struct Curl_cfilter *cf,
 }
 
 static CURLcode mbed_load_crl(struct Curl_cfilter *cf,
-                               struct Curl_easy *data)
+                              struct Curl_easy *data)
 {
   struct ssl_connect_data *connssl = cf->ctx;
   struct mbed_ssl_backend_data *backend =
@@ -791,7 +798,7 @@ static CURLcode mbed_configure_ssl(struct Curl_cfilter *cf,
   char errorbuf[128];
 
   infof(data, "mbedTLS: Connecting to %s:%d",
-        connssl->peer.hostname, connssl->peer.port);
+        connssl->peer.dest->hostname, connssl->peer.dest->port);
 
   mbedtls_ssl_config_init(&backend->config);
   ret = mbedtls_ssl_config_defaults(&backend->config,
@@ -926,13 +933,14 @@ static CURLcode mbed_configure_ssl(struct Curl_cfilter *cf,
 #endif
     );
 
-  if(ssl_config->key || ssl_config->key_blob) {
+  if(ssl_config->primary.key || ssl_config->primary.key_blob) {
     mbedtls_ssl_conf_own_cert(&backend->config, &backend->clicert,
                               &backend->pk);
   }
 
   if(mbedtls_ssl_set_hostname(&backend->ssl, connssl->peer.sni ?
-                              connssl->peer.sni : connssl->peer.hostname)) {
+                              connssl->peer.sni :
+                              connssl->peer.dest->hostname)) {
     /* mbedtls_ssl_set_hostname() sets the name to use in CN/SAN checks and
        the name to set in the SNI extension. Thus even if curl connects to
        a host specified as an IP address, this function must be used. */
@@ -965,7 +973,7 @@ static CURLcode mbed_configure_ssl(struct Curl_cfilter *cf,
     result = (*data->set.ssl.fsslctx)(data, &backend->config,
                                       data->set.ssl.fsslctxp);
     if(result)
-      failf(data, "error signaled by ssl ctx callback");
+      failf(data, "error signaled by SSL ctx callback");
   }
 
   return result;
@@ -1555,7 +1563,7 @@ static CURLcode mbedtls_sha256sum(const unsigned char *input,
                                   unsigned char *sha256sum,
                                   size_t sha256len)
 {
-#if defined(PSA_WANT_ALG_SHA_256) && PSA_WANT_ALG_SHA_256  /* mbedTLS 4+ */
+#if defined(PSA_WANT_ALG_SHA_256) && PSA_WANT_ALG_SHA_256
   psa_status_t status;
   size_t sha256len_actual;
   status = psa_hash_compute(PSA_ALG_SHA_256, input, inputlen,

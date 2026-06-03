@@ -592,7 +592,7 @@ option(BUILD_MISC_DOCS "Build misc man pages (e.g. curl-config and mk-ca-bundle)
 option(ENABLE_CURL_MANUAL "Build the man page for curl and enable its -M/--manual option" ON)
 
 if((ENABLE_CURL_MANUAL OR BUILD_LIBCURL_DOCS) AND NOT Perl_FOUND)
-  message(WARNING "Perl not found. Will not build manuals.")
+  message(WARNING "Perl not found. Cannot build manuals.")
 endif()
 
 # If we are on AIX, do the _ALL_SOURCE magic
@@ -738,7 +738,7 @@ endif()
 cmake_dependent_option(CURL_USE_MBEDTLS "Enable mbedTLS for SSL/TLS" OFF CURL_ENABLE_SSL OFF)
 cmake_dependent_option(CURL_USE_WOLFSSL "Enable wolfSSL for SSL/TLS" OFF CURL_ENABLE_SSL OFF)
 cmake_dependent_option(CURL_USE_GNUTLS "Enable GnuTLS for SSL/TLS" OFF CURL_ENABLE_SSL OFF)
-cmake_dependent_option(CURL_USE_RUSTLS "Enable Rustls for SSL/TLS" OFF CURL_ENABLE_SSL OFF)
+cmake_dependent_option(CURL_USE_RUSTLS "Enable Rustls for SSL/TLS (experimental)" OFF CURL_ENABLE_SSL OFF)
 
 if(WIN32 OR
    CURL_USE_SCHANNEL OR
@@ -835,26 +835,26 @@ if(CURL_USE_OPENSSL)
 
   cmake_push_check_state()
   list(APPEND CMAKE_REQUIRED_LIBRARIES OpenSSL::SSL OpenSSL::Crypto)
-  if(NOT DEFINED HAVE_BORINGSSL)
-    check_symbol_exists("OPENSSL_IS_BORINGSSL" "openssl/base.h" HAVE_BORINGSSL)
-  endif()
   if(NOT DEFINED HAVE_AWSLC)
     check_symbol_exists("OPENSSL_IS_AWSLC" "openssl/base.h" HAVE_AWSLC)
+  endif()
+  if(NOT DEFINED HAVE_BORINGSSL)
+    check_symbol_exists("OPENSSL_IS_BORINGSSL" "openssl/base.h" HAVE_BORINGSSL)
   endif()
   if(NOT DEFINED HAVE_LIBRESSL)
     check_symbol_exists("LIBRESSL_VERSION_NUMBER" "openssl/opensslv.h" HAVE_LIBRESSL)
   endif()
   cmake_pop_check_state()
 
-  if(HAVE_BORINGSSL OR HAVE_AWSLC)
-    if(NOT MSVC AND NOT ANDROID)  # BoringSSL/AWS-LC MSVC builds use native Windows threads
+  if(HAVE_AWSLC OR HAVE_BORINGSSL)
+    if(NOT MSVC AND NOT ANDROID)  # AWS-LC/BoringSSL MSVC builds use native Windows threads
       find_package(Threads)
       if(CMAKE_USE_PTHREADS_INIT)
         set(HAVE_THREADS_POSIX_BORINGSSL 1)
         list(APPEND CURL_NETWORK_AND_TIME_LIBS Threads::Threads)
         list(APPEND CMAKE_REQUIRED_LIBRARIES Threads::Threads)
       elseif(OPENSSL_USE_STATIC_LIBS)
-        message(WARNING "BoringSSL/AWS-LC requires POSIX Threads.")
+        message(WARNING "AWS-LC/BoringSSL requires POSIX Threads.")
       endif()
     endif()
     if(OPENSSL_USE_STATIC_LIBS AND CMAKE_C_COMPILER_ID MATCHES "Clang")
@@ -863,17 +863,17 @@ if(CURL_USE_OPENSSL)
     endif()
   endif()
 
-  if(HAVE_BORINGSSL)
+  if(USE_AMISSL)
+    set(_openssl "AmiSSL")
+  elseif(HAVE_AWSLC)
+    set(_openssl "AWS-LC")
+  elseif(HAVE_BORINGSSL)
     if(BORINGSSL_VERSION)
       set(CURL_BORINGSSL_VERSION "\"${BORINGSSL_VERSION}\"")
     endif()
     set(_openssl "BoringSSL")
-  elseif(HAVE_AWSLC)
-    set(_openssl "AWS-LC")
   elseif(HAVE_LIBRESSL)
     set(_openssl "LibreSSL")
-  elseif(USE_AMISSL)
-    set(_openssl "AmiSSL")
   else()
     set(_openssl "OpenSSL")
   endif()
@@ -1080,8 +1080,8 @@ if(USE_OPENSSL)
   endif()
 endif()
 
-option(USE_HTTPSRR "Enable HTTPS RR support" OFF)
-option(USE_ECH "Enable ECH support" OFF)
+option(USE_HTTPSRR "Enable HTTPS RR support (experimental)" OFF)
+option(USE_ECH "Enable ECH support (experimental)" OFF)
 if(USE_ECH)
   if(USE_OPENSSL OR USE_WOLFSSL OR USE_RUSTLS)
     # Be sure that the TLS library actually supports ECH.
@@ -1097,7 +1097,7 @@ if(USE_ECH)
       set(HAVE_ECH 1)
     endif()
     if(NOT HAVE_ECH)
-      message(FATAL_ERROR "ECH support missing in OpenSSL/BoringSSL/AWS-LC/wolfSSL/rustls-ffi")
+      message(FATAL_ERROR "ECH support missing in AWS-LC/BoringSSL/OpenSSL/Rustls/wolfSSL")
     else()
       message(STATUS "ECH enabled")
       # ECH wants HTTPSRR
@@ -1105,11 +1105,11 @@ if(USE_ECH)
       message(STATUS "HTTPSRR enabled")
     endif()
   else()
-    message(FATAL_ERROR "ECH requires ECH-enabled OpenSSL, BoringSSL, AWS-LC, wolfSSL or rustls-ffi")
+    message(FATAL_ERROR "ECH requires ECH-enabled AWS-LC, BoringSSL, OpenSSL, Rustls or wolfSSL")
   endif()
 endif()
 
-option(USE_SSLS_EXPORT "Enable SSL session export support" OFF)
+option(USE_SSLS_EXPORT "Enable SSL session import/export (experimental)" OFF)
 if(USE_SSLS_EXPORT)
   if(_ssl_enabled)
     message(STATUS "SSL export enabled.")
@@ -1117,6 +1117,8 @@ if(USE_SSLS_EXPORT)
     message(WARNING "SSL session export requires SSL enabled")
   endif()
 endif()
+
+option(USE_PROXY_HTTP3 "Enable HTTP/3 proxy support (experimental)" OFF)
 
 option(USE_NGHTTP2 "Use nghttp2 library" ON)
 if(USE_NGHTTP2)
@@ -1183,6 +1185,20 @@ if(USE_QUICHE)
     list(APPEND CMAKE_REQUIRED_LIBRARIES CURL::quiche)
     check_symbol_exists("quiche_conn_set_qlog_fd" "quiche.h" HAVE_QUICHE_CONN_SET_QLOG_FD)
     cmake_pop_check_state()
+  endif()
+endif()
+
+if(USE_PROXY_HTTP3)
+  if(CURL_DISABLE_PROXY)
+    message(FATAL_ERROR "USE_PROXY_HTTP3 requires proxy support")
+  elseif(CURL_DISABLE_HTTP)
+    message(FATAL_ERROR "USE_PROXY_HTTP3 requires HTTP support")
+  elseif(NOT USE_NGTCP2 OR NOT USE_NGHTTP3)
+    message(FATAL_ERROR "USE_PROXY_HTTP3 requires ngtcp2 + nghttp3")
+  elseif(NOT USE_OPENSSL)
+    message(FATAL_ERROR "USE_PROXY_HTTP3 currently requires OpenSSL")
+  else()
+    message(STATUS "HTTP/3 proxy support enabled (experimental)")
   endif()
 endif()
 
@@ -1653,7 +1669,9 @@ check_function_exists("getrlimit"     HAVE_GETRLIMIT)
 check_function_exists("setlocale"     HAVE_SETLOCALE)
 check_function_exists("setrlimit"     HAVE_SETRLIMIT)
 
-if(NOT APPLE)
+if(APPLE)
+  check_function_exists("mach_absolute_time" HAVE_MACH_ABSOLUTE_TIME)
+else()
   # Apple platforms do not offer pipe2(), but the iPhone Simulator-specific
   # /usr/lib/system/libsystem_sim_kernel.dylib exports it. To avoid false
   # detection, omit this feature check for Apple targets.
@@ -1664,9 +1682,17 @@ if(NOT WIN32)
   check_function_exists("if_nametoindex"  HAVE_IF_NAMETOINDEX)  # net/if.h
   check_function_exists("realpath"        HAVE_REALPATH)
   check_function_exists("sched_yield"     HAVE_SCHED_YIELD)
-  check_symbol_exists("strcasecmp"        "string.h" HAVE_STRCASECMP)
-  check_symbol_exists("stricmp"           "string.h" HAVE_STRICMP)
-  check_symbol_exists("strcmpi"           "string.h" HAVE_STRCMPI)
+
+  check_symbol_exists("inet_ntop"       "${CURL_INCLUDES};stdlib.h;string.h" HAVE_INET_NTOP) # arpa/inet.h netinet/in.h sys/socket.h
+  check_symbol_exists("inet_pton"       "${CURL_INCLUDES};stdlib.h;string.h" HAVE_INET_PTON) # arpa/inet.h netinet/in.h sys/socket.h
+  check_symbol_exists("strcasecmp"      "string.h" HAVE_STRCASECMP)
+  check_symbol_exists("stricmp"         "string.h" HAVE_STRICMP)
+  check_symbol_exists("strcmpi"         "string.h" HAVE_STRCMPI)
+
+  check_symbol_exists("memset_s" "string.h" HAVE_MEMSET_S)
+  if(NOT HAVE_MEMSET_S)
+    check_function_exists("memset_explicit" HAVE_MEMSET_EXPLICIT)
+  endif()
 endif()
 
 if(AMIGA)
@@ -1675,14 +1701,6 @@ endif()
 
 if(NOT _ssl_enabled)
   check_symbol_exists("arc4random" "${CURL_INCLUDES};stdlib.h" HAVE_ARC4RANDOM)
-endif()
-
-if(APPLE)
-  check_function_exists("mach_absolute_time" HAVE_MACH_ABSOLUTE_TIME)
-endif()
-if(NOT WIN32)
-  check_symbol_exists("inet_ntop" "${CURL_INCLUDES};stdlib.h;string.h" HAVE_INET_NTOP)  # arpa/inet.h netinet/in.h sys/socket.h
-  check_symbol_exists("inet_pton" "${CURL_INCLUDES};stdlib.h;string.h" HAVE_INET_PTON)  # arpa/inet.h netinet/in.h sys/socket.h
 endif()
 
 check_symbol_exists("fsetxattr" "sys/xattr.h" HAVE_FSETXATTR)
@@ -2044,6 +2062,7 @@ curl_add_if("NTLM"          CURL_ENABLE_NTLM AND
 curl_add_if("TLS-SRP"       USE_TLS_SRP)
 curl_add_if("HTTP2"         USE_NGHTTP2)
 curl_add_if("HTTP3"         USE_NGTCP2 OR USE_QUICHE)
+curl_add_if("proxy-HTTP3"   USE_PROXY_HTTP3)
 curl_add_if("MultiSSL"      CURL_WITH_MULTI_SSL)
 curl_add_if("HTTPS-proxy"   NOT CURL_DISABLE_PROXY AND _ssl_enabled AND (USE_OPENSSL OR USE_GNUTLS
                             OR USE_SCHANNEL OR USE_RUSTLS OR USE_MBEDTLS OR
@@ -2161,8 +2180,8 @@ if(NOT CURL_DISABLE_INSTALL)
       set(_explicit_libs "")
       get_target_property(_imported "${_lib}" IMPORTED)
       if(NOT _imported)
-        # Reading the LOCATION property on non-imported target will error out.
-        # Assume the user will not need this information in the .pc file.
+        # Reading the LOCATION property on non-imported target does error out.
+        # Assume the user does not need this information in the .pc file.
         continue()
       endif()
       set(_libdirs "")
@@ -2175,7 +2194,7 @@ if(NOT CURL_DISABLE_INSTALL)
       endif()
       if(_lib STREQUAL OpenSSL::SSL AND NOT HAVE_BORINGSSL)  # BoringSSL does not provide openssl.pc
         set(_modules "openssl")
-      elseif(_lib STREQUAL ZLIB::ZLIB)
+      elseif(_lib STREQUAL ZLIB::ZLIB AND NOT ANDROID)  # Android does not provide zlib.pc
         set(_modules "zlib")
       else()
         get_target_property(_modules "${_lib}" INTERFACE_LIBCURL_PC_MODULES)
@@ -2209,6 +2228,9 @@ if(NOT CURL_DISABLE_INSTALL)
             list(APPEND LIBCURL_PC_LIBS_PRIVATE "${_lib}")
             list(APPEND LIBCURL_PC_LIBS_PRIVATE_LIST "${_lib}")
           endif()
+        elseif(_lib MATCHES "^-")  # '-option'
+          list(APPEND _ldflags "${_lib}")
+          list(APPEND LIBCURL_PC_LIBS_PRIVATE_LIST "${_lib}")
         else()
           list(APPEND LIBCURL_PC_LIBS_PRIVATE "-l${_lib}")
           list(APPEND LIBCURL_PC_LIBS_PRIVATE_LIST "${_lib}")
@@ -2239,6 +2261,17 @@ if(NOT CURL_DISABLE_INSTALL)
     string(REPLACE ";" "," LIBCURL_PC_REQUIRES_PRIVATE "${LIBCURL_PC_REQUIRES_PRIVATE}")
   endif()
   if(LIBCURL_PC_LIBS_PRIVATE)
+    # Remove duplicates listed next to each other
+    set(_libs "")
+    set(_prev "")
+    foreach(_lib IN LISTS LIBCURL_PC_LIBS_PRIVATE)
+      if(NOT _prev STREQUAL _lib)
+        list(APPEND _libs "${_lib}")
+        set(_prev "${_lib}")
+      endif()
+    endforeach()
+    set(LIBCURL_PC_LIBS_PRIVATE "${_libs}")
+
     string(REPLACE ";" " " LIBCURL_PC_LIBS_PRIVATE "${LIBCURL_PC_LIBS_PRIVATE}")
   endif()
   if(_ldflags)
@@ -2374,7 +2407,7 @@ if(NOT CURL_DISABLE_INSTALL)
   #   USE_MBEDTLS
   #   USE_NGHTTP2
   #   USE_NGHTTP3
-  #   USE_NGTCP2
+  #   USE_NGTCP2 NGTCP2_CRYPTO_BACKEND
   #   USE_OPENSSL OPENSSL_VERSION_MAJOR
   #   USE_QUICHE
   #   USE_RUSTLS

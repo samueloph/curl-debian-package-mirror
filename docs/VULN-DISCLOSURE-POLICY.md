@@ -36,6 +36,10 @@ announcement.
   [HackerOne](https://hackerone.com/curl). Issues filed there reach a handful
   of selected and trusted people.
 
+- The curl project cannot handle vulnerability reports sent to us over email.
+  We lose track of the reports. We cannot easily disclose them. Please do not
+  send us reports over email.
+
 - Messages that do not relate to the reporting or managing of an undisclosed
   security vulnerability in curl or libcurl are ignored and no further action
   is required.
@@ -218,9 +222,11 @@ problem. There are already several benign and likely reasons for transfers to
 stall and never end, so applications that cannot deal with never-ending
 transfers already need to have counter-measures established.
 
-Well known attacks, like [Slowloris](https://en.wikipedia.org/wiki/Slowloris_(cyber_attack)), that send partial
-requests are usually not considered a flaw. If the problem avoids the regular counter-measures when it causes a never-
-ending transfer, it might be a security problem.
+Well-known attacks, like
+[Slowloris](https://en.wikipedia.org/wiki/Slowloris_(cyber_attack)), that send
+partial requests are usually not considered a flaw. If the problem bypasses
+the regular counter-measures and it causes a never-ending transfer, it might
+be a security problem.
 
 ## Not practically possible
 
@@ -248,11 +254,19 @@ already do much worse harm and the problem is not really in curl.
 ## Debug & Experiments
 
 Vulnerabilities in features which are off by default (in the build) and
-documented as experimental, or exist only in debug mode, are not eligible for a
-reward and we do not consider them security problems.
+documented as experimental, or exist only in debug mode, are not considered
+security problems.
 
 The same applies to scripts and software which are not installed by default
 through the make install rule.
+
+## Test code
+
+curl has an extensive test suite with lots of code written specifically to
+exercise and verify curl, libcurl and specific internal functions. The test
+code and its associated test servers are *not* intended for production use.
+They are not secure, you should not assume otherwise and must not report about
+security problems in those.
 
 ## URL inconsistencies
 
@@ -413,7 +427,8 @@ roles:
 * **incident lead** - Coordinates technical efforts
 * **communication lead** - Single point of public contact
 
-It is likely that our [BDFL](https://en.wikipedia.org/wiki/Benevolent_dictator_for_life) occupies
+It is likely that our
+[BDFL](https://en.wikipedia.org/wiki/Benevolent_dictator_for_life) occupies
 one of these roles, though this plan does not depend on it.
 
 A declaration may also contain more detailed information but as we honor
@@ -422,8 +437,8 @@ contain a brief notification that a **major incident** is occurring.
 
 ## Major incident ongoing
 
-During the incident - all press, media, legal or commercial entities should contact
-communication leader (security@curl.se).
+During the incident - all press, media, legal or commercial entities should
+contact communication lead (security@curl.se).
 
 Existing **curl-security** team internal communication channels are used
 for all internal communication.
@@ -432,8 +447,8 @@ Existing vulnerability disclosure process are followed for any embargoes
 and fixes.
 
 Where possible, public communication are provided:
-* regular communication from communication leader (for example daily update)
-* asynchronous communication from incident leader
+* regular communication from communication lead (for example daily update)
+* asynchronous communication from incident lead
 
 * Delivered to the aforementioned curl communication channels.
 
