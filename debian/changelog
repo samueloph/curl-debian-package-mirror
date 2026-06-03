@@ -1,3 +1,39 @@
+curl (8.20.0-5) unstable; urgency=medium
+
+  * d/control: Mark libcurl3t64-gnutls as Arch: any, M-A: same.
+    Thanks to Simon McVittie <smcv@debian.org> (Closes: #1138629)
+
+ -- Sergio Durigan Junior <sergiodj@debian.org>  Mon, 01 Jun 2026 15:36:45 -0400
+
+curl (8.20.0-4) unstable; urgency=medium
+
+  * d/p/Implement-symbol-versioning-for-CURL_GNUTLS_3.patch:
+    Adjust to disable checksrc's LONGLINE check (and fix autopkgtest).
+
+ -- Sergio Durigan Junior <sergiodj@debian.org>  Sun, 31 May 2026 22:50:30 -0400
+
+curl (8.20.0-3) unstable; urgency=medium
+
+  * d/p/ZZZgnutls-build.patch: Use same SO version for both libraries.
+  * d/libgnutls3t64-gnutls.symbols: s/CURL_GNUTLS_3/CURL_GNUTLS_4/.
+  * d/p/Implement-symbol-versioning-for-CURL_GNUTLS_3.patch:
+    Implement symbol versioning for CURL_GNUTLS_3 symbols. (Closes: #1020780)
+  * d/control: New package libcurl4-gnutls.
+    Also turn libcurl3t64-gnutls into a transitional package that depends
+    on libcurl4-gnutls.
+  * d/libcurl3t64-gnutls*: Rename to d/libcurl4-gnutls*.
+  * d/libcurl4-gnutls.symbols: Add CURL_GNUTLS_3 symbols.
+  * d/rules: Adjust install-curl recipe to use libcurl4-gnutls.
+  * d/libcurl4-gnutls.symbols: Fix version on all libcurl4-gnutls symbols.
+    We have to mark all symbols as having been introduced by the latest
+    Debian release of the package.  This is necessary because we want
+    future programs to link against this version specifically, not
+    previous libcurl3t64-gnutls versions.
+  * d/libcurl4-gnutls.lintian-overrides: Adjust for new package name.
+  * d/copyright: Update file.
+
+ -- Sergio Durigan Junior <sergiodj@debian.org>  Fri, 29 May 2026 17:19:53 -0400
+
 curl (8.20.0-2+exp1) experimental; urgency=medium
 
   * Upload to experimental.

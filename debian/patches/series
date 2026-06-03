@@ -2,3 +2,4 @@ ZZZgnutls-build.patch
 build-Divide-mit-krb5-gssapi-link-flags-between-LDFLAGS-a.patch
 11_omit-directories-from-config.patch
 event-fix-wakeup-consumption.patch
+Implement-symbol-versioning-for-CURL_GNUTLS_3.patch

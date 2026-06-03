@@ -165,7 +165,7 @@ License: GPL-2+ with Libtool exception
 Files: tests/server/tftpd.c
 Copyright: 1983, Regents of the University of California.
   2005-2022, Daniel Stenberg, <daniel@haxx.se>, et al.
-License: BSD-4-Clause-UC
+License: BSD-3-Clause
 
 Files: aclocal.m4
  m4/ltsugar.m4
@@ -253,6 +253,22 @@ Files: tests/libtest/lib2405.c
 Copyright: Dmitry Karpov, <dkarpov1970@gmail.com>
 License: curl
 
+Files: projects/vms/*
+Copyright: John Malmberg
+License: ISC
+
+Files: projects/vms/curl_crtl_init.c
+Copyright: John Malmberg
+License: curl
+
+Files: projects/vms/curlmsg.h
+       projects/vms/curlmsg.msg
+       projects/vms/curlmsg_vms.h
+       projects/vms/Makefile.am
+       projects/vms/Makefile.in
+Copyright: Daniel Stenberg, <daniel@haxx.se>, et al.
+License: curl
+
 License: curl
  All rights reserved.
  .
@@ -272,7 +288,7 @@ License: curl
  be used in advertising or otherwise to promote the sale, use or other dealings
  in this Software without prior written authorization of the copyright holder.
 
-License: BSD-4-Clause-UC
+License: BSD-3-Clause
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions
  are met:
@@ -281,13 +297,9 @@ License: BSD-4-Clause-UC
  2. Redistributions in binary form must reproduce the above copyright
     notice, this list of conditions and the following disclaimer in the
     documentation and/or other materials provided with the distribution.
- 3. All advertising materials mentioning features or use of this software
-    must display the following acknowledgement:
-      This product includes software developed by the University of
-      California, Berkeley and its contributors.
- 4. Neither the name of the University nor the names of its contributors
-    may be used to endorse or promote products derived from this software
-    without specific prior written permission.
+ 3. Neither the name of the copyright holder nor the names of its
+    contributors may be used to endorse or promote products derived
+    from this software without specific prior written permission.
  .
  THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -300,7 +312,10 @@ License: BSD-4-Clause-UC
  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  SUCH DAMAGE.
-Comment: Clause 3 has been deleted:
+Comment: Upstream still uses BSD-4-Clause, but we have adapted it
+ to reflect the fact that the original clause 3 has been deleted,
+ as can be seen in the following message:
+ .
  July 22, 1999
  .
  To All Licensees, Distributors of Any Version of BSD:
