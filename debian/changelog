@@ -1,3 +1,9 @@
+curl (8.20.0-5~bpo13+1) trixie-backports; urgency=medium
+
+  * Rebuild for trixie-backports.
+
+ -- Samuel Henrique <samueloph@debian.org>  Sat, 06 Jun 2026 12:11:08 -0700
+
 curl (8.20.0-5) unstable; urgency=medium
 
   * d/control: Mark libcurl3t64-gnutls as Arch: any, M-A: same.
