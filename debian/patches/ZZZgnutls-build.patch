@@ -6,19 +6,19 @@ Origin: vendor
 Forwarded: not-needed
 Last-Update: 2024-11-06
 ---
- configure.ac              | 12 ++++++++-
+ configure.ac              |  8 ++++++
  docs/examples/Makefile.am |  2 +-
  lib/Makefile.am           | 62 +++++++++++++++++++++++++++++++++++++++++++++++
  src/Makefile.am           |  2 +-
  tests/libtest/Makefile.am |  2 +-
  tests/tunit/Makefile.am   |  4 +--
- 6 files changed, 78 insertions(+), 6 deletions(-)
+ 6 files changed, 75 insertions(+), 5 deletions(-)
 
 diff --git a/configure.ac b/configure.ac
-index d06024b..5591fe9 100644
+index d06024b..5be3c90 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -254,6 +254,16 @@ AS_HELP_STRING([--with-gnutls=PATH],[where to look for GnuTLS, PATH points to th
+@@ -254,6 +254,14 @@ AS_HELP_STRING([--with-gnutls=PATH],[where to look for GnuTLS, PATH points to th
    fi
  ])
  
@@ -26,24 +26,13 @@ index d06024b..5591fe9 100644
 +AM_CONDITIONAL(GNUTLSBUILD, test x$OPT_GNUTLS != xno)
 +if test X$OPT_GNUTLS != Xno; then
 +  AC_SUBST(LIBCURL_FILESTUB, ["libcurl-gnutls"])
-+  AC_SUBST(CURL_LIBCURL_VERSIONED_SYMBOLS_SONAME, [3])
 +else
 +  AC_SUBST(LIBCURL_FILESTUB, ["libcurl"])
-+  AC_SUBST(CURL_LIBCURL_VERSIONED_SYMBOLS_SONAME, [4])
 +fi
 +
  OPT_MBEDTLS=no
  AC_ARG_WITH(mbedtls,
  AS_HELP_STRING([--with-mbedtls=PATH],[where to look for mbedTLS, PATH points to the installation root]),[
-@@ -2763,7 +2773,7 @@ AS_HELP_STRING([--disable-versioned-symbols], [Disable versioned symbols in shar
- )
- 
- AC_SUBST([CURL_LIBCURL_VERSIONED_SYMBOLS_PREFIX], ["$versioned_symbols_flavour"])
--AC_SUBST([CURL_LIBCURL_VERSIONED_SYMBOLS_SONAME], ["4"])  dnl Keep in sync with VERSIONCHANGE - VERSIONDEL in lib/Makefile.soname
-+# AC_SUBST([CURL_LIBCURL_VERSIONED_SYMBOLS_SONAME], ["4"])  dnl Keep in sync with VERSIONCHANGE - VERSIONDEL in lib/Makefile.soname
- AM_CONDITIONAL([CURL_LT_SHLIB_USE_VERSIONED_SYMBOLS],
-   [test "$versioned_symbols" = "yes"])
- 
 diff --git a/docs/examples/Makefile.am b/docs/examples/Makefile.am
 index 0885b92..d1a54ce 100644
 --- a/docs/examples/Makefile.am

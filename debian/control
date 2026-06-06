@@ -89,11 +89,9 @@ Description: easy-to-use client-side URL transfer library (OpenSSL flavour)
  .
  SSL support is provided by OpenSSL.
 
-Package: libcurl3t64-gnutls
-Provides: ${t64:Provides},
-X-Time64-Compat: libcurl3-gnutls
-Replaces: libcurl3-gnutls,
-Breaks: libcurl3-gnutls (<< ${source:Version}),
+Package: libcurl4-gnutls
+Breaks: libcurl3t64-gnutls (<< 8.20.0-3~)
+Replaces: libcurl3t64-gnutls (<< 8.20.0-3~)
 Architecture: any
 Section: libs
 Depends: libnghttp3-9 (>= 1.11.0~),
@@ -118,6 +116,17 @@ Description: easy-to-use client-side URL transfer library (GnuTLS flavour)
  successful companies and numerous applications.
  .
  SSL support is provided by GnuTLS.
+
+Package: libcurl3t64-gnutls
+Provides: ${t64:Provides},
+X-Time64-Compat: libcurl3-gnutls
+Architecture: any
+Multi-Arch: same
+Priority: optional
+Section: oldlibs
+Depends: libcurl4-gnutls (>= ${source:Version}), ${misc:Depends},
+Description: transitional package for libcurl4-gnutls
+ This is a transitional package.  It can be safely removed.
 
 Package: libcurl4-openssl-dev
 Architecture: any
@@ -174,11 +183,10 @@ Architecture: any
 Section: libdevel
 Provides: libcurl-dev,
           libcurl-ssl-dev,
-          libcurl3-gnutls-dev,
           libcurl4-dev,
 Conflicts: libcurl4-openssl-dev,
 Depends: libbrotli-dev,
-         libcurl3t64-gnutls (= ${binary:Version}),
+         libcurl4-gnutls (= ${binary:Version}),
          libgnutls28-dev,
          libidn2-dev,
          libkrb5-dev,

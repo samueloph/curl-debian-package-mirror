@@ -142,7 +142,7 @@ ifeq ($(with_openssl),yes)
 	$(call install-curl,openssl,tmp,-plibcurl4t64 -plibcurl4-openssl-dev -plibcurl4-doc -pcurl)
 endif
 ifeq ($(with_gnutls),yes)
-	$(call install-curl,gnutls,tmp-gnutls,-plibcurl3t64-gnutls -plibcurl4-gnutls-dev)
+	$(call install-curl,gnutls,tmp-gnutls,-plibcurl4-gnutls -plibcurl4-gnutls-dev)
 endif
 
 # Modify curl-config to make it architecture-independent:
