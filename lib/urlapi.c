@@ -253,12 +253,18 @@ CURLUcode Curl_junkscan(const char *url, size_t *urllen, bool allowspace)
  * Parse the login details (username, password and options) from the URL and
  * strip them out of the hostname
  *
+ * @unittest 1675
  */
-static CURLUcode parse_hostname_login(struct Curl_URL *u,
-                                      const char *login,
-                                      size_t len,
-                                      unsigned int flags,
-                                      size_t *offset) /* to the hostname */
+UNITTEST CURLUcode parse_hostname_login(struct Curl_URL *u,
+                                        const char *login,
+                                        size_t len,
+                                        unsigned int flags,
+                                        size_t *hostname_offset);
+UNITTEST CURLUcode parse_hostname_login(struct Curl_URL *u,
+                                        const char *login,
+                                        size_t len,
+                                        unsigned int flags,
+                                        size_t *hostname_offset)
 {
   CURLUcode ures = CURLUE_OK;
   CURLcode result;
@@ -278,7 +284,7 @@ static CURLUcode parse_hostname_login(struct Curl_URL *u,
 
   DEBUGASSERT(login);
 
-  *offset = 0;
+  *hostname_offset = 0;
   ptr = memchr(login, '@', len);
   if(!ptr)
     goto out;
@@ -326,7 +332,7 @@ static CURLUcode parse_hostname_login(struct Curl_URL *u,
   }
 
   /* the hostname starts at this offset */
-  *offset = ptr - login;
+  *hostname_offset = ptr - login;
   return CURLUE_OK;
 
 out:
@@ -334,9 +340,9 @@ out:
   curlx_free(userp);
   curlx_free(passwdp);
   curlx_free(optionsp);
-  u->user = NULL;
-  u->password = NULL;
-  u->options = NULL;
+  curlx_safefree(u->user);
+  curlx_safefree(u->password);
+  curlx_safefree(u->options);
 
   return ures;
 }
@@ -480,7 +486,7 @@ static CURLUcode hostname_check(struct Curl_URL *u, char *hostname,
       /* more than one trailing dot is not allowed */
       return CURLUE_BAD_HOSTNAME;
     else if((hlen == 1) && (hostname[0] == '.'))
-      /* just a single dot is not allowed */
+      /* a single dot alone is not allowed */
       return CURLUE_BAD_HOSTNAME;
   }
   return CURLUE_OK;
@@ -1447,6 +1453,20 @@ static CURLUcode urlget_format(const CURLU *u, CURLUPart what,
   return CURLUE_OK;
 }
 
+static CURLUcode file_url(const CURLU *u, char **part,
+                          const char *fragmentsep,
+                          const char *querysep)
+{
+  char *url = curl_maprintf("file://%s%s%s%s%s",
+                            u->path, querysep, u->query ? u->query : "",
+                            fragmentsep, u->fragment ? u->fragment : "");
+  if(!url)
+    return CURLUE_OUT_OF_MEMORY;
+
+  *part = url;
+  return CURLUE_OK;
+}
+
 static CURLUcode urlget_url(const CURLU *u, char **part, unsigned int flags)
 {
   char *url;
@@ -1458,11 +1478,8 @@ static CURLUcode urlget_url(const CURLU *u, char **part, unsigned int flags)
                           (u->query_present && flags & CURLU_GET_EMPTY)) ?
     "?" : "";
   char portbuf[7];
-  if(u->scheme && curl_strequal("file", u->scheme)) {
-    url = curl_maprintf("file://%s%s%s%s%s",
-                        u->path, querysep, u->query ? u->query : "",
-                        fragmentsep, u->fragment ? u->fragment : "");
-  }
+  if(curl_strequal("file", u->scheme))
+    return file_url(u, part, fragmentsep, querysep);
   else if(!u->host)
     return CURLUE_NO_HOST;
   else {
@@ -1479,24 +1496,21 @@ static CURLUcode urlget_url(const CURLU *u, char **part, unsigned int flags)
       return CURLUE_NO_SCHEME;
 
     h = Curl_get_scheme(scheme);
-    if(!port && (flags & CURLU_DEFAULT_PORT)) {
-      /* there is no stored port number, but asked to deliver
-         a default one for the scheme */
-      if(h) {
+    if(h) {
+      if(!port && (flags & CURLU_DEFAULT_PORT)) {
+        /* there is no stored port number, but asked to deliver a default one
+           for the scheme */
         curl_msnprintf(portbuf, sizeof(portbuf), "%u", h->defport);
         port = portbuf;
       }
-    }
-    else if(port) {
-      /* there is a stored port number, but asked to inhibit if it matches
-         the default one for the scheme */
-      if(h && (h->defport == u->portnum) &&
-         (flags & CURLU_NO_DEFAULT_PORT))
+      else if(port && (h->defport == u->portnum) &&
+              (flags & CURLU_NO_DEFAULT_PORT))
+        /* there is a stored port number, but asked to inhibit if it matches
+           the default port for the scheme */
         port = NULL;
+      if(!(h->flags & PROTOPT_URLOPTIONS))
+        options = NULL;
     }
-
-    if(h && !(h->flags & PROTOPT_URLOPTIONS))
-      options = NULL;
 
     if(u->host[0] == '[') {
       if(u->zoneid) {

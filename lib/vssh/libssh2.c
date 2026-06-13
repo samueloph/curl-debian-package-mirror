@@ -104,10 +104,10 @@ static const char *sftp_libssh2_strerror(unsigned long err)
   case LIBSSH2_FX_QUOTA_EXCEEDED:
     return "User quota exceeded";
 
-  case LIBSSH2_FX_UNKNOWN_PRINCIPLE:
-    return "Unknown principle";
+  case LIBSSH2_FX_UNKNOWN_PRINCIPAL:
+    return "Unknown principal";
 
-  case LIBSSH2_FX_LOCK_CONFlICT:
+  case LIBSSH2_FX_LOCK_CONFLICT:
     return "File lock conflict";
 
   case LIBSSH2_FX_DIR_NOT_EMPTY:
@@ -170,7 +170,7 @@ static CURLcode sftp_libssh2_error_to_CURLE(unsigned long err)
 
   case LIBSSH2_FX_PERMISSION_DENIED:
   case LIBSSH2_FX_WRITE_PROTECT:
-  case LIBSSH2_FX_LOCK_CONFlICT:
+  case LIBSSH2_FX_LOCK_CONFLICT:
     return CURLE_REMOTE_ACCESS_DENIED;
 
   case LIBSSH2_FX_NO_SPACE_ON_FILESYSTEM:
@@ -276,9 +276,11 @@ static enum curl_khtype convert_ssh2_keytype(int sshkeytype)
   case LIBSSH2_HOSTKEY_TYPE_RSA:
     keytype = CURLKHTYPE_RSA;
     break;
-  case LIBSSH2_HOSTKEY_TYPE_DSS:
+#ifdef LIBSSH2_HOSTKEY_TYPE_DSS
+  case LIBSSH2_HOSTKEY_TYPE_DSS:  /* deprecated upstream */
     keytype = CURLKHTYPE_DSS;
     break;
+#endif
 #ifdef LIBSSH2_HOSTKEY_TYPE_ECDSA_256
   case LIBSSH2_HOSTKEY_TYPE_ECDSA_256:
     keytype = CURLKHTYPE_ECDSA;
@@ -337,9 +339,11 @@ static CURLcode ssh_knownhost(struct Curl_easy *data,
       case LIBSSH2_HOSTKEY_TYPE_RSA:
         keybit = LIBSSH2_KNOWNHOST_KEY_SSHRSA;
         break;
-      case LIBSSH2_HOSTKEY_TYPE_DSS:
+#ifdef LIBSSH2_HOSTKEY_TYPE_DSS
+      case LIBSSH2_HOSTKEY_TYPE_DSS:  /* deprecated upstream */
         keybit = LIBSSH2_KNOWNHOST_KEY_SSHDSS;
         break;
+#endif
       case LIBSSH2_HOSTKEY_TYPE_ECDSA_256:
         keybit = LIBSSH2_KNOWNHOST_KEY_ECDSA_256;
         break;
@@ -425,30 +429,42 @@ static CURLcode ssh_knownhost(struct Curl_easy *data,
     case CURLKHSTAT_FINE_ADD_TO_FILE:
       /* proceed */
       if(keycheck != LIBSSH2_KNOWNHOST_CHECK_MATCH) {
-        /* the found host+key did not match but has been told to be fine
-           anyway so we add it in memory */
-        int addrc = libssh2_knownhost_add(sshc->kh,
-                                          conn->origin->hostname, NULL,
-                                          remotekey, keylen,
-                                          LIBSSH2_KNOWNHOST_TYPE_PLAIN|
-                                          LIBSSH2_KNOWNHOST_KEYENC_RAW|
-                                          keybit, NULL);
-        if(addrc)
-          infof(data, "WARNING: adding the known host %s failed",
-                conn->origin->hostname);
-        else if(rc == CURLKHSTAT_FINE_ADD_TO_FILE ||
-                rc == CURLKHSTAT_FINE_REPLACE) {
-          /* now we write the entire in-memory list of known hosts to the
-             known_hosts file */
-          int wrc =
-            libssh2_knownhost_writefile(sshc->kh,
-                                        data->set.str[STRING_SSH_KNOWNHOSTS],
-                                        LIBSSH2_KNOWNHOST_FILE_OPENSSH);
-          if(wrc) {
-            infof(data, "WARNING: writing %s failed",
-                  data->set.str[STRING_SSH_KNOWNHOSTS]);
+        int addrc;
+        const char *hostbuf;
+        char *hostport = NULL;
+        if(conn->origin->port != PORT_SSH) {
+          hostbuf = hostport = curl_maprintf("[%s]:%u", conn->origin->hostname,
+                                             conn->origin->port);
+          if(!hostbuf)
+            infof(data, "WARNING: failed allocating buffer for [host]:port");
+        }
+        else
+          hostbuf = conn->origin->hostname;
+        if(hostbuf) {
+          /* the found host+key did not match but has been told to be fine
+             anyway so we add it in memory */
+          addrc = libssh2_knownhost_addc(sshc->kh, hostbuf, NULL,
+                                         remotekey, keylen, NULL, 0,
+                                         LIBSSH2_KNOWNHOST_TYPE_PLAIN |
+                                         LIBSSH2_KNOWNHOST_KEYENC_RAW |
+                                         keybit, NULL);
+          if(addrc)
+            infof(data, "WARNING: adding the known host %s failed", hostbuf);
+          else if(rc == CURLKHSTAT_FINE_ADD_TO_FILE ||
+                  rc == CURLKHSTAT_FINE_REPLACE) {
+            /* now we write the entire in-memory list of known hosts to the
+               known_hosts file */
+            int wrc =
+              libssh2_knownhost_writefile(sshc->kh,
+                                          data->set.str[STRING_SSH_KNOWNHOSTS],
+                                          LIBSSH2_KNOWNHOST_FILE_OPENSSH);
+            if(wrc) {
+              infof(data, "WARNING: writing %s failed",
+                    data->set.str[STRING_SSH_KNOWNHOSTS]);
+            }
           }
         }
+        curlx_free(hostport);
       }
       break;
     }
@@ -617,7 +633,9 @@ static CURLcode ssh_force_knownhost_key_type(struct Curl_easy *data,
   static const char hostkey_method_ssh_ecdsa_256[] = "ecdsa-sha2-nistp256";
   static const char hostkey_method_ssh_rsa_all[] =
     "rsa-sha2-256,rsa-sha2-512,ssh-rsa";
+#ifdef LIBSSH2_KNOWNHOST_KEY_SSHDSS
   static const char hostkey_method_ssh_dss[] = "ssh-dss";
+#endif
   bool found = FALSE;
 
   if(sshc->kh &&
@@ -686,9 +704,11 @@ static CURLcode ssh_force_knownhost_key_type(struct Curl_easy *data,
       case LIBSSH2_KNOWNHOST_KEY_SSHRSA:
         hostkey_method = hostkey_method_ssh_rsa_all;
         break;
-      case LIBSSH2_KNOWNHOST_KEY_SSHDSS:
+#ifdef LIBSSH2_KNOWNHOST_KEY_SSHDSS
+      case LIBSSH2_KNOWNHOST_KEY_SSHDSS:  /* deprecated upstream */
         hostkey_method = hostkey_method_ssh_dss;
         break;
+#endif
       case LIBSSH2_KNOWNHOST_KEY_RSA1:
         failf(data, "Found host key type RSA1 which is not supported");
         return CURLE_SSH;
@@ -3577,7 +3597,7 @@ static CURLcode ssh_connect(struct Curl_easy *data, bool *done)
 #ifdef CURL_LIBSSH2_DEBUG
   libssh2_trace(sshc->ssh_session, ~0);
   infof(data, "SSH socket: %d", (int)sock);
-#endif /* CURL_LIBSSH2_DEBUG */
+#endif
 
   myssh_to(data, sshc, SSH_INIT);
 

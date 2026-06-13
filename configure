@@ -2217,8 +2217,8 @@ Optional Packages:
   --without-ngtcp2        Disable ngtcp2 usage
   --with-nghttp3=PATH     Enable nghttp3 usage
   --without-nghttp3       Disable nghttp3 usage
-  --with-quiche=PATH      Enable quiche usage
-  --without-quiche        Disable quiche usage
+  --with-quiche=PATH      Enable quiche usage (experimental)
+  --without-quiche        Disable quiche usage (experimental)
   --with-libuv=PATH       Enable libuv
   --without-libuv         Disable libuv
   --with-zsh-functions-dir=PATH
@@ -20700,7 +20700,7 @@ printf "%s\n" "$as_me: WARNING: compiler options rejected: $tmp_options" >&2;}
                 tmp_CFLAGS="$tmp_CFLAGS -Wno-c99-extensions"  # Avoid: warning: '_Bool' is a C99 extension
               fi
               if test "$compiler_num" -ge "309"; then
-                tmp_CFLAGS="$tmp_CFLAGS -Wno-comma"  # Just silly
+                tmp_CFLAGS="$tmp_CFLAGS -Wno-comma"  # Silly
               fi
               ;;
           esac
@@ -25806,7 +25806,7 @@ int main(int argc, char **argv)
 {
 #ifdef _WIN32
   /* on Windows, writing to the argv does not hide the argument in
-     process lists so it can just be skipped */
+     process lists so it can be skipped */
   (void)argc;
   (void)argv;
   return 1;
@@ -25848,7 +25848,7 @@ int main(int argc, char **argv)
 {
 #ifdef _WIN32
   /* on Windows, writing to the argv does not hide the argument in
-     process lists so it can just be skipped */
+     process lists so it can be skipped */
   (void)argc;
   (void)argv;
   return 1;
@@ -37376,7 +37376,7 @@ do :
 if test "x$ac_cv_header_quiche_h" = xyes
 then :
   printf "%s\n" "#define HAVE_QUICHE_H 1" >>confdefs.h
- experimental="$experimental HTTP3"
+ experimental="$experimental Quiche"
           { printf "%s\n" "$as_me:${as_lineno-$LINENO}: HTTP3 support is experimental" >&5
 printf "%s\n" "$as_me: HTTP3 support is experimental" >&6;}
           curl_h3_msg="enabled (quiche)"

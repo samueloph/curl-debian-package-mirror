@@ -41,8 +41,9 @@
 #include "curlx/dynbuf.h"
 #include "curlx/fopen.h"
 #include "cfilters.h"
-#include "vquic/curl_ngtcp2.h"
-#include "vquic/curl_quiche.h"
+#include "vquic/cf-ngtcp2.h"
+#include "vquic/cf-ngtcp2-proxy.h"
+#include "vquic/cf-quiche.h"
 #include "multiif.h"
 #include "progress.h"
 #include "rand.h"
@@ -472,7 +473,7 @@ static CURLcode recvmmsg_packets(struct Curl_cfilter *cf,
     memset(&mmsg, 0, sizeof(mmsg));
     for(i = 0; i < n; ++i) {
       msg_iov[i].iov_base = bufs[i];
-      msg_iov[i].iov_len = (int)sizeof(bufs[i]);
+      msg_iov[i].iov_len = sizeof(bufs[i]);
       mmsg[i].msg_hdr.msg_iov = &msg_iov[i];
       mmsg[i].msg_hdr.msg_iovlen = 1;
       mmsg[i].msg_hdr.msg_name = &remote_addr[i];
@@ -507,8 +508,10 @@ static CURLcode recvmmsg_packets(struct Curl_cfilter *cf,
     VERBOSE(++calls);
     for(i = 0; i < mcount; ++i) {
       /* A zero-length UDP packet is no QUIC packet. Ignore. */
-      if(!mmsg[i].msg_len)
+      if(!mmsg[i].msg_len) {
+        ++pkts;
         continue;
+      }
       total_nread += mmsg[i].msg_len;
 
       gso_size = vquic_msghdr_get_udp_gro(&mmsg[i].msg_hdr);
@@ -558,7 +561,7 @@ static CURLcode recvmsg_packets(struct Curl_cfilter *cf,
      * operating systems out there that mess with `msg_iov.iov_len`. */
     memset(&msg, 0, sizeof(msg));
     msg_iov.iov_base = buf;
-    msg_iov.iov_len = (int)sizeof(buf);
+    msg_iov.iov_len = sizeof(buf);
     msg.msg_iov = &msg_iov;
     msg.msg_iovlen = 1;
     msg.msg_control = msg_ctrl;
@@ -592,8 +595,10 @@ static CURLcode recvmsg_packets(struct Curl_cfilter *cf,
     ++calls;
 
     /* A 0-length UDP packet is no QUIC packet */
-    if(!nread)
+    if(!nread) {
+      ++pkts;
       continue;
+    }
 
     gso_size = vquic_msghdr_get_udp_gro(&msg);
     if(gso_size == 0)
@@ -787,6 +792,45 @@ CURLcode Curl_cf_quic_create(struct Curl_cfilter **pcf,
   return CURLE_NOT_BUILT_IN;
 #endif
 }
+
+#if !defined(CURL_DISABLE_PROXY) && defined(USE_PROXY_HTTP3)
+
+CURLcode Curl_cf_h3_proxy_insert_after(struct Curl_cfilter *cf_at,
+                                       struct Curl_easy *data,
+                                       struct Curl_peer *dest,
+                                       bool udp_tunnel)
+{
+#if defined(USE_NGTCP2) && defined(USE_NGHTTP3)
+  return Curl_cf_ngtcp2_proxy_insert_after(cf_at, data, dest, udp_tunnel);
+#else
+  (void)cf_at;
+  return CURLE_NOT_BUILT_IN;
+#endif
+}
+
+CURLcode Curl_cf_h3_proxy_create(struct Curl_cfilter **pcf,
+                                 struct Curl_easy *data,
+                                 struct connectdata *conn,
+                                 struct Curl_sockaddr_ex *addr,
+                                 uint8_t transport_in,
+                                 uint8_t transport_out)
+{
+  (void)transport_in;
+  (void)transport_out;
+  DEBUGASSERT(transport_out == TRNSPRT_QUIC);
+#if defined(USE_NGTCP2) && defined(USE_NGHTTP3)
+  return Curl_cf_ngtcp2_proxy_create(pcf, data, conn, addr,
+                                     transport_in, transport_out);
+#else
+  *pcf = NULL;
+  (void)data;
+  (void)conn;
+  (void)addr;
+  return CURLE_NOT_BUILT_IN;
+#endif
+}
+
+#endif /* !CURL_DISABLE_PROXY && USE_PROXY_HTTP3 */
 
 CURLcode Curl_conn_may_http3(struct Curl_easy *data,
                              const struct connectdata *conn,

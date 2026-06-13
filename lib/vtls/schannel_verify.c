@@ -152,7 +152,6 @@ static CURLcode add_certs_data_to_store(HCERTSTORE trust_store,
         CERT_BLOB cert_blob;
         const CERT_CONTEXT *cert_context = NULL;
         BOOL add_cert_result = FALSE;
-        DWORD actual_content_type = 0;
         DWORD cert_size =
           (DWORD)((end_cert_ptr + end_cert_len) - begin_cert_ptr);
 
@@ -162,10 +161,10 @@ static CURLcode add_certs_data_to_store(HCERTSTORE trust_store,
         if(!CryptQueryObject(CERT_QUERY_OBJECT_BLOB,
                              &cert_blob,
                              CERT_QUERY_CONTENT_FLAG_CERT,
-                             CERT_QUERY_FORMAT_FLAG_ALL,
+                             CERT_QUERY_FORMAT_FLAG_BASE64_ENCODED,
                              0,
                              NULL,
-                             &actual_content_type,
+                             NULL,
                              NULL,
                              NULL,
                              NULL,
@@ -182,51 +181,27 @@ static CURLcode add_certs_data_to_store(HCERTSTORE trust_store,
         else {
           current_ca_file_ptr = begin_cert_ptr + cert_size;
 
-          /* Sanity check that the cert_context object is the right type */
-          if(CERT_QUERY_CONTENT_CERT != actual_content_type) {
+          add_cert_result =
+            CertAddCertificateContextToStore(trust_store,
+                                             cert_context,
+                                             CERT_STORE_ADD_ALWAYS,
+                                             NULL);
+          if(!add_cert_result) {
+            char buffer[WINAPI_ERROR_LEN];
             failf(data,
-                  "schannel: unexpected content type '%lu' when extracting "
-                  "certificate from CA file '%s'",
-                  actual_content_type, ca_file_text);
+                  "schannel: failed to add certificate from CA file '%s' "
+                  "to certificate store: %s",
+                  ca_file_text,
+                  curlx_winapi_strerror(GetLastError(), buffer,
+                                        sizeof(buffer)));
             result = CURLE_SSL_CACERT_BADFILE;
             more_certs = 0;
           }
           else {
-            add_cert_result =
-              CertAddCertificateContextToStore(trust_store,
-                                               cert_context,
-                                               CERT_STORE_ADD_ALWAYS,
-                                               NULL);
-            if(!add_cert_result) {
-              char buffer[WINAPI_ERROR_LEN];
-              failf(data,
-                    "schannel: failed to add certificate from CA file '%s' "
-                    "to certificate store: %s",
-                    ca_file_text,
-                    curlx_winapi_strerror(GetLastError(), buffer,
-                                          sizeof(buffer)));
-              result = CURLE_SSL_CACERT_BADFILE;
-              more_certs = 0;
-            }
-            else {
-              num_certs++;
-            }
+            num_certs++;
           }
 
-          switch(actual_content_type) {
-          case CERT_QUERY_CONTENT_CERT:
-          case CERT_QUERY_CONTENT_SERIALIZED_CERT:
-            CertFreeCertificateContext(cert_context);
-            break;
-          case CERT_QUERY_CONTENT_CRL:
-          case CERT_QUERY_CONTENT_SERIALIZED_CRL:
-            CertFreeCRLContext((PCCRL_CONTEXT)cert_context);
-            break;
-          case CERT_QUERY_CONTENT_CTL:
-          case CERT_QUERY_CONTENT_SERIALIZED_CTL:
-            CertFreeCTLContext((PCCTL_CONTEXT)cert_context);
-            break;
-          }
+          CertFreeCertificateContext(cert_context);
         }
       }
     }
@@ -250,73 +225,73 @@ static CURLcode add_certs_file_to_store(HCERTSTORE trust_store,
                                         struct Curl_easy *data)
 {
   CURLcode result;
-  HANDLE ca_file_handle;
-  LARGE_INTEGER file_size;
+  FILE *ca_file_handle;
   char *ca_file_buffer = NULL;
-  size_t ca_file_bufsize = 0;
-  DWORD total_bytes_read = 0;
+  long ca_file_bufsize = 0;
+  long total_bytes_read = 0;
 
   /*
    * Read the CA file completely into memory before parsing it. This
    * optimizes for the common case where the CA file is relatively
    * small ( < 1 MiB ).
    */
-  ca_file_handle = curlx_CreateFile(ca_file,
-                                    GENERIC_READ,
-                                    FILE_SHARE_READ,
-                                    NULL,
-                                    OPEN_EXISTING,
-                                    FILE_ATTRIBUTE_NORMAL,
-                                    NULL);
-  if(ca_file_handle == INVALID_HANDLE_VALUE) {
-    char buffer[WINAPI_ERROR_LEN];
-    failf(data, "schannel: failed to open CA file '%s': %s", ca_file,
-          curlx_winapi_strerror(GetLastError(), buffer, sizeof(buffer)));
+  ca_file_handle = curlx_fopen(ca_file, "rb");
+  if(!ca_file_handle) {
+    failf(data, "schannel: failed to open CA file '%s'", ca_file);
     result = CURLE_SSL_CACERT_BADFILE;
     goto cleanup;
   }
 
-  if(!GetFileSizeEx(ca_file_handle, &file_size)) {
-    char buffer[WINAPI_ERROR_LEN];
-    failf(data, "schannel: failed to determine size of CA file '%s': %s",
-          ca_file,
-          curlx_winapi_strerror(GetLastError(), buffer, sizeof(buffer)));
+  if(curlx_fseek(ca_file_handle, 0, SEEK_END)) {
+    failf(data, "schannel: failed seeking to end of CA file '%s'", ca_file);
     result = CURLE_SSL_CACERT_BADFILE;
     goto cleanup;
   }
 
-  if(file_size.QuadPart > MAX_CAFILE_SIZE) {
+  ca_file_bufsize = ftell(ca_file_handle);
+
+  if(curlx_fseek(ca_file_handle, 0, SEEK_SET)) {
+    failf(data, "schannel: failed seeking to beginning of CA file '%s'",
+          ca_file);
+    result = CURLE_SSL_CACERT_BADFILE;
+    goto cleanup;
+  }
+
+  if(ca_file_bufsize < 0) {
+    failf(data, "schannel: failed to get length of CA file '%s'", ca_file);
+    result = CURLE_SSL_CACERT_BADFILE;
+    goto cleanup;
+  }
+
+  if(ca_file_bufsize > MAX_CAFILE_SIZE) {
     failf(data, "schannel: CA file exceeds max size of %d bytes",
           MAX_CAFILE_SIZE);
     result = CURLE_SSL_CACERT_BADFILE;
     goto cleanup;
   }
 
-  ca_file_bufsize = (size_t)file_size.QuadPart;
-  ca_file_buffer = (char *)curlx_malloc(ca_file_bufsize + 1);
+  ca_file_buffer = curlx_malloc(ca_file_bufsize + 1);
   if(!ca_file_buffer) {
     result = CURLE_OUT_OF_MEMORY;
     goto cleanup;
   }
 
   while(total_bytes_read < ca_file_bufsize) {
-    DWORD bytes_to_read = (DWORD)(ca_file_bufsize - total_bytes_read);
-    DWORD bytes_read = 0;
+    size_t nread = fread(ca_file_buffer + total_bytes_read, 1,
+                         ca_file_bufsize - total_bytes_read, ca_file_handle);
 
-    if(!ReadFile(ca_file_handle, ca_file_buffer + total_bytes_read,
-                 bytes_to_read, &bytes_read, NULL)) {
-      char buffer[WINAPI_ERROR_LEN];
-      failf(data, "schannel: failed to read from CA file '%s': %s", ca_file,
-            curlx_winapi_strerror(GetLastError(), buffer, sizeof(buffer)));
+    if(ferror(ca_file_handle)) {
+      failf(data, "schannel: failed to read from CA file '%s'", ca_file);
       result = CURLE_SSL_CACERT_BADFILE;
       goto cleanup;
     }
-    if(bytes_read == 0) {
+
+    if(nread == 0) {
       /* Premature EOF -- adjust the bufsize to the new value */
       ca_file_bufsize = total_bytes_read;
     }
     else {
-      total_bytes_read += bytes_read;
+      total_bytes_read += (long)nread;
     }
   }
 
@@ -329,8 +304,8 @@ static CURLcode add_certs_file_to_store(HCERTSTORE trust_store,
                                    data);
 
 cleanup:
-  if(ca_file_handle != INVALID_HANDLE_VALUE) {
-    CloseHandle(ca_file_handle);
+  if(ca_file_handle) {
+    curlx_fclose(ca_file_handle);
   }
   curlx_safefree(ca_file_buffer);
 
@@ -568,7 +543,7 @@ CURLcode Curl_verify_host(struct Curl_cfilter *cf, struct Curl_easy *data)
     /* CertGetNameString guarantees that the returned name does not contain
      * embedded null bytes. This appears to be undocumented behavior.
      */
-    cert_hostname_buff = (LPTSTR)curlx_malloc(len * sizeof(TCHAR));
+    cert_hostname_buff = curlx_malloc(len * sizeof(TCHAR));
     if(!cert_hostname_buff) {
       result = CURLE_OUT_OF_MEMORY;
       goto cleanup;

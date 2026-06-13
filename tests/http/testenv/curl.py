@@ -540,23 +540,8 @@ class ExecResult:
             ref_tl += ['time_namelookup', 'time_connect']
             if url.startswith('https:'):
                 ref_tl += ['time_appconnect']
-        # what kind of transfer was it?
-        if s['size_upload'] == 0 and s['size_download'] > 0:
-            # this is a download
-            dl_tl = ['time_pretransfer']
-            if s['size_request'] > 0:
-                dl_tl = ['time_posttransfer'] + dl_tl
-            ref_tl += dl_tl
-            # the first byte of the response may arrive before we
-            # track the other times when the client is slow (CI).
-            somewhere_keys.extend(['time_starttransfer'])
-        elif s['size_upload'] > 0 and s['size_download'] == 0:
-            # this is an upload
-            ul_tl = ['time_pretransfer', 'time_posttransfer']
-            ref_tl += ul_tl
-        else:
-            # could be a 0-length upload or 0-length download, not sure
-            exact_match = False
+        ref_tl += ['time_pretransfer', 'time_posttransfer']
+        somewhere_keys.extend(['time_starttransfer'])
         # always there at the end
         ref_tl += ['time_total']
 
@@ -1127,7 +1112,7 @@ class CurlClient:
         else:
             force_resolve = self._force_resolv
 
-        args = [self._curl, "-s", "--path-as-is"]
+        args = [self._curl, "--disable", "-s", "--path-as-is"]
         if 'CURL_TEST_EVENT' in os.environ:
             args.append('--test-event')
 
@@ -1239,7 +1224,7 @@ class CurlClient:
 
     def _perf_collapse(self, perf: PerfProfile, file_err):
         if not os.path.exists(perf.file):
-            raise Exception(f'dtrace output file does not exist: {perf.file}')
+            raise Exception(f'perf output file does not exist: {perf.file}')
         fg_collapse = os.path.join(self._fg_dir, 'stackcollapse-perf.pl')
         if not os.path.exists(fg_collapse):
             raise Exception(f'FlameGraph script not found: {fg_collapse}')

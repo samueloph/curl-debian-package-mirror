@@ -271,7 +271,8 @@ static CURLcode req_set_upload_done(struct Curl_easy *data)
   data->req.upload_done = TRUE;
   CURL_REQ_CLEAR_SEND(data);
 
-  Curl_pgrsTime(data, TIMER_POSTRANSFER);
+  if(data->mstate >= MSTATE_DID)
+    Curl_pgrsTime(data, TIMER_POSTRANSFER);
   Curl_creader_done(data, data->req.upload_aborted);
 
   if(data->req.upload_aborted) {
@@ -392,7 +393,7 @@ CURLcode Curl_req_send(struct Curl_easy *data, struct dynbuf *req,
   blen = curlx_dyn_len(req);
   /* if the sendbuf is empty and the request without body and
    * the length to send fits info a sendbuf chunk, we send it directly.
-   * If `blen` is larger then `chunk_size`, we can not. Because we
+   * If `blen` is larger than `chunk_size`, we can not. Because we
    * might have to retry a blocked send later from sendbuf and that
    * would result in retry sends with a shrunken length. That is trouble. */
   if(Curl_bufq_is_empty(&data->req.sendbuf) &&

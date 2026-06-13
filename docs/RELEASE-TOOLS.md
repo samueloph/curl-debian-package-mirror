@@ -1,4 +1,4 @@
-# Release tools used for curl 8.21.0-rc1
+# Release tools used for curl 8.21.0-rc2
 
 The following tools and their Debian package version numbers were used to
 produce this release tarball.
@@ -12,7 +12,7 @@ produce this release tarball.
 
 # Reproduce the tarball
 
-- Clone the repo and checkout the tag/commit: curl-8_21_0-rc1
+- Clone the repo and checkout the tag/commit: curl-8_21_0-rc2
 - Install the same set of tools + versions as listed above
 
 ## Do a standard build
@@ -23,6 +23,6 @@ produce this release tarball.
 
 ## Generate the tarball with the same timestamp
 
-- export SOURCE_DATE_EPOCH=1780308474
+- export SOURCE_DATE_EPOCH=1780931592
 - ./scripts/maketgz [version]
 

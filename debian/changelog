@@ -1,3 +1,20 @@
+curl (8.21.0~rc2-1) unstable; urgency=medium
+
+  [ Samuel Henrique ]
+  * New upstream version 8.21.0~rc2
+  * d/p/event-fix-wakeup-consumption.patch: Drop patch applied upstream
+  * Refresh patches:
+    - Implement-symbol-versioning-for-CURL_GNUTLS_3.patch
+    - ZZZgnutls-build.patch
+    - build-Divide-mit-krb5-gssapi-link-flags-between-LDFLAGS-a.patch
+  * d/rules: strip arch triplet from compiler name in curl-config
+
+  [ Guilherme Puida Moreira ]
+  * d/p/disable-strictmodes-in-test-sshd.patch: allow sshd in autopkgtest env
+  * d/tests: add pytest-based http tests
+
+ -- Samuel Henrique <samueloph@debian.org>  Sat, 13 Jun 2026 16:22:50 -0700
+
 curl (8.21.0~rc1-1+exp1) experimental; urgency=medium
 
   * New upstream version 8.21.0~rc1

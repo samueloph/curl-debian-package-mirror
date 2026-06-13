@@ -3808,8 +3808,8 @@ static CURLcode http_size(struct Curl_easy *data)
   return CURLE_OK;
 }
 
-static CURLcode verify_header(struct Curl_easy *data,
-                              const char *hd, size_t hdlen)
+CURLcode Curl_verify_header(struct Curl_easy *data,
+                            const char *hd, size_t hdlen)
 {
   struct SingleRequest *k = &data->req;
   const char *ptr = memchr(hd, 0x00, hdlen);
@@ -3817,6 +3817,14 @@ static CURLcode verify_header(struct Curl_easy *data,
     /* this is bad, bail out */
     failf(data, "Nul byte in header");
     return CURLE_WEIRD_SERVER_REPLY;
+  }
+  if(hdlen > 2) {
+    ptr = memchr(hd, '\r', hdlen - 2);
+    if(ptr) {
+      /* CR may only precede the LF, nothing else */
+      failf(data, "Carriage return found in header");
+      return CURLE_WEIRD_SERVER_REPLY;
+    }
   }
   if(k->headerline < 2)
     /* the first "header" is the status-line and it has no colon */
@@ -4172,6 +4180,17 @@ static CURLcode http_on_response(struct Curl_easy *data,
       goto out;
   }
 
+  /* final response without error, prepare to receive the body */
+  result = http_firstwrite(data);
+  if(result)
+    goto out;
+
+  /* This is the last response that we get for the current request. Check on
+   * the body size and determine if the response is complete. */
+  result = http_size(data);
+  if(result)
+    goto out;
+
   /* If we requested a "no body", this is a good time to get
    * out and return home.
    */
@@ -4184,14 +4203,6 @@ static CURLcode http_on_response(struct Curl_easy *data,
      this, we keep reading until we close the stream. */
   if((k->maxdownload == 0) && (k->httpversion_sent < 20))
     k->download_done = TRUE;
-
-  /* final response without error, prepare to receive the body */
-  result = http_firstwrite(data);
-
-  if(!result)
-    /* This is the last response that we get for the current request. Check on
-     * the body size and determine if the response is complete. */
-    result = http_size(data);
 
 out:
   if(last_hd)
@@ -4348,7 +4359,7 @@ static CURLcode http_rw_hd(struct Curl_easy *data,
     }
   }
 
-  result = verify_header(data, hd, hdlen);
+  result = Curl_verify_header(data, hd, hdlen);
   if(result)
     return result;
 

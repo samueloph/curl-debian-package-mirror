@@ -31,8 +31,8 @@
 #include "curl_trc.h"
 #include "curlx/dynbuf.h"
 #include "bufq.h"
-#include "capsule.h"
-#include "cf-capsule.h"
+#include "vquic/capsule.h"
+#include "vquic/cf-capsule.h"
 
 /* recv buffer: 4 chunks of 16KB = 64KB, enough for large datagrams */
 #define CAPSULE_RECV_CHUNKS    4
@@ -57,24 +57,6 @@ static void capsule_cf_destroy(struct Curl_cfilter *cf,
     curlx_free(ctx->pending);
     curlx_safefree(ctx);
   }
-}
-
-static void capsule_cf_close(struct Curl_cfilter *cf,
-                             struct Curl_easy *data)
-{
-  struct cf_capsule_ctx *ctx = cf->ctx;
-
-  CURL_TRC_CF(data, cf, "close");
-  cf->connected = FALSE;
-  if(ctx) {
-    Curl_bufq_reset(&ctx->recvbuf);
-    curlx_safefree(ctx->pending);
-    ctx->pending_len = 0;
-    ctx->pending_offset = 0;
-    ctx->pending_payload = 0;
-  }
-  if(cf->next)
-    cf->next->cft->do_close(cf->next, data);
 }
 
 static CURLcode capsule_cf_connect(struct Curl_cfilter *cf,
@@ -123,7 +105,7 @@ static CURLcode capsule_cf_send(struct Curl_cfilter *cf,
     ctx->pending_offset += nwritten;
     if(ctx->pending_offset < ctx->pending_len)
       return CURLE_AGAIN;
-    /* pending capsule has been fully flusehd */
+    /* pending capsule has been fully flushed */
     *pnwritten = ctx->pending_payload;
     curlx_safefree(ctx->pending);
     return CURLE_OK;
@@ -212,7 +194,6 @@ struct Curl_cftype Curl_cft_capsule = {
   0,
   capsule_cf_destroy,
   capsule_cf_connect,
-  capsule_cf_close,
   Curl_cf_def_shutdown,
   Curl_cf_def_adjust_pollset,
   capsule_cf_data_pending,

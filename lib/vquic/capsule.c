@@ -26,13 +26,17 @@
 
 #if !defined(CURL_DISABLE_PROXY) && !defined(CURL_DISABLE_HTTP)
 
+#ifdef HAVE_ARPA_INET_H
+#include <arpa/inet.h>  /* for htons() */
+#endif
+
 #include <curl/curl.h>
 #include "urldata.h"
 #include "curlx/dynbuf.h"
 #include "cfilters.h"
 #include "curl_trc.h"
 #include "bufq.h"
-#include "capsule.h"
+#include "vquic/capsule.h"
 
 
 /**

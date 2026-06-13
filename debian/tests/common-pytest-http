@@ -1,0 +1,18 @@
+#!/bin/sh
+
+set -eux
+
+debian/rules clean > "${AUTOPKGTEST_ARTIFACTS}/${SUFFIX}_clean.log"
+dh_update_autotools_config > "${AUTOPKGTEST_ARTIFACTS}/${SUFFIX}_autotools_config.log"
+dh_autoreconf > "${AUTOPKGTEST_ARTIFACTS}/${SUFFIX}_autoreconf.log"
+debian/rules override_dh_auto_configure > "${AUTOPKGTEST_ARTIFACTS}/${SUFFIX}_configure.log"
+debian/rules override_dh_auto_build > "${AUTOPKGTEST_ARTIFACTS}/${SUFFIX}_build.log"
+
+# Some tests need the test helper binaries.
+make -C "debian/build-${FLAVOR}/tests/libtest" check > "${AUTOPKGTEST_ARTIFACTS}/${SUFFIX}_libtests_build.log"
+
+# Test harness expects to find config.ini, curl and curlinfo relative to the
+# current working directory.
+cd "debian/build-${FLAVOR}"
+
+python3 -m pytest tests/http/ -v

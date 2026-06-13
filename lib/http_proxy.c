@@ -33,10 +33,9 @@
 #include "cfilters.h"
 #include "cf-h1-proxy.h"
 #include "cf-h2-proxy.h"
-#include "cf-h3-proxy.h"
-#include "cf-capsule.h"
 #include "connect.h"
 #include "vauth/vauth.h"
+#include "vquic/vquic.h"
 #include "curlx/strparse.h"
 
 static CURLcode dynhds_add_custom(struct Curl_easy *data,
@@ -654,22 +653,8 @@ connect_sub:
   }
   else {
     /* subchain connected and we had already installed the protocol filter.
-     * This means the protocol tunnel is established, we are done.
-     */
+     * This means the protocol tunnel is established, we are done. */
     DEBUGASSERT(ctx->sub_filter_installed);
-    if(ctx->udp_tunnel) {
-#ifdef USE_PROXY_HTTP3
-      /* Insert capsule filter between us and the protocol sub-filter.
-       * This handles encap/decap of UDP datagrams in capsule format. */
-      result = Curl_cf_capsule_insert_after(cf, data);
-      if(result)
-        goto out;
-      CURL_TRC_CF(data, cf, "installed capsule filter for UDP tunnel");
-#else
-      result = CURLE_NOT_BUILT_IN;
-      goto out;
-#endif /* USE_PROXY_HTTP3 */
-    }
     result = CURLE_OK;
   }
 
@@ -723,22 +708,12 @@ static void http_proxy_cf_destroy(struct Curl_cfilter *cf,
   }
 }
 
-static void http_proxy_cf_close(struct Curl_cfilter *cf,
-                                struct Curl_easy *data)
-{
-  CURL_TRC_CF(data, cf, "close");
-  cf->connected = FALSE;
-  if(cf->next)
-    cf->next->cft->do_close(cf->next, data);
-}
-
 struct Curl_cftype Curl_cft_http_proxy = {
   "HTTP-PROXY",
   CF_TYPE_IP_CONNECT | CF_TYPE_PROXY | CF_TYPE_SETUP,
   0,
   http_proxy_cf_destroy,
   http_proxy_cf_connect,
-  http_proxy_cf_close,
   Curl_cf_def_shutdown,
   Curl_cf_def_adjust_pollset,
   Curl_cf_def_data_pending,
