@@ -818,7 +818,7 @@ typedef enum {
  * CURLAUTH_NEGOTIATE    - HTTP Negotiate (SPNEGO) authentication
  * CURLAUTH_GSSNEGOTIATE - Alias for CURLAUTH_NEGOTIATE (deprecated)
  * CURLAUTH_NTLM         - HTTP NTLM authentication
- * CURLAUTH_DIGEST_IE    - HTTP Digest authentication with IE flavour
+ * CURLAUTH_DIGEST_IE    - HTTP Digest authentication with IE flavor
  * CURLAUTH_NTLM_WB      - HTTP NTLM authentication delegated to winbind helper
  * CURLAUTH_BEARER       - HTTP Bearer token authentication
  * CURLAUTH_ONLY         - Use together with a single other type to force no
@@ -904,16 +904,16 @@ enum curl_khmatch {
 };
 
 typedef int
-  (*curl_sshkeycallback) (CURL *easy,     /* easy handle */
-                          const struct curl_khkey *knownkey, /* known */
-                          const struct curl_khkey *foundkey, /* found */
-                          enum curl_khmatch, /* libcurl's view on the keys */
-                          void *clientp); /* custom pointer passed with */
-                                          /* CURLOPT_SSH_KEYDATA */
+  (*curl_sshkeycallback)(CURL *easy,     /* easy handle */
+                         const struct curl_khkey *knownkey, /* known */
+                         const struct curl_khkey *foundkey, /* found */
+                         enum curl_khmatch, /* libcurl's view on the keys */
+                         void *clientp); /* custom pointer passed with */
+                                         /* CURLOPT_SSH_KEYDATA */
 
 typedef int
-  (*curl_sshhostkeycallback) (void *clientp,/* custom pointer passed */
-                                            /* with CURLOPT_SSH_HOSTKEYDATA */
+  (*curl_sshhostkeycallback)(void *clientp,/* custom pointer passed */
+                                           /* with CURLOPT_SSH_HOSTKEYDATA */
                           int keytype, /* CURLKHTYPE */
                           const char *key, /* hostkey to check */
                           size_t keylen); /* length of the key */

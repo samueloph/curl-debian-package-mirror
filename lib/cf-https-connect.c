@@ -29,6 +29,7 @@
 #include "curl_trc.h"
 #include "cfilters.h"
 #include "cf-dns.h"
+#include "cf-setup.h"
 #include "connect.h"
 #include "hostip.h"
 #include "httpsrr.h"
@@ -303,13 +304,14 @@ static enum alpnid cf_hc_get_httpsrr_alpn(struct Curl_cfilter *cf,
   size_t i;
 
   /* Do we have HTTPS-RR information? */
-  rr = Curl_conn_dns_get_https(data, cf->sockindex);
+  rr = Curl_conn_dns_get_https(
+    data, cf->sockindex, Curl_conn_get_destination(cf->conn, cf->sockindex));
 
   /* We do not support `rr->no_def_alpn`. */
   if(Curl_httpsrr_applicable(data, rr) && !rr->no_def_alpn) {
     for(i = 0; i < CURL_ARRAYSIZE(rr->alpns); ++i) {
       enum alpnid alpn_rr = (enum alpnid)rr->alpns[i];
-      if(alpn_rr == not_this_one) /* don't want this one */
+      if(alpn_rr == not_this_one) /* do not want this one */
         continue;
       switch(alpn_rr) {
       case ALPN_h3:
@@ -492,7 +494,8 @@ static CURLcode cf_hc_connect(struct Curl_cfilter *cf,
   *done = FALSE;
 
   if(!ctx->httpsrr_resolved) {
-    ctx->httpsrr_resolved = Curl_conn_dns_resolved_https(data, cf->sockindex);
+    ctx->httpsrr_resolved = Curl_conn_dns_resolved_https(
+      data, cf->sockindex, Curl_conn_get_destination(cf->conn, cf->sockindex));
 #ifdef DEBUGBUILD
     if(!ctx->httpsrr_resolved && getenv("CURL_DBG_AWAIT_HTTPSRR")) {
       CURL_TRC_CF(data, cf, "awaiting HTTPS-RR");
@@ -575,7 +578,7 @@ static CURLcode cf_hc_connect(struct Curl_cfilter *cf,
   }
 
 out:
-  CURL_TRC_CF(data, cf, "connect -> %d, done=%d", result, *done);
+  CURL_TRC_CF(data, cf, "connect -> %d, done=%d", (int)result, *done);
   return result;
 }
 
@@ -615,7 +618,7 @@ static CURLcode cf_hc_shutdown(struct Curl_cfilter *cf,
         result = ctx->ballers[i].result;
     }
   }
-  CURL_TRC_CF(data, cf, "shutdown -> %d, done=%d", result, *done);
+  CURL_TRC_CF(data, cf, "shutdown -> %d, done=%d", (int)result, *done);
   return result;
 }
 
@@ -634,7 +637,8 @@ static CURLcode cf_hc_adjust_pollset(struct Curl_cfilter *cf,
         continue;
       result = Curl_conn_cf_adjust_pollset(b->cf, data, ps);
     }
-    CURL_TRC_CF(data, cf, "adjust_pollset -> %d, %u socks", result, ps->n);
+    CURL_TRC_CF(data, cf, "adjust_pollset -> %d, %u socks", (int)result,
+                ps->n);
   }
   return result;
 }
@@ -808,7 +812,12 @@ CURLcode Curl_cf_https_setup(struct Curl_easy *data,
 
   DEBUGASSERT(conn->scheme->protocol == CURLPROTO_HTTPS);
 
+  /* This filter is intended for HTTPS using ALPN and does
+   * not support HTTPS Eyeballing to a proxy. */
   if((conn->scheme->protocol != CURLPROTO_HTTPS) ||
+#ifndef CURL_DISABLE_PROXY
+     conn->bits.origin_is_proxy ||
+#endif
      !conn->bits.tls_enable_alpn)
     goto out;
 

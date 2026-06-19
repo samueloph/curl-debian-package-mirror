@@ -732,7 +732,7 @@ static CURLcode getftpresponse(struct Curl_easy *data,
 
   pp->pending_resp = FALSE;
   CURL_TRC_FTP(data, "getftpresponse -> result=%d, nread=%zu, ftpcode=%d",
-               result, *nreadp, *ftpcodep);
+               (int)result, *nreadp, *ftpcodep);
 
   return result;
 }
@@ -1083,7 +1083,7 @@ static CURLcode ftp_port_open_socket(struct Curl_easy *data,
                                      curl_socket_t *portsockp)
 {
   char buffer[STRERROR_LEN];
-  int error = 0;
+  int sockerr = 0;
   const struct Curl_addrinfo *ai;
   CURLcode result = CURLE_FTP_PORT_FAILED;
 
@@ -1095,14 +1095,14 @@ static CURLcode ftp_port_open_socket(struct Curl_easy *data,
       if(result == CURLE_OUT_OF_MEMORY)
         return result;
       result = CURLE_FTP_PORT_FAILED;
-      error = SOCKERRNO;
+      sockerr = SOCKERRNO;
       continue;
     }
     break;
   }
   if(!ai) {
     failf(data, "socket failure: %s",
-          curlx_strerror(error, buffer, sizeof(buffer)));
+          curlx_strerror(sockerr, buffer, sizeof(buffer)));
     return CURLE_FTP_PORT_FAILED;
   }
   *aip = ai;
@@ -1131,7 +1131,7 @@ static CURLcode ftp_port_bind_socket(struct Curl_easy *data,
 #endif
   char buffer[STRERROR_LEN];
   unsigned short port;
-  int error;
+  int sockerr;
 
   memcpy(sa, ai->ai_addr, ai->ai_addrlen);
   *sslen_io = ai->ai_addrlen;
@@ -1144,13 +1144,13 @@ static CURLcode ftp_port_bind_socket(struct Curl_easy *data,
       sa6->sin6_port = htons(port);
 #endif
     if(bind(portsock, sa, *sslen_io)) {
-      error = SOCKERRNO;
-      if(non_local && (error == SOCKEADDRNOTAVAIL)) {
+      sockerr = SOCKERRNO;
+      if(non_local && (sockerr == SOCKEADDRNOTAVAIL)) {
         /* The requested bind address is not local. Use the address used for
          * the control connection instead and restart the port loop.
          */
         infof(data, "bind(port=%hu) on non-local address failed: %s", port,
-              curlx_strerror(error, buffer, sizeof(buffer)));
+              curlx_strerror(sockerr, buffer, sizeof(buffer)));
 
         *sslen_io = sizeof(*ss);
         if(getsockname(conn->sock[FIRSTSOCKET], sa, sslen_io)) {
@@ -1162,9 +1162,9 @@ static CURLcode ftp_port_bind_socket(struct Curl_easy *data,
         non_local = FALSE; /* do not try this again */
         continue;
       }
-      if(error != SOCKEADDRINUSE && error != SOCKEACCES) {
+      if(sockerr != SOCKEADDRINUSE && sockerr != SOCKEACCES) {
         failf(data, "bind(port=%hu) failed: %s", port,
-              curlx_strerror(error, buffer, sizeof(buffer)));
+              curlx_strerror(sockerr, buffer, sizeof(buffer)));
         return CURLE_FTP_PORT_FAILED;
       }
     }
@@ -1390,10 +1390,13 @@ static CURLcode ftp_state_use_port(struct Curl_easy *data,
     ftp_state(data, ftpc, FTP_STOP);
   }
   else {
-    /* successfully set up the listen socket filter. SSL needed? */
+    /* successfully set up the listen socket filter. SSL needed?
+     * Use the control connections origin for cert verification. */
     if(conn->bits.ftp_use_data_ssl && data->set.ftp_use_port &&
        !Curl_conn_is_ssl(conn, SECONDARYSOCKET)) {
-      result = Curl_ssl_cfilter_add(data, conn, SECONDARYSOCKET);
+      result = Curl_ssl_cfilter_add(
+        data, Curl_conn_get_origin(conn, FIRSTSOCKET),
+        conn, SECONDARYSOCKET);
     }
     conn->bits.do_more = FALSE;
     Curl_pgrsTime(data, TIMER_STARTACCEPT);
@@ -1980,11 +1983,7 @@ static CURLcode ftp_epsv_disable(struct Curl_easy *data,
 {
   CURLcode result = CURLE_OK;
 
-  if(conn->bits.ipv6
-#ifndef CURL_DISABLE_PROXY
-     && !(conn->bits.tunnel_proxy || conn->bits.socksproxy)
-#endif
-    ) {
+  if(conn->bits.ipv6 && !Curl_conn_is_tunneling(conn, FIRSTSOCKET)) {
     /* We cannot disable EPSV when doing IPv6, so this is instead a fail */
     failf(data, "Failed EPSV attempt, exiting");
     return CURLE_WEIRD_SERVER_REPLY;
@@ -2016,7 +2015,7 @@ static CURLcode ftp_control_addr_dup(struct Curl_easy *data, char **newhostp)
      the effective control connection address is the proxy address,
      not the ftp host. */
 #ifndef CURL_DISABLE_PROXY
-  if(conn->bits.tunnel_proxy || conn->bits.socksproxy)
+  if(Curl_conn_is_tunneling(conn, FIRSTSOCKET))
     *newhostp = curlx_strdup(conn->origin->hostname);
   else
 #endif
@@ -3196,7 +3195,8 @@ static CURLcode ftp_pp_statemachine(struct Curl_easy *data,
       /* this was BLOCKING, keep it so for now */
       bool done;
       if(!Curl_conn_is_ssl(conn, FIRSTSOCKET)) {
-        result = Curl_ssl_cfilter_add(data, conn, FIRSTSOCKET);
+        result = Curl_ssl_cfilter_add(
+          data, Curl_conn_get_origin(conn, FIRSTSOCKET), conn, FIRSTSOCKET);
         if(result) {
           /* we failed and bail out */
           return CURLE_USE_SSL_FAILED;
@@ -3835,7 +3835,7 @@ static CURLcode ftp_done(struct Curl_easy *data, CURLcode status,
   /* Send any post-transfer QUOTE strings? */
   if(!status && !result && !premature && data->set.postquote)
     result = ftp_sendquote(data, ftpc, data->set.postquote);
-  CURL_TRC_FTP(data, "[%s] done, result=%d", FTP_CSTATE(ftpc), result);
+  CURL_TRC_FTP(data, "[%s] done, result=%d", FTP_CSTATE(ftpc), (int)result);
   return result;
 }
 
@@ -4444,7 +4444,8 @@ static CURLcode ftp_setup_connection(struct Curl_easy *data,
   ftpc->use_ssl = data->set.use_ssl;
   ftpc->ccc = data->set.ftp_ccc;
 
-  CURL_TRC_FTP(data, "[%s] setup connection -> %d", FTP_CSTATE(ftpc), result);
+  CURL_TRC_FTP(data, "[%s] setup connection -> %d", FTP_CSTATE(ftpc),
+               (int)result);
   return result;
 }
 
@@ -4461,8 +4462,8 @@ bool ftp_conns_match(struct connectdata *needle, struct connectdata *conn)
     return FALSE;
   /* A mismatch on `use_ssl` MUST have been found in connection matching
    * before we come here. This is a check on MAYBE/MUST use of STARTTLS and
-   * it only works on ftp. But imap/smtp etc have the same `use_ssl` and
-   * no extra match like ftp. We lack tests in this area, so let ftp fail
+   * it only works on FTP. But IMAP/SMTP etc have the same `use_ssl` and
+   * no extra match like FTP. We lack tests in this area, so let FTP fail
    * loudly here to help other cases. */
   if(nftpc->use_ssl > cftpc->use_ssl) {
     DEBUGASSERT(0);

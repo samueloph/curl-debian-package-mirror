@@ -33,8 +33,6 @@
 #include <arpa/inet.h>
 #endif
 
-#include "testutil.h"
-
 #define RTP_PKT_CHANNEL(p)   ((int)((unsigned char)((p)[1])))
 
 #define RTP_PKT_LENGTH(p)  ((((int)((unsigned char)((p)[2]))) << 8) | \
@@ -67,7 +65,7 @@ static size_t rtp_write(char *data, size_t size, size_t nmemb, void *stream)
   data += 4;
   for(i = 0; i < message_size; i += RTP_DATA_SIZE) {
     if(message_size - i > RTP_DATA_SIZE) {
-      if(memcmp(RTP_DATA, data + i, RTP_DATA_SIZE) != 0) {
+      if(memcmp(RTP_DATA, data + i, RTP_DATA_SIZE)) {
         curl_mprintf("RTP PAYLOAD CORRUPTED [%s]\n", data + i);
 #if 0
         return failure;
@@ -75,7 +73,7 @@ static size_t rtp_write(char *data, size_t size, size_t nmemb, void *stream)
       }
     }
     else {
-      if(memcmp(RTP_DATA, data + i, message_size - i) != 0) {
+      if(memcmp(RTP_DATA, data + i, message_size - i)) {
         curl_mprintf("RTP PAYLOAD END CORRUPTED (%d), [%s]\n",
                      message_size - i, data + i);
 #if 0
@@ -155,7 +153,7 @@ static CURLcode test_lib571(const char *URL)
   if(result)
     goto test_cleanup;
 
-  /* The DESCRIBE request will try to consume data after the Content */
+  /* The DESCRIBE request tries to consume data after the Content */
   stream_uri = tutil_suburl(URL, request++);
   if(!stream_uri) {
     result = TEST_ERR_MAJOR_BAD;

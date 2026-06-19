@@ -476,6 +476,12 @@ static CURLcode single_header(struct Curl_cfilter *cf,
   /* output debug if that is requested */
   Curl_debug(data, CURLINFO_HEADER_IN, linep, line_len);
 
+  /* a CONNECT response line is handed to the client as a header, so it must
+     pass the same checks as a regular response header before delivery */
+  result = Curl_verify_header(data, linep, line_len);
+  if(result)
+    return result;
+
   /* send the header to the callback */
   writetype = CLIENTWRITE_HEADER | CLIENTWRITE_CONNECT |
     (ts->headerlines == 1 ? CLIENTWRITE_STATUS : 0);
@@ -731,7 +737,8 @@ static CURLcode H1_CONNECT(struct Curl_cfilter *cf,
       CURL_TRC_CF(data, cf, "CONNECT receive");
       result = recv_CONNECT_resp(cf, data, ts, &done);
       if(result)
-        CURL_TRC_CF(data, cf, "error receiving CONNECT response: %d", result);
+        CURL_TRC_CF(data, cf, "error receiving CONNECT response: %d",
+                    (int)result);
       if(!result)
         result = Curl_pgrsUpdate(data);
       /* error or not complete yet. return for more multi-multi */

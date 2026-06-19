@@ -86,7 +86,7 @@ sub logmsg {
 #######################################################################
 # Set the function to use for logging
 sub setlogfunc {
-    ($logfunc)=@_;
+    ($logfunc) = @_;
 }
 
 #######################################################################
@@ -195,7 +195,7 @@ sub subnewlines {
     }
     else {
         if(($$thing =~ /^\n\z/) && $prevupdate) {
-            # if there is a blank link after a line we update, we hope it is
+            # if there is a blank line after a line we update, we hope it is
             # the empty line following headers
             $$thing =~ s/\x0a/\x0d\x0a/;
         }
@@ -207,7 +207,7 @@ sub subnewlines {
 # Run the application under test and return its return code
 #
 sub runclient {
-    my ($cmd)=@_;
+    my ($cmd) = @_;
     my $ret = system($cmd);
     print "CMD ($ret): $cmd\n" if($verbose && !$torture);
     return $ret;
@@ -222,11 +222,11 @@ sub runclient {
 # Run the application under test and return its stdout
 #
 sub runclientoutput {
-    my ($cmd)=@_;
-    return `$cmd 2>$dev_null`;
+    my ($cmd) = @_;
+    return qx($cmd 2>$dev_null);
 
 # This is one way to test curl on a remote machine
-#    my @out = `ssh $CLIENTIP cd \'$pwd\' \\; \'$cmd\'`;
+#    my @out = qx(ssh $CLIENTIP cd \'$pwd\' \\; \'$cmd\');
 #    sleep 2;    # time to allow the NFS server to be updated
 #    return @out;
 }

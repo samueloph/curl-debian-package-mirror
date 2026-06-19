@@ -677,7 +677,7 @@ sub sshd_supports_opt {
         ($sshdid =~ /SunSSH/)) {
         # ssh daemon supports command line options -t -f and -o
         $err = grep /((Unsupported)|(Bad configuration)|(Deprecated)) option.*$option/,
-                    `\"$sshd\" -t -f $sshdconfig_abs -o \"$option=$value\" 2>&1`;
+                    qx(\"$sshd\" -t -f $sshdconfig_abs -o \"$option=$value\" 2>&1);
         return !$err;
     }
     if(($sshdid =~ /OpenSSH/) && ($sshdvernum >= 299)) {
@@ -688,7 +688,7 @@ sub sshd_supports_opt {
             return 0;
         }
         $err = grep /((Unsupported)|(Bad configuration)|(Deprecated)) option.*$option/,
-                    `\"$sshd\" -t -f $sshdconfig_abs 2>&1`;
+                    qx(\"$sshd\" -t -f $sshdconfig_abs 2>&1);
         unlink $sshdconfig;
         return !$err;
     }
@@ -1185,7 +1185,7 @@ if($sshdid =~ /OpenSSH-Windows/) {
 
     # Put an "exec" in front of the command so that the child process
     # keeps this child's process ID by being tied to the spawned shell.
-    exec("exec $cmd") || die "Cannot exec() $cmd: $!";
+    exec("exec $cmd") or die "Cannot exec() $cmd: $!";
     # exec() creates a new process, but ties the existence of the
     # new process to the parent waiting perl.exe and sh.exe processes.
 

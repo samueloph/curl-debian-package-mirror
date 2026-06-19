@@ -36,6 +36,7 @@
 #include "curl_sha512_256.h"
 #include "curlx/strparse.h"
 #include "rand.h"
+#include "escape.h"
 
 #ifndef USE_WINDOWS_SSPI
 #define SESSION_ALGO 1 /* for algos with this bit set */
@@ -162,6 +163,11 @@ static char *auth_digest_string_quoted(const char *s)
       result = curlx_dyn_addn(&out, "\\", 1);
       if(!result)
         result = curlx_dyn_addn(&out, s, 1);
+    }
+    else if((*s < ' ') || (*s > 0x7e)) {
+      unsigned char buf[3] = { '%' };
+      Curl_hexbyte(&buf[1], (unsigned char)*s);
+      result = curlx_dyn_addn(&out, buf, 3);
     }
     else
       result = curlx_dyn_addn(&out, s, 1);
@@ -373,7 +379,7 @@ CURLcode Curl_auth_create_digest_md5_message(struct Curl_easy *data,
     return result;
 
   /* We only support md5 sessions */
-  if(strcmp(algorithm, "md5-sess") != 0)
+  if(strcmp(algorithm, "md5-sess"))
     return CURLE_BAD_CONTENT_ENCODING;
 
   /* Get the qop-values from the qop-options */
@@ -421,7 +427,7 @@ CURLcode Curl_auth_create_digest_md5_message(struct Curl_easy *data,
     curl_msnprintf(&HA1_hex[2 * i], 3, "%02x", digest[i]);
 
   /* Generate our SPN */
-  spn = Curl_auth_build_spn(service, data->conn->origin->hostname, NULL);
+  spn = Curl_auth_build_spn(service, data->state.origin->hostname, NULL);
   if(!spn)
     return CURLE_OUT_OF_MEMORY;
 
@@ -838,7 +844,8 @@ static CURLcode auth_create_digest_http_message(
 
   if(digest->qop)
     hashthis = curl_maprintf("%s:%s:%08x:%s:%s:%s", ha1, digest->nonce,
-                             digest->nc, digest->cnonce, digest->qop, ha2);
+                             (unsigned int)digest->nc, digest->cnonce,
+                             digest->qop, ha2);
   else
     hashthis = curl_maprintf("%s:%s:%s", ha1, digest->nonce, ha2);
 
@@ -903,7 +910,7 @@ static CURLcode auth_create_digest_http_message(
                             nonce_quoted,
                             uri_quoted,
                             digest->cnonce,
-                            digest->nc,
+                            (unsigned int)digest->nc,
                             digest->qop,
                             request_digest);
 
@@ -1033,6 +1040,8 @@ CURLcode Curl_auth_create_digest_http_message(struct Curl_easy *data,
  */
 void Curl_auth_digest_cleanup(struct digestdata *digest)
 {
+  Curl_peer_unlink(&digest->origin);
+  Curl_creds_unlink(&digest->creds);
   curlx_safefree(digest->nonce);
   curlx_safefree(digest->cnonce);
   curlx_safefree(digest->realm);

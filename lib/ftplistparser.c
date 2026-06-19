@@ -196,7 +196,7 @@ void Curl_wildcard_dtor(struct WildcardData **wcp)
     wc->dtor = ZERO_NULL;
     wc->ftpwc = NULL;
   }
-  DEBUGASSERT(wc->ftpwc == NULL);
+  DEBUGASSERT(!wc->ftpwc);
 
   Curl_llist_destroy(&wc->filelist, NULL);
   curlx_safefree(wc->path);
@@ -939,7 +939,7 @@ static CURLcode parse_winnt(struct Curl_easy *data,
       parser->item_length++;
       if(c == ' ') {
         mem[parser->item_offset + parser->item_length - 1] = 0;
-        if(strcmp("<DIR>", mem + parser->item_offset) == 0) {
+        if(!strcmp("<DIR>", mem + parser->item_offset)) {
           finfo->filetype = CURLFILETYPE_DIRECTORY;
           finfo->size = 0;
         }

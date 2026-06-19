@@ -332,7 +332,7 @@ static CURLcode sendrecv_dl(struct Curl_easy *data,
 out:
   Curl_multi_xfer_buf_release(data, xfer_buf);
   if(result)
-    DEBUGF(infof(data, "sendrecv_dl() -> %d", result));
+    DEBUGF(infof(data, "sendrecv_dl() -> %d", (int)result));
   return result;
 }
 
@@ -425,7 +425,7 @@ CURLcode Curl_sendrecv(struct Curl_easy *data)
 
 out:
   if(result)
-    DEBUGF(infof(data, "Curl_sendrecv() -> %d", result));
+    DEBUGF(infof(data, "Curl_sendrecv() -> %d", (int)result));
   return result;
 }
 
@@ -493,6 +493,7 @@ CURLcode Curl_pretransfer(struct Curl_easy *data)
   /* initial transfer request coming up, forget the initial origin
    * from a previous perform() on this handle. */
   Curl_peer_unlink(&data->state.initial_origin);
+  Curl_peer_unlink(&data->state.origin);
   data->state.requests = 0;
   data->state.followlocation = 0; /* reset the location-follow counter */
   data->state.this_is_a_follow = FALSE; /* reset this */
@@ -678,7 +679,7 @@ static void xfer_setup(
   struct SingleRequest *k = &data->req;
   struct connectdata *conn = data->conn;
 
-  DEBUGASSERT(conn != NULL);
+  DEBUGASSERT(conn);
   /* indexes are in range */
   DEBUGASSERT((send_idx <= 1) && (send_idx >= -1));
   DEBUGASSERT((recv_idx <= 1) && (recv_idx >= -1));
@@ -777,7 +778,7 @@ CURLcode Curl_xfer_write_resp(struct Curl_easy *data,
     data->req.download_done = TRUE;
   }
   CURL_TRC_WRITE(data, "xfer_write_resp(len=%zu, eos=%d) -> %d",
-                 blen, is_eos, result);
+                 blen, is_eos, (int)result);
   return result;
 }
 
@@ -834,7 +835,7 @@ CURLcode Curl_xfer_send(struct Curl_easy *data,
     data->info.request_size += *pnwritten;
 
   DEBUGF(infof(data, "Curl_xfer_send(len=%zu, eos=%d) -> %d, %zu",
-               blen, eos, result, *pnwritten));
+               blen, eos, (int)result, *pnwritten));
   return result;
 }
 
@@ -902,22 +903,14 @@ CURLcode Curl_xfer_pause_recv(struct Curl_easy *data, bool enable)
 
 bool Curl_xfer_is_secure(struct Curl_easy *data)
 {
-  const struct Curl_scheme *scheme = NULL;
-
-  if(data->conn) {
-    scheme = data->conn->scheme;
-    /* if we are connected, but not use SSL, the transfer is not secure.
-     * This covers an insecure http:// proxy that is not tunneling.
-     * We enforce tunneling for such cases, but better be sure here. */
-    if(Curl_conn_is_connected(data->conn, FIRSTSOCKET) &&
-       !Curl_conn_is_ssl(data->conn, FIRSTSOCKET))
-      return FALSE;
+#ifndef CURL_DISABLE_PROXY
+  if(data->conn && data->conn->bits.origin_is_proxy) {
+    /* talking to a forward proxy, not secure. we do not use
+     * a forward proxy for https: and other 's' URLs. Let's just check that
+     * this did not fail somewhere. */
+    DEBUGASSERT(!(data->state.origin->scheme->flags & PROTOPT_SSL));
+    return FALSE;
   }
-  else if(data->info.conn_scheme) { /* was connected once */
-    scheme = Curl_get_scheme(data->info.conn_scheme);
-  }
-  else { /* never connected (yet?) */
-    DEBUGASSERT(0); /* not implemented, would need to parse URL */
-  }
-  return scheme ? (scheme->flags & PROTOPT_SSL) : FALSE;
+#endif
+  return (data->state.origin->scheme->flags & PROTOPT_SSL);
 }

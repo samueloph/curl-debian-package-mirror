@@ -6700,7 +6700,7 @@ then :
 fi
 
 
-OPT_APPLE_SECTRUST=$curl_cv_apple
+OPT_APPLE_SECTRUST=no
 
 # Check whether --with-apple-sectrust was given.
 if test ${with_apple_sectrust+y}
@@ -18551,7 +18551,7 @@ printf "%s\n" "no" >&6; }
 ***
 *** If you wish to help the curl project to better support your compiler
 *** you can report this and the required info on the libcurl development
-*** mailing list: https://lists.haxx.selistinfo/curl-library/
+*** mailing list: https://lists.haxx.se/listinfo/curl-library/
 ***
 _EOF
   fi
@@ -20195,6 +20195,7 @@ printf "%s\n" "$as_me: WARNING: compiler options rejected: $tmp_options" >&2;}
   squeeze tmp_CFLAGS
 
           fi
+
                     if test "$compiler_num" -ge "301"; then
 
 
@@ -20292,6 +20293,7 @@ printf "%s\n" "$as_me: WARNING: compiler options rejected: $tmp_options" >&2;}
                 ;;
             esac
           fi
+
                     if test "$compiler_num" -ge "303"; then
             tmp_CFLAGS="$tmp_CFLAGS -Wno-documentation-unknown-command"
           fi
@@ -20416,6 +20418,7 @@ printf "%s\n" "$as_me: WARNING: compiler options rejected: $tmp_options" >&2;}
               tmp_CFLAGS="$tmp_CFLAGS -Wno-varargs"
             fi
           fi
+
                     if test "$compiler_num" -ge "700"; then
 
 
@@ -20460,6 +20463,7 @@ printf "%s\n" "$as_me: WARNING: compiler options rejected: $tmp_options" >&2;}
   squeeze tmp_CFLAGS
 
           fi
+
                     if test "$compiler_num" -ge "1000"; then
             tmp_CFLAGS="$tmp_CFLAGS -Wimplicit-fallthrough"  # we have silencing markup for clang 10.0 and above only
 
@@ -20484,6 +20488,7 @@ printf "%s\n" "$as_me: WARNING: compiler options rejected: $tmp_options" >&2;}
   squeeze tmp_CFLAGS
 
           fi
+
                     if test "$compiler_num" -ge "1300"; then
 
 
@@ -20529,9 +20534,11 @@ printf "%s\n" "$as_me: WARNING: compiler options rejected: $tmp_options" >&2;}
  # Keep it before -Wno-reserved-macro-identifier
             tmp_CFLAGS="$tmp_CFLAGS -Wno-reserved-macro-identifier"  # Sometimes such external macros need to be set
           fi
+
                     if test "$compiler_num" -ge "1600"; then
             tmp_CFLAGS="$tmp_CFLAGS -Wno-unsafe-buffer-usage"
           fi
+
                     if test "$compiler_num" -ge "1700"; then
 
 
@@ -20555,9 +20562,31 @@ printf "%s\n" "$as_me: WARNING: compiler options rejected: $tmp_options" >&2;}
   squeeze tmp_CFLAGS
   # with Apple clang it requires 16.0 or above
           fi
+
                     if test "$compiler_num" -ge "1901"; then
-            tmp_CFLAGS="$tmp_CFLAGS -Wno-format-signedness"
+
+
+  ac_var_added_warnings=""
+  for warning in format-signedness; do
+
+  ac_var_match_word="no"
+  for word1 in $CFLAGS; do
+    for word2 in -Wno-$warning -W$warning; do
+      if test "$word1" = "$word2"; then
+        ac_var_match_word="yes"
+      fi
+    done
+  done
+
+    if test "$ac_var_match_word" = "no"; then
+      ac_var_added_warnings="$ac_var_added_warnings -W$warning"
+    fi
+  done
+    tmp_CFLAGS="$tmp_CFLAGS $ac_var_added_warnings"
+  squeeze tmp_CFLAGS
+
           fi
+
                     if test "$compiler_num" -ge "2001"; then
 
 
@@ -20581,6 +20610,7 @@ printf "%s\n" "$as_me: WARNING: compiler options rejected: $tmp_options" >&2;}
   squeeze tmp_CFLAGS
 
           fi
+
                     if test "$compiler_num" -ge "2101"; then
 
 
@@ -21393,6 +21423,30 @@ printf "%s\n" "$as_me: WARNING: compiler options rejected: $tmp_options" >&2;}
                         tmp_CFLAGS="$tmp_CFLAGS -ftree-vrp"
           fi
 
+                    if test "$compiler_num" -ge "404"; then
+
+
+  ac_var_added_warnings=""
+  for warning in logical-op; do
+
+  ac_var_match_word="no"
+  for word1 in $CFLAGS; do
+    for word2 in -Wno-$warning -W$warning; do
+      if test "$word1" = "$word2"; then
+        ac_var_match_word="yes"
+      fi
+    done
+  done
+
+    if test "$ac_var_match_word" = "no"; then
+      ac_var_added_warnings="$ac_var_added_warnings -W$warning"
+    fi
+  done
+    tmp_CFLAGS="$tmp_CFLAGS $ac_var_added_warnings"
+  squeeze tmp_CFLAGS
+
+          fi
+
                     if test "$compiler_num" -ge "405"; then
 
 
@@ -21476,7 +21530,27 @@ printf "%s\n" "$as_me: WARNING: compiler options rejected: $tmp_options" >&2;}
 
                     if test "$compiler_num" -ge "500"; then
             tmp_CFLAGS="$tmp_CFLAGS -Warray-bounds=2"
-            tmp_CFLAGS="$tmp_CFLAGS -Wno-format-signedness"
+
+
+  ac_var_added_warnings=""
+  for warning in format-signedness; do
+
+  ac_var_match_word="no"
+  for word1 in $CFLAGS; do
+    for word2 in -Wno-$warning -W$warning; do
+      if test "$word1" = "$word2"; then
+        ac_var_match_word="yes"
+      fi
+    done
+  done
+
+    if test "$ac_var_match_word" = "no"; then
+      ac_var_added_warnings="$ac_var_added_warnings -W$warning"
+    fi
+  done
+    tmp_CFLAGS="$tmp_CFLAGS $ac_var_added_warnings"
+  squeeze tmp_CFLAGS
+
           fi
 
                     if test "$compiler_num" -ge "600"; then
@@ -32643,7 +32717,7 @@ if test "$CURL_DISABLE_LDAPS" != "1"; then
 fi
 
 
-versioned_symbols_flavour=
+versioned_symbols_flavor=
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether versioned symbols are wanted" >&5
 printf %s "checking whether versioned symbols are wanted... " >&6; }
 # Check whether --enable-versioned-symbols was given.
@@ -32669,21 +32743,21 @@ printf "%s\n" "$as_me: WARNING: You need an ld version supporting the --version-
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
       if test "x$enableval" != "xyes"; then
-        versioned_symbols_flavour="$enableval"
+        versioned_symbols_flavor="$enableval"
       elif test "$CURL_WITH_MULTI_SSL" = "1"; then
-        versioned_symbols_flavour="MULTISSL_"
+        versioned_symbols_flavor="MULTISSL_"
       elif test "$OPENSSL_ENABLED" = "1"; then
-        versioned_symbols_flavour="OPENSSL_"
+        versioned_symbols_flavor="OPENSSL_"
       elif test "$MBEDTLS_ENABLED" = "1"; then
-        versioned_symbols_flavour="MBEDTLS_"
+        versioned_symbols_flavor="MBEDTLS_"
       elif test "$WOLFSSL_ENABLED" = "1"; then
-        versioned_symbols_flavour="WOLFSSL_"
+        versioned_symbols_flavor="WOLFSSL_"
       elif test "$GNUTLS_ENABLED" = "1"; then
-        versioned_symbols_flavour="GNUTLS_"
+        versioned_symbols_flavor="GNUTLS_"
       elif test "$RUSTLS_ENABLED" = "1"; then
-        versioned_symbols_flavour="RUSTLS_"
+        versioned_symbols_flavor="RUSTLS_"
       else
-        versioned_symbols_flavour=""
+        versioned_symbols_flavor=""
       fi
       versioned_symbols="yes"
     fi
@@ -32700,7 +32774,7 @@ printf "%s\n" "no" >&6; }
 fi
 
 
-CURL_LIBCURL_VERSIONED_SYMBOLS_PREFIX="$versioned_symbols_flavour"
+CURL_LIBCURL_VERSIONED_SYMBOLS_PREFIX="$versioned_symbols_flavor"
 
 CURL_LIBCURL_VERSIONED_SYMBOLS_SONAME="4"
    if test "$versioned_symbols" = "yes"; then
@@ -40282,7 +40356,7 @@ printf %s "checking if alarm is compilable... " >&6; }
 int main(void)
 {
 
-        if(alarm(0) != 0)
+        if(alarm(0))
           return 1;
 
   return 0;
@@ -40490,7 +40564,7 @@ printf %s "checking if basename is compilable... " >&6; }
 int main(void)
 {
 
-        if(basename(0) != 0)
+        if(basename(0))
           return 1;
 
   return 0;
@@ -40565,7 +40639,7 @@ printf %s "checking if closesocket can be linked... " >&6; }
 int main(void)
 {
 
-      if(closesocket(0) != 0)
+      if(closesocket(0))
         return 1;
 
   return 0;
@@ -40629,7 +40703,7 @@ printf %s "checking if closesocket is compilable... " >&6; }
 int main(void)
 {
 
-        if(closesocket(0) != 0)
+        if(closesocket(0))
           return 1;
 
   return 0;
@@ -40724,7 +40798,7 @@ printf %s "checking if CloseSocket can be linked... " >&6; }
 int main(void)
 {
 
-      if(CloseSocket(0) != 0)
+      if(CloseSocket(0))
         return 1;
 
   return 0;
@@ -40761,7 +40835,7 @@ printf %s "checking if CloseSocket is compilable... " >&6; }
 int main(void)
 {
 
-        if(CloseSocket(0) != 0)
+        if(CloseSocket(0))
           return 1;
 
   return 0;
@@ -40945,7 +41019,7 @@ printf %s "checking if fcntl is compilable... " >&6; }
 int main(void)
 {
 
-        if(fcntl(0, 0, 0) != 0)
+        if(fcntl(0, 0, 0))
           return 1;
 
   return 0;
@@ -41019,7 +41093,7 @@ int main(void)
 {
 
         int flags = 0;
-        if(fcntl(0, F_SETFL, flags | O_NONBLOCK) != 0)
+        if(fcntl(0, F_SETFL, flags | O_NONBLOCK))
           return 1;
 
   return 0;
@@ -41434,7 +41508,7 @@ printf %s "checking if fsetxattr takes 5 args.... " >&6; }
 int main(void)
 {
 
-          if(fsetxattr(0, "", 0, 0, 0) != 0)
+          if(fsetxattr(0, "", 0, 0, 0))
             return 1;
 
   return 0;
@@ -41470,7 +41544,7 @@ printf %s "checking if fsetxattr takes 6 args.... " >&6; }
 int main(void)
 {
 
-          if(fsetxattr(0, 0, 0, 0, 0, 0) != 0)
+          if(fsetxattr(0, 0, 0, 0, 0, 0))
             return 1;
 
   return 0;
@@ -41594,7 +41668,7 @@ int main(void)
 {
 
       struct addrinfo *ai = 0;
-      if(getaddrinfo(0, 0, 0, &ai) != 0)
+      if(getaddrinfo(0, 0, 0, &ai))
         return 1;
 
   return 0;
@@ -41663,7 +41737,7 @@ int main(void)
 {
 
         struct addrinfo *ai = 0;
-        if(getaddrinfo(0, 0, 0, &ai) != 0)
+        if(getaddrinfo(0, 0, 0, &ai))
           return 1;
 
   return 0;
@@ -42033,7 +42107,7 @@ printf %s "checking if gethostbyname_r takes 3 args.... " >&6; }
 int main(void)
 {
 
-          if(gethostbyname_r(0, 0, 0) != 0)
+          if(gethostbyname_r(0, 0, 0))
             return 1;
 
   return 0;
@@ -42070,7 +42144,7 @@ printf %s "checking if gethostbyname_r takes 5 args.... " >&6; }
 int main(void)
 {
 
-          if(gethostbyname_r(0, 0, 0, 0, 0) != 0)
+          if(gethostbyname_r(0, 0, 0, 0, 0))
             return 1;
 
   return 0;
@@ -42107,7 +42181,7 @@ printf %s "checking if gethostbyname_r takes 6 args.... " >&6; }
 int main(void)
 {
 
-          if(gethostbyname_r(0, 0, 0, 0, 0, 0) != 0)
+          if(gethostbyname_r(0, 0, 0, 0, 0, 0))
             return 1;
 
   return 0;
@@ -42224,7 +42298,7 @@ int main(void)
 {
 
       char s[1];
-      if(gethostname((void *)s, 0) != 0)
+      if(gethostname((void *)s, 0))
         return 1;
 
   return 0;
@@ -42293,7 +42367,7 @@ int main(void)
 {
 
         char s[1];
-        if(gethostname((void *)s, 0) != 0)
+        if(gethostname((void *)s, 0))
           return 1;
 
   return 0;
@@ -42343,7 +42417,7 @@ int main(void)
 {
 
               char s[1];
-              if(gethostname(($tst_arg1)s, 0) != 0)
+              if(gethostname(($tst_arg1)s, 0))
                 return 1;
 
   return 0;
@@ -42535,7 +42609,7 @@ printf %s "checking if getifaddrs is compilable... " >&6; }
 int main(void)
 {
 
-        if(getifaddrs(0) != 0)
+        if(getifaddrs(0))
           return 1;
 
   return 0;
@@ -42732,7 +42806,7 @@ printf %s "checking if getpeername can be linked... " >&6; }
 int main(void)
 {
 
-      if(getpeername(0, (void *)0, (void *)0) != 0)
+      if(getpeername(0, (void *)0, (void *)0))
         return 1;
 
   return 0;
@@ -42800,7 +42874,7 @@ printf %s "checking if getpeername is compilable... " >&6; }
 int main(void)
 {
 
-        if(getpeername(0, (void *)0, (void *)0) != 0)
+        if(getpeername(0, (void *)0, (void *)0))
           return 1;
 
   return 0;
@@ -42880,7 +42954,7 @@ printf %s "checking if getsockname can be linked... " >&6; }
 int main(void)
 {
 
-      if(getsockname(0, (void *)0, (void *)0) != 0)
+      if(getsockname(0, (void *)0, (void *)0))
         return 1;
 
   return 0;
@@ -42948,7 +43022,7 @@ printf %s "checking if getsockname is compilable... " >&6; }
 int main(void)
 {
 
-        if(getsockname(0, (void *)0, (void *)0) != 0)
+        if(getsockname(0, (void *)0, (void *)0))
           return 1;
 
   return 0;
@@ -43435,7 +43509,7 @@ printf %s "checking if ioctl is compilable... " >&6; }
 int main(void)
 {
 
-        if(ioctl(0, 0, 0) != 0)
+        if(ioctl(0, 0, 0))
           return 1;
 
   return 0;
@@ -43500,7 +43574,7 @@ int main(void)
 {
 
         int flags = 0;
-        if(ioctl(0, FIONBIO, &flags) != 0)
+        if(ioctl(0, FIONBIO, &flags))
           return 1;
 
   return 0;
@@ -43573,7 +43647,7 @@ int main(void)
 {
 
         struct ifreq ifr;
-        if(ioctl(0, SIOCGIFADDR, &ifr) != 0)
+        if(ioctl(0, SIOCGIFADDR, &ifr))
           return 1;
 
   return 0;
@@ -43652,7 +43726,7 @@ printf %s "checking if ioctlsocket can be linked... " >&6; }
 int main(void)
 {
 
-      if(ioctlsocket(0, 0, 0) != 0)
+      if(ioctlsocket(0, 0, 0))
         return 1;
 
   return 0;
@@ -43716,7 +43790,7 @@ printf %s "checking if ioctlsocket is compilable... " >&6; }
 int main(void)
 {
 
-        if(ioctlsocket(0, 0, 0) != 0)
+        if(ioctlsocket(0, 0, 0))
           return 1;
 
   return 0;
@@ -43784,7 +43858,7 @@ int main(void)
 {
 
         unsigned long flags = 0;
-        if(ioctlsocket(0, FIONBIO, &flags) != 0)
+        if(ioctlsocket(0, FIONBIO, &flags))
           return 1;
 
   return 0;
@@ -43862,7 +43936,7 @@ printf %s "checking if IoctlSocket can be linked... " >&6; }
 int main(void)
 {
 
-      if(IoctlSocket(0, 0, 0) != 0)
+      if(IoctlSocket(0, 0, 0))
         return 1;
 
   return 0;
@@ -43898,7 +43972,7 @@ printf %s "checking if IoctlSocket is compilable... " >&6; }
 int main(void)
 {
 
-        if(IoctlSocket(0, 0, 0) != 0)
+        if(IoctlSocket(0, 0, 0))
           return 1;
 
   return 0;
@@ -43966,7 +44040,7 @@ int main(void)
 {
 
         long flags = 0;
-        if(IoctlSocket(0, FIONBIO, &flags) != 0)
+        if(IoctlSocket(0, FIONBIO, &flags))
           return 1;
 
   return 0;
@@ -44123,7 +44197,7 @@ int main(void)
 
         time_t clock = 1170352587;
         struct tm result;
-        if(localtime_r(&clock, &result) != 0)
+        if(localtime_r(&clock, &result))
           return 1;
         (void)result;
 
@@ -44361,7 +44435,7 @@ printf %s "checking if memrchr seems a macro... " >&6; }
 int main(void)
 {
 
-        if(memrchr("", 0, 0) != 0)
+        if(memrchr("", 0, 0))
           return 1;
 
   return 0;
@@ -44427,7 +44501,7 @@ printf %s "checking if memrchr is compilable... " >&6; }
 int main(void)
 {
 
-        if(memrchr("", 0, 0) != 0)
+        if(memrchr("", 0, 0))
           return 1;
 
   return 0;
@@ -44593,7 +44667,7 @@ printf %s "checking if sigaction is compilable... " >&6; }
 int main(void)
 {
 
-        if(sigaction(0, 0, 0) != 0)
+        if(sigaction(0, 0, 0))
           return 1;
 
   return 0;
@@ -44742,7 +44816,7 @@ printf %s "checking if siginterrupt is compilable... " >&6; }
 int main(void)
 {
 
-        if(siginterrupt(0, 0) != 0)
+        if(siginterrupt(0, 0))
           return 1;
 
   return 0;
@@ -44891,7 +44965,7 @@ printf %s "checking if signal is compilable... " >&6; }
 int main(void)
 {
 
-        if(signal(0, 0) != 0)
+        if(signal(0, 0))
           return 1;
 
   return 0;
@@ -45031,7 +45105,7 @@ int main(void)
 {
 
         sigjmp_buf env;
-        if(sigsetjmp(env, 0) != 0)
+        if(sigsetjmp(env, 0))
           return 1;
 
   return 0;
@@ -45098,7 +45172,7 @@ int main(void)
 {
 
         sigjmp_buf env;
-        if(sigsetjmp(env, 0) != 0)
+        if(sigsetjmp(env, 0))
           return 1;
 
   return 0;
@@ -45176,7 +45250,7 @@ printf %s "checking if socket can be linked... " >&6; }
 int main(void)
 {
 
-      if(socket(0, 0, 0) != 0)
+      if(socket(0, 0, 0))
         return 1;
 
   return 0;
@@ -45244,7 +45318,7 @@ printf %s "checking if socket is compilable... " >&6; }
 int main(void)
 {
 
-        if(socket(0, 0, 0) != 0)
+        if(socket(0, 0, 0))
           return 1;
 
   return 0;
@@ -45394,7 +45468,7 @@ int main(void)
 {
 
         int sv[2];
-        if(socketpair(0, 0, 0, sv) != 0)
+        if(socketpair(0, 0, 0, sv))
           return 1;
 
   return 0;
@@ -45551,7 +45625,7 @@ int main(void)
 {
 
         char s[1];
-        if(strerror_r(0, s, 0) != 0)
+        if(strerror_r(0, s, 0))
           return 1;
 
   return 0;
@@ -45592,7 +45666,7 @@ int main(void)
 {
 
             char s[1];
-            if(strerror_r(0, s, 0) != 0)
+            if(strerror_r(0, s, 0))
               return 1;
             (void)s;
 
@@ -45758,7 +45832,7 @@ int main(void)
 {
 
             char s[1];
-            if(strerror_r(0, s, 0) != 0)
+            if(strerror_r(0, s, 0))
               return 1;
             (void)s;
 
@@ -46269,7 +46343,7 @@ int main(void)
 
         char ipv4res[sizeof("255.255.255.255")];
         unsigned char ipv4a[5] = "";
-        if(inet_ntop(0, ipv4a, ipv4res, 0) != 0)
+        if(inet_ntop(0, ipv4a, ipv4res, 0))
           return 1;
 
   return 0;
@@ -46338,7 +46412,7 @@ int main(void)
           return 1; /* fail */
         if(!ipv4ptr[0])
           return 1; /* fail */
-        if(memcmp(ipv4res, "192.168.100.1", 13) != 0)
+        if(memcmp(ipv4res, "192.168.100.1", 13))
           return 1; /* fail */
         /* - */
         ipv6res[0] = '\0';
@@ -46362,7 +46436,7 @@ int main(void)
           return 1; /* fail */
         if(!ipv6ptr[0])
           return 1; /* fail */
-        if(memcmp(ipv6res, "fe80::214:4fff:fe0b:76c8", 24) != 0)
+        if(memcmp(ipv6res, "fe80::214:4fff:fe0b:76c8", 24))
           return 1; /* fail */
         /* - */
         return 0;
@@ -46432,7 +46506,7 @@ int main(void)
           return 1; /* fail */
         if(!ipv4ptr[0])
           return 1; /* fail */
-        if(memcmp(ipv4res, "192.168.100.1", 13) != 0)
+        if(memcmp(ipv4res, "192.168.100.1", 13))
           return 1; /* fail */
         /* - */
         ipv6res[0] = '\0';
@@ -46456,7 +46530,7 @@ int main(void)
           return 1; /* fail */
         if(!ipv6ptr[0])
           return 1; /* fail */
-        if(memcmp(ipv6res, "fe80::214:4fff:fe0b:76c8", 24) != 0)
+        if(memcmp(ipv6res, "fe80::214:4fff:fe0b:76c8", 24))
           return 1; /* fail */
         /* - */
         return 0;
@@ -46620,7 +46694,7 @@ int main(void)
 
         unsigned char ipv4a[4 + 1] = "";
         const char *ipv4src = "192.168.100.1";
-        if(inet_pton(0, ipv4src, ipv4a) != 0)
+        if(inet_pton(0, ipv4src, ipv4a))
           return 1;
 
   return 0;
@@ -46952,7 +47026,7 @@ printf %s "checking if strcasecmp is compilable... " >&6; }
 int main(void)
 {
 
-        if(strcasecmp("", "") != 0)
+        if(strcasecmp("", ""))
           return 1;
 
   return 0;
@@ -47101,7 +47175,7 @@ printf %s "checking if strcmpi is compilable... " >&6; }
 int main(void)
 {
 
-        if(strcmpi(0, 0) != 0)
+        if(strcmpi(0, 0))
           return 1;
 
   return 0;
@@ -47250,7 +47324,7 @@ printf %s "checking if stricmp is compilable... " >&6; }
 int main(void)
 {
 
-        if(stricmp(0, 0) != 0)
+        if(stricmp(0, 0))
           return 1;
 
   return 0;
@@ -47401,7 +47475,7 @@ int main(void)
 {
 
         char buf[2];
-        if(memset_s(buf, sizeof(buf), 0, sizeof(buf)) != 0)
+        if(memset_s(buf, sizeof(buf), 0, sizeof(buf)))
           return 1;
 
   return 0;

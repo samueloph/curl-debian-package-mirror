@@ -198,6 +198,7 @@
 #include "lib1648.c"
 #include "lib1649.c"
 #include "lib1662.c"
+#include "lib1686.c"
 #include "lib1900.c"
 #include "lib1901.c"
 #include "lib1902.c"
@@ -216,6 +217,7 @@
 #include "lib1919.c"
 #include "lib1920.c"
 #include "lib1921.c"
+#include "lib1922.c"
 #include "lib1933.c"
 #include "lib1934.c"
 #include "lib1935.c"
@@ -458,6 +460,7 @@ const struct entry_s s_entries[] = {
   {"lib1648", test_lib1648},
   {"lib1649", test_lib1649},
   {"lib1662", test_lib1662},
+  {"lib1686", test_lib1686},
   {"lib1900", test_lib1900},
   {"lib1901", test_lib1901},
   {"lib1902", test_lib1902},
@@ -476,6 +479,7 @@ const struct entry_s s_entries[] = {
   {"lib1919", test_lib1919},
   {"lib1920", test_lib1920},
   {"lib1921", test_lib1921},
+  {"lib1922", test_lib1922},
   {"lib1933", test_lib1933},
   {"lib1934", test_lib1934},
   {"lib1935", test_lib1935},

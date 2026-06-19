@@ -68,7 +68,7 @@ AC_DEFUN([CURL_CHECK_COMPILER], [
 ***
 *** If you wish to help the curl project to better support your compiler
 *** you can report this and the required info on the libcurl development
-*** mailing list: https://lists.haxx.selistinfo/curl-library/
+*** mailing list: https://lists.haxx.se/listinfo/curl-library/
 ***
 _EOF
   fi
@@ -862,6 +862,7 @@ AC_DEFUN([CURL_SET_COMPILER_WARNING_OPTS], [
             CURL_ADD_COMPILER_WARNINGS([tmp_CFLAGS], [conditional-uninitialized])
             CURL_ADD_COMPILER_WARNINGS([tmp_CFLAGS], [language-extension-token])
           fi
+
           dnl Only clang 3.1 or later
           if test "$compiler_num" -ge "301"; then
             CURL_ADD_COMPILER_WARNINGS([tmp_CFLAGS], [format-non-iso])
@@ -883,6 +884,7 @@ AC_DEFUN([CURL_SET_COMPILER_WARNING_OPTS], [
                 ;;
             esac
           fi
+
           dnl Only clang 3.3 or later
           if test "$compiler_num" -ge "303"; then
             tmp_CFLAGS="$tmp_CFLAGS -Wno-documentation-unknown-command"
@@ -914,38 +916,46 @@ AC_DEFUN([CURL_SET_COMPILER_WARNING_OPTS], [
               tmp_CFLAGS="$tmp_CFLAGS -Wno-varargs"
             fi
           fi
+
           dnl clang 7 or later
           if test "$compiler_num" -ge "700"; then
             CURL_ADD_COMPILER_WARNINGS([tmp_CFLAGS], [assign-enum])
             CURL_ADD_COMPILER_WARNINGS([tmp_CFLAGS], [extra-semi-stmt])
           fi
+
           dnl clang 10 or later
           if test "$compiler_num" -ge "1000"; then
             tmp_CFLAGS="$tmp_CFLAGS -Wimplicit-fallthrough"  # we have silencing markup for clang 10.0 and above only
             CURL_ADD_COMPILER_WARNINGS([tmp_CFLAGS], [xor-used-as-pow])
           fi
+
           dnl clang 13 or later
           if test "$compiler_num" -ge "1300"; then
             CURL_ADD_COMPILER_WARNINGS([tmp_CFLAGS], [cast-function-type])
             CURL_ADD_COMPILER_WARNINGS([tmp_CFLAGS], [reserved-identifier]) # Keep it before -Wno-reserved-macro-identifier
             tmp_CFLAGS="$tmp_CFLAGS -Wno-reserved-macro-identifier"  # Sometimes such external macros need to be set
           fi
+
           dnl clang 16 or later
           if test "$compiler_num" -ge "1600"; then
             tmp_CFLAGS="$tmp_CFLAGS -Wno-unsafe-buffer-usage"
           fi
+
           dnl clang 17 or later
           if test "$compiler_num" -ge "1700"; then
             CURL_ADD_COMPILER_WARNINGS([tmp_CFLAGS], [cast-function-type-strict])  # with Apple clang it requires 16.0 or above
           fi
+
           dnl clang 19 or later
           if test "$compiler_num" -ge "1901"; then
-            tmp_CFLAGS="$tmp_CFLAGS -Wno-format-signedness"
+            CURL_ADD_COMPILER_WARNINGS([tmp_CFLAGS], [format-signedness])
           fi
+
           dnl clang 20 or later
           if test "$compiler_num" -ge "2001"; then
             CURL_ADD_COMPILER_WARNINGS([tmp_CFLAGS], [array-compare])
           fi
+
           dnl clang 21 or later
           if test "$compiler_num" -ge "2101"; then
             CURL_ADD_COMPILER_WARNINGS([tmp_CFLAGS], [c++-hidden-decl])
@@ -1105,6 +1115,11 @@ AC_DEFUN([CURL_SET_COMPILER_WARNING_OPTS], [
             tmp_CFLAGS="$tmp_CFLAGS -ftree-vrp"
           fi
 
+          dnl Only gcc 4.4 or later
+          if test "$compiler_num" -ge "404"; then
+            CURL_ADD_COMPILER_WARNINGS([tmp_CFLAGS], [logical-op])
+          fi
+
           dnl Only gcc 4.5 or later
           if test "$compiler_num" -ge "405"; then
             CURL_ADD_COMPILER_WARNINGS([tmp_CFLAGS], [jump-misses-init])
@@ -1134,7 +1149,7 @@ AC_DEFUN([CURL_SET_COMPILER_WARNING_OPTS], [
           dnl Only gcc 5 or later
           if test "$compiler_num" -ge "500"; then
             tmp_CFLAGS="$tmp_CFLAGS -Warray-bounds=2"
-            tmp_CFLAGS="$tmp_CFLAGS -Wno-format-signedness"
+            CURL_ADD_COMPILER_WARNINGS([tmp_CFLAGS], [format-signedness])
           fi
 
           dnl Only gcc 6 or later
@@ -1245,7 +1260,7 @@ AC_DEFUN([CURL_SET_COMPILER_WARNING_OPTS], [
             tmp_CPPFLAGS="$tmp_CPPFLAGS -Wp64"
             dnl Enable warnings for questionable pointer arithmetic
             tmp_CPPFLAGS="$tmp_CPPFLAGS -Wpointer-arith"
-            dnl Check for function return typw issues
+            dnl Check for function return type issues
             tmp_CPPFLAGS="$tmp_CPPFLAGS -Wreturn-type"
             dnl Warn on variable declarations hiding a previous one
             tmp_CPPFLAGS="$tmp_CPPFLAGS -Wshadow"

@@ -359,16 +359,6 @@ bool Curl_conn_cf_wants_httpsrr(struct Curl_cfilter *cf,
 #define CURL_CF_SSL_ENABLE   1
 
 /**
- * Bring the filter chain at `sockindex` for connection `data->conn` into
- * connected state. Which will set `*done` to TRUE.
- * This can be called on an already connected chain with no side effects.
- * When not `blocking`, calls may return without error and `*done != TRUE`,
- * while the individual filters negotiated the connection.
- */
-CURLcode Curl_conn_connect(struct Curl_easy *data, int sockindex,
-                           bool blocking, bool *done);
-
-/**
  * Check if a filter chain at `sockindex` for connection `conn` exists.
  */
 bool Curl_conn_is_setup(struct connectdata *conn, int sockindex);
@@ -392,6 +382,10 @@ bool Curl_conn_is_ip_connected(struct Curl_easy *data, int sockindex);
  * is only used in proxying and not for the tunnel itself.
  */
 bool Curl_conn_is_ssl(struct connectdata *conn, int sockindex);
+
+/* Determine if the connection has one or more proxy filters.
+ * e.g. is tunneling. */
+bool Curl_conn_is_tunneling(struct connectdata *conn, int sockindex);
 
 /*
  * Fill `info` with information about the TLS instance securing the connection
@@ -426,6 +420,12 @@ unsigned char Curl_conn_get_transport(struct Curl_easy *data,
 /* Get the negotiated ALPN protocol or NULL if none in play */
 const char *Curl_conn_get_alpn_negotiated(struct Curl_easy *data,
                                           struct connectdata *conn);
+
+void Curl_conn_cntrl_update_info(struct Curl_easy *data,
+                                 struct connectdata *conn);
+
+void Curl_conn_remove_setup_filters(struct Curl_easy *data,
+                                    int sockindex);
 
 /**
  * Shutdown the connection at `sockindex` non-blocking, using timeout
@@ -657,7 +657,7 @@ struct cf_call_data {
 #define CF_DATA_SAVE(save, cf, data) \
   do { \
     (save) = CF_CTX_CALL_DATA(cf); \
-    DEBUGASSERT((save).data == NULL || (save).depth > 0); \
+    DEBUGASSERT(!(save).data || (save).depth > 0); \
     CF_CTX_CALL_DATA(cf).depth++;  \
     CF_CTX_CALL_DATA(cf).data = (struct Curl_easy *)CURL_UNCONST(data); \
   } while(0)
@@ -665,7 +665,7 @@ struct cf_call_data {
 #define CF_DATA_RESTORE(cf, save) \
   do { \
     DEBUGASSERT(CF_CTX_CALL_DATA(cf).depth == (save).depth + 1); \
-    DEBUGASSERT((save).data == NULL || (save).depth > 0); \
+    DEBUGASSERT(!(save).data || (save).depth > 0); \
     CF_CTX_CALL_DATA(cf) = (save); \
   } while(0)
 

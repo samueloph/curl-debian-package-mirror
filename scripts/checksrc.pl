@@ -35,8 +35,8 @@ my $errors = 0;
 my $serrors = 0;
 my $suppressed; # skipped problems
 my $file;
-my $dir=".";
-my $wlist="";
+my $dir = ".";
+my $wlist = "";
 my @alist;
 my $windows_os = $^O eq 'MSWin32' || $^O eq 'cygwin' || $^O eq 'msys';
 my $verbose = 0;
@@ -202,14 +202,15 @@ my %warnings = (
     'TYPEDEFSTRUCT'         => 'typedefed struct',
     'UNUSEDIGNORE'          => 'a warning ignore was not used',
     'USESAFEFREE'           => 'replace curlx_free() + NULL assignment with curlx_safefree()',
+    'VOIDEXCL'              => '(void)! is not something we like',
     );
 
 sub readskiplist {
     open(my $W, '<', "$dir/checksrc.skip") or return;
-    my @all=<$W>;
+    my @all = <$W>;
     for(@all) {
         $windows_os ? $_ =~ s/\r?\n$// : chomp;
-        $skiplist{$_}=1;
+        $skiplist{$_} = 1;
     }
     close($W);
 }
@@ -343,7 +344,7 @@ while(defined $file) {
     }
     elsif($file =~ /^-b(.*)/) {
         $banfunc{$1} = $1;
-        print STDERR "ban use of \"$1\"\n";
+        # print STDERR "ban use of \"$1\"\n";
         $file = shift @ARGV;
         next;
     }
@@ -431,8 +432,8 @@ sub accept_violations {
             print "'$r' is not a warning to accept!\n";
             exit;
         }
-        $ignore{$r}=999999;
-        $ignore_used{$r}=0;
+        $ignore{$r} = 999999;
+        $ignore_used{$r} = 0;
     }
 }
 
@@ -463,9 +464,9 @@ sub enable_warn {
                   $line, length($what) + 11, $file, $l,
                   "No warning was inhibited!");
     }
-    $ignore_set{$what}=0;
-    $ignore_used{$what}=0;
-    $ignore{$what}=0;
+    $ignore_set{$what} = 0;
+    $ignore_used{$what} = 0;
+    $ignore{$what} = 0;
 }
 sub checksrc {
     my ($cmd, $line, $file, $l) = @_;
@@ -474,9 +475,9 @@ sub checksrc {
         $what =~ s: *\*/$::; # cut off end of C comment
         # print "ENABLE $enable WHAT $what\n";
         if($enable eq "disable") {
-            my ($warn, $scope)=($1, $2);
+            my ($warn, $scope) = ($1, $2);
             if($what =~ /([^ ]*) +(.*)/) {
-                ($warn, $scope)=($1, $2);
+                ($warn, $scope) = ($1, $2);
             }
             else {
                 $warn = $what;
@@ -484,7 +485,7 @@ sub checksrc {
             }
             # print "IGNORE $warn for SCOPE $scope\n";
             if($scope eq "all") {
-                $scope=999999;
+                $scope = 999999;
             }
 
             # Comparing for a literal zero rather than the scalar value zero
@@ -502,9 +503,9 @@ sub checksrc {
                           "$warn already disabled from line $ignore_set{$warn}");
             }
             else {
-                $ignore{$warn}=$scope;
-                $ignore_set{$warn}=$line;
-                $ignore_line[$line]=$l;
+                $ignore{$warn} = $scope;
+                $ignore_set{$warn} = $line;
+                $ignore_line[$line] = $l;
             }
         }
         elsif($enable eq "enable") {
@@ -528,8 +529,8 @@ sub scanfile {
     my ($file) = @_;
 
     my $line = 1;
-    my $prevl="";
-    my $prevpl="";
+    my $prevl = "";
+    my $prevpl = "";
     my $l = "";
     my $prep = 0;
     my $prevp = 0;
@@ -540,10 +541,10 @@ sub scanfile {
         printf "Checking file: $file\n";
     }
 
-    open(my $R, '<', $file) || die "failed to open $file";
+    open(my $R, '<', $file) or die "failed to open $file";
 
-    my $incomment=0;
-    my @copyright=();
+    my $incomment = 0;
+    my @copyright = ();
     my %includes;
     checksrc_clear(); # for file based ignores
     accept_violations();
@@ -649,7 +650,7 @@ sub scanfile {
             }
             else {
                 # still within a comment
-                $l="";
+                $l = "";
             }
         }
 
@@ -702,7 +703,7 @@ sub scanfile {
         my $nostr = nostrings($l);
         # check spaces after for/if/while/function call
         if($nostr =~ /^(.*)(for|if|while|switch| ([a-zA-Z0-9_]+)) \((.)/) {
-            my ($leading, $word, $extra, $first)=($1,$2,$3,$4);
+            my ($leading, $word, $extra, $first) = ($1, $2, $3, $4);
             if($1 =~ / *\#/) {
                 # this is a #if, treat it differently
             }
@@ -898,15 +899,15 @@ sub scanfile {
 
         # check for comma without space
         if($l =~ /^(.*),[^ \n]/) {
-            my $pref=$1;
-            my $ign=0;
+            my $pref = $1;
+            my $ign = 0;
             if($pref =~ / *\#/) {
                 # this is a #if, treat it differently
-                $ign=1;
+                $ign = 1;
             }
             elsif($pref =~ /\/\*/) {
                 # this is a comment
-                $ign=1;
+                $ign = 1;
             }
             elsif($pref =~ /[\"\']/) {
                 $ign = 1;
@@ -1165,6 +1166,12 @@ sub scanfile {
                       "space after exclamation mark");
         }
 
+        if($nostr =~ /(.*)\(void\)\!/) {
+            checkwarn("VOIDEXCL",
+                      $line, length($1)+1, $file, $ol,
+                      "exclamation after (void) is weird");
+        }
+
         if($nostr =~ /(.*)\b(EACCES|EADDRINUSE|EADDRNOTAVAIL|EAFNOSUPPORT|EBADF|ECONNREFUSED|ECONNRESET|EINPROGRESS|EINTR|EINVAL|EISCONN|EMSGSIZE|ENOMEM|ETIMEDOUT|EWOULDBLOCK)\b/) {
             checkwarn("ERRNOVAR",
                       $line, length($1), $file, $ol,
@@ -1226,12 +1233,12 @@ sub scanfile {
         @copyright = sort {$$b{year} cmp $$a{year}} @copyright;
 
         # if the file is modified, assume commit year this year
-        if(`git status -s -- "$file"` =~ /^ [MARCU]/) {
+        if(qx(git status -s -- "$file") =~ /^ [MARCU]/) {
             $commityear = (localtime(time))[5] + 1900;
         }
         else {
             # min-parents=1 to ignore wrong initial commit in truncated repos
-            my $grl = `git rev-list --max-count=1 --min-parents=1 --timestamp HEAD -- "$file"`;
+            my $grl = qx(git rev-list --max-count=1 --min-parents=1 --timestamp HEAD -- "$file");
             if($grl) {
                 chomp $grl;
                 $commityear = (localtime((split(/ /, $grl))[0]))[5] + 1900;

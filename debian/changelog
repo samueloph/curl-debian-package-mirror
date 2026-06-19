@@ -1,3 +1,11 @@
+curl (8.21.0~rc3-1) unstable; urgency=medium
+
+  * New upstream version 8.21.0~rc3. (Closes: #1140043)
+  * debian/control: drop Priority field, optional is default now.
+  * debian/patches: rebase patches.
+
+ -- Carlos Henrique Lima Melara <charlesmelara@riseup.net>  Thu, 18 Jun 2026 22:38:41 -0300
+
 curl (8.21.0~rc2-1+exp1) experimental; urgency=medium
 
   * Upload to experimental

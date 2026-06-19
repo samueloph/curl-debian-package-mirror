@@ -358,14 +358,14 @@ elseif(BUILD_STATIC_CURL AND NOT BUILD_STATIC_LIBS)
   set(BUILD_STATIC_CURL OFF)
 endif()
 
-# Lib flavour selected for curl tool
+# Lib flavor selected for curl tool
 if(BUILD_STATIC_CURL)
   set(LIB_SELECTED_FOR_EXE ${LIB_STATIC})
 else()
   set(LIB_SELECTED_FOR_EXE ${LIB_SHARED})
 endif()
 
-# Lib flavour selected for example and test programs.
+# Lib flavor selected for example and test programs.
 if(BUILD_SHARED_LIBS)
   set(LIB_SELECTED ${LIB_SHARED})
 else()
@@ -681,6 +681,7 @@ elseif(AMIGA)
     set(OPENSSL_CRYPTO_LIBRARY "${AMISSL_AUTO_LIBRARY}")
     set(CURL_USE_OPENSSL ON)
     set(CURL_CA_FALLBACK ON CACHE BOOL "")
+    list(PREPEND CURL_NETWORK_AND_TIME_LIBS "${AMISSL_STUBS_LIBRARY}" "${AMISSL_AUTO_LIBRARY}")
   endif()
 elseif(NOT WIN32 AND NOT APPLE)
   check_library_exists("socket" "connect" "" HAVE_LIBSOCKET)
@@ -1349,8 +1350,8 @@ if(CURL_USE_GSSAPI)
   if(GSS_FOUND)
     list(APPEND CURL_LIBS CURL::gss)
 
-    get_target_property(_gss_flavour CURL::gss INTERFACE_CURL_GSS_FLAVOUR)
-    if(_gss_flavour STREQUAL "GNU")
+    get_target_property(_gss_flavor CURL::gss INTERFACE_CURL_GSS_FLAVOR)
+    if(_gss_flavor STREQUAL "GNU")
       set(HAVE_GSSGNU 1)
     elseif(GSS_VERSION)  # MIT
       set(CURL_KRB5_VERSION "\"${GSS_VERSION}\"")

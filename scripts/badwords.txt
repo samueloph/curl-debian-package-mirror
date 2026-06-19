@@ -29,6 +29,7 @@ nul terminated:null-terminated
 null terminated:null-terminated
 NULL-terminated=null-terminated
 zero terminated:null-terminated
+zero-terminated:null-terminated
 nul terminator:null-terminator
 null terminator:null-terminator
 zero terminator:null-terminator
@@ -111,6 +112,7 @@ will:rewrite to present tense
 32-bits:32 bits
 64-bits:64 bits
 initialise:initialize
+initialising:initializing
 very:rephrase using an alternative word
 just:rephrase using an alternative word
 simply:rephrase using an alternative word
@@ -130,3 +132,4 @@ with with:with
 ---Curl Corporation
 ---:lib/:will
 ---:src/:will
+---:tests/data/:file name

@@ -25,8 +25,6 @@
 
 #if defined(HAVE_GETRLIMIT) && defined(HAVE_SETRLIMIT)
 
-#include "testutil.h"
-
 #define T537_SAFETY_MARGIN 11
 
 #if defined(_WIN32) || defined(MSDOS)
@@ -96,7 +94,7 @@ static int t537_test_rlimit(int keep_open)
 
   /* get initial open file limits */
 
-  if(getrlimit(RLIMIT_NOFILE, &rl) != 0) {
+  if(getrlimit(RLIMIT_NOFILE, &rl)) {
     t537_store_errmsg("getrlimit() failed", errno);
     curl_mfprintf(stderr, "%s\n", t537_msgbuff);
     return -1;
@@ -126,7 +124,7 @@ static int t537_test_rlimit(int keep_open)
    * limit. Due to some other system limit the soft limit
    * might not be raised up to the hard limit. So from this
    * point the resulting soft limit is our limit. Trying to
-   * open more than soft limit file descriptors will fail.
+   * open more than soft limit file descriptors does fail.
    */
 
   if(rl.rlim_cur != rl.rlim_max) {
@@ -136,7 +134,7 @@ static int t537_test_rlimit(int keep_open)
        (rl.rlim_cur < OPEN_MAX)) {
       curl_mfprintf(stderr, "raising soft limit up to OPEN_MAX\n");
       rl.rlim_cur = OPEN_MAX;
-      if(setrlimit(RLIMIT_NOFILE, &rl) != 0) {
+      if(setrlimit(RLIMIT_NOFILE, &rl)) {
         /* on failure do not abort, only issue a warning */
         t537_store_errmsg("setrlimit() failed", errno);
         curl_mfprintf(stderr, "%s\n", t537_msgbuff);
@@ -147,7 +145,7 @@ static int t537_test_rlimit(int keep_open)
 
     curl_mfprintf(stderr, "raising soft limit up to hard limit\n");
     rl.rlim_cur = rl.rlim_max;
-    if(setrlimit(RLIMIT_NOFILE, &rl) != 0) {
+    if(setrlimit(RLIMIT_NOFILE, &rl)) {
       /* on failure do not abort, only issue a warning */
       t537_store_errmsg("setrlimit() failed", errno);
       curl_mfprintf(stderr, "%s\n", t537_msgbuff);
@@ -156,7 +154,7 @@ static int t537_test_rlimit(int keep_open)
 
     /* get current open file limits */
 
-    if(getrlimit(RLIMIT_NOFILE, &rl) != 0) {
+    if(getrlimit(RLIMIT_NOFILE, &rl)) {
       t537_store_errmsg("getrlimit() failed", errno);
       curl_mfprintf(stderr, "%s\n", t537_msgbuff);
       return -3;
@@ -175,10 +173,10 @@ static int t537_test_rlimit(int keep_open)
   /*
    * test 537 is all about testing libcurl functionality
    * when the system has nearly exhausted the number of
-   * available file descriptors. Test 537 will try to run
+   * available file descriptors. Test 537 tries to run
    * with a small number of file descriptors available.
    * This implies that any file descriptor which is open
-   * when the test runs will have a number in the high range
+   * when the test runs does have a number in the high range
    * of whatever the system supports.
    */
 
@@ -218,7 +216,7 @@ static int t537_test_rlimit(int keep_open)
   for(i = 0; i < nitems; i++)
     memchunk[i] = -1;
 
-  /* set the number of file descriptors we will try to open */
+  /* set the number of file descriptors we try to open */
 
 #ifdef RLIM_INFINITY
   if((rl.rlim_cur > 0) && (rl.rlim_cur != RLIM_INFINITY)) {
@@ -360,7 +358,7 @@ static int t537_test_rlimit(int keep_open)
    * greater than FD_SETSIZE. In any case, macro VERIFY_SOCK
    * in lib/select.c enforces this check and protects libcurl
    * from a possible crash. The effect of this protection
-   * is that test 537 will always fail, since the actual
+   * is that test 537 always fails, since the actual
    * call to select() never takes place. We skip test 537
    * with an indication that select limit would be exceeded.
    */

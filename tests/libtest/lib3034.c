@@ -42,7 +42,7 @@ static CURLcode test_lib3034(const char *URL)
   global_init(CURL_GLOBAL_ALL);
   easy_init(curl);
 
-  /* This first request will receive a redirect response; deliberately only
+  /* This first request receives a redirect response; deliberately only
    * set the CURLOPT_READFUNCTION but not the CURLOPT_SEEKFUNCTION to force a
    * rewind failure (CURLE_SEND_FAIL_REWIND).
    */
@@ -57,7 +57,7 @@ static CURLcode test_lib3034(const char *URL)
   if(result != CURLE_SEND_FAIL_REWIND) {
     curl_mfprintf(stderr,
                   "%s:%d curl_easy_perform() failed with code %d (%s)\n",
-                  __FILE__, __LINE__, result, curl_easy_strerror(result));
+                  __FILE__, __LINE__, (int)result, curl_easy_strerror(result));
     goto test_cleanup;
   }
 

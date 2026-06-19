@@ -319,7 +319,7 @@ static CURLcode doh_probe_run(struct Curl_easy *data,
                      sizeof(doh_req->req_body),
                      &doh_req->req_body_len);
   if(d) {
-    failf(data, "Failed to encode DoH packet [%d]", d);
+    failf(data, "Failed to encode DoH packet [%d]", (int)d);
     result = CURLE_OUT_OF_MEMORY;
     goto error;
   }
@@ -419,7 +419,7 @@ static CURLcode doh_probe_run(struct Curl_easy *data,
 
   (void)curl_easy_setopt(doh, CURLOPT_SSL_OPTIONS,
                          ((long)data->set.ssl.primary.ssl_options &
-                           ~CURLSSLOPT_AUTO_CLIENT_CERT));
+                          ~CURLSSLOPT_AUTO_CLIENT_CERT));
 
   doh->state.internal = TRUE;
   doh->master_mid = data->mid; /* master transfer of this one */

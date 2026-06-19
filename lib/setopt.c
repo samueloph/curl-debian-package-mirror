@@ -326,7 +326,7 @@ CURLcode Curl_setopt_SSLVERSION(struct Curl_easy *data, CURLoption option,
     if(option != CURLOPT_SSLVERSION)
       primary = &data->set.proxy_ssl.primary;
 #else
-    if(option) {}
+    (void)option; /* unused */
 #endif
     version = C_SSLVERSION_VALUE(arg);
     version_max = (long)C_SSLVERSION_MAX_VALUE(arg);
@@ -802,7 +802,7 @@ static CURLcode setopt_long_bool(struct Curl_easy *data, CURLoption option,
   if((arg > ok) || (arg < 0))
     /* reserve other values for future use */
     infof(data, "boolean setopt(%d) got unsupported argument %ld,"
-          " treated as %d", option, arg, enabled);
+          " treated as %d", (int)option, arg, enabled);
 
   return CURLE_OK;
 }
@@ -2768,7 +2768,9 @@ static CURLcode setopt_offt(struct Curl_easy *data, CURLoption option,
     if(offt < 0)
       return CURLE_BAD_FUNCTION_ARGUMENT;
     s->max_send_speed = offt;
-    Curl_rlimit_init(&data->progress.ul.rlimit, offt, offt,
+    /* use minimal burst rate of 32k. some protocol batch IO */
+    Curl_rlimit_init(&data->progress.ul.rlimit, offt,
+                     CURLMAX(offt, (32 * 1024)),
                      Curl_pgrs_now(data));
     break;
   case CURLOPT_MAX_RECV_SPEED_LARGE:
@@ -2779,7 +2781,9 @@ static CURLcode setopt_offt(struct Curl_easy *data, CURLoption option,
     if(offt < 0)
       return CURLE_BAD_FUNCTION_ARGUMENT;
     s->max_recv_speed = offt;
-    Curl_rlimit_init(&data->progress.dl.rlimit, offt, offt,
+    /* use minimal burst rate of 32k. some protocol batch IO */
+    Curl_rlimit_init(&data->progress.dl.rlimit, offt,
+                     CURLMAX(offt, (32 * 1024)),
                      Curl_pgrs_now(data));
     break;
   case CURLOPT_RESUME_FROM_LARGE:
@@ -2947,6 +2951,6 @@ CURLcode curl_easy_setopt(CURL *curl, CURLoption option, ...)
 
   va_end(arg);
   if(result == CURLE_BAD_FUNCTION_ARGUMENT)
-    failf(data, "setopt 0x%x got bad argument", option);
+    failf(data, "setopt 0x%x got bad argument", (unsigned int)option);
   return result;
 }

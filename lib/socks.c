@@ -343,7 +343,7 @@ static CURLproxycode socks4_resolving(struct socks_ctx *sx,
   else if(!dns_done)
     return CURLPX_OK;
 
-  ai = Curl_cf_dns_get_ai(cf->next, data, AF_INET, 0);
+  ai = Curl_cf_dns_get_ai(cf->next, data, sx->dest, AF_INET, 0);
   if(ai) {
     struct sockaddr_in *saddr_in;
     char ipbuf[64];
@@ -553,7 +553,7 @@ process_state:
     FALLTHROUGH();
 
   case SOCKS4_ST_RECV:
-    /* Receive 8 byte response */
+    /* Receive 8-byte response */
     presult = socks_recv(sx, cf, data, 8, &done);
     if(presult)
       return socks_failed(sx, cf, data, presult);
@@ -799,7 +799,7 @@ static CURLproxycode socks5_req1_init(struct socks_ctx *sx,
     DEBUGASSERT(hostname_len <= 255);
     desttype = 3;
     destination = (const unsigned char *)sx->dest->hostname;
-    destlen = (unsigned char)hostname_len; /* one byte length */
+    destlen = (unsigned char)hostname_len; /* 1-byte length */
   }
 
   req[3] = desttype;
@@ -862,10 +862,10 @@ static CURLproxycode socks5_resolving(struct socks_ctx *sx,
 
 #ifdef USE_IPV6
   if(data->set.ipver != CURL_IPRESOLVE_V4)
-    ai = Curl_cf_dns_get_ai(cf->next, data, AF_INET6, 0);
+    ai = Curl_cf_dns_get_ai(cf->next, data, sx->dest, AF_INET6, 0);
 #endif
   if(!ai)
-    ai = Curl_cf_dns_get_ai(cf->next, data, AF_INET, 0);
+    ai = Curl_cf_dns_get_ai(cf->next, data, sx->dest, AF_INET, 0);
 
   if(!ai) {
     failf(data, "Failed to resolve \"%s\" for SOCKS5 connect.",
@@ -959,9 +959,9 @@ static CURLproxycode socks5_recv_resp1(struct socks_ctx *sx,
      +----+-----+-------+------+----------+----------+
 
      ATYP:
-     o IPv4 address: 0x01, BND.ADDR = 4 byte
-     o domain name:  0x03, BND.ADDR = [ 1 byte length, string ]
-     o IPv6 address: 0x04, BND.ADDR = 16 byte
+     o IPv4 address: 0x01, BND.ADDR = 4-byte
+     o domain name:  0x03, BND.ADDR = [ 1-byte length, string ]
+     o IPv6 address: 0x04, BND.ADDR = 16-byte
   */
   if(resp[0] != 5) { /* version */
     failf(data, "SOCKS5 reply has wrong version, version should be 5.");
@@ -1277,11 +1277,11 @@ static CURLcode socks_cf_adjust_pollset(struct Curl_cfilter *cf,
     case SOCKS5_ST_REQ0_SEND:
     case SOCKS5_ST_AUTH_SEND:
     case SOCKS5_ST_REQ1_SEND:
-      CURL_TRC_CF(data, cf, "adjust pollset out (%d)", sx->state);
+      CURL_TRC_CF(data, cf, "adjust pollset out (%d)", (int)sx->state);
       result = Curl_pollset_set_out_only(data, ps, sock);
       break;
     default:
-      CURL_TRC_CF(data, cf, "adjust pollset in (%d)", sx->state);
+      CURL_TRC_CF(data, cf, "adjust pollset in (%d)", (int)sx->state);
       result = Curl_pollset_set_in_only(data, ps, sock);
       break;
     }

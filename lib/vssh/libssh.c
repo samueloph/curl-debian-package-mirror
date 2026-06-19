@@ -1888,8 +1888,8 @@ static void sshc_cleanup(struct ssh_conn *sshc)
     }
 
     /* worst-case scenario cleanup */
-    DEBUGASSERT(sshc->ssh_session == NULL);
-    DEBUGASSERT(sshc->scp_session == NULL);
+    DEBUGASSERT(!sshc->ssh_session);
+    DEBUGASSERT(!sshc->scp_session);
 
     if(sshc->readdir_tmp) {
       ssh_string_free_char(sshc->readdir_tmp);
@@ -2444,7 +2444,7 @@ static CURLcode myssh_statemachine(struct Curl_easy *data,
   if(!result && (sshc->state == SSH_STOP))
     result = sshc->actualcode;
   CURL_TRC_SSH(data, "[%s] statemachine() -> %d, block=%d",
-               Curl_ssh_statename(sshc->state), result, *block);
+               Curl_ssh_statename(sshc->state), (int)result, *block);
   return result;
 }
 
@@ -2469,7 +2469,7 @@ static CURLcode myssh_pollset(struct Curl_easy *data,
     if(waitfor & REQ_IO_SEND)
       flags |= CURL_POLL_OUT;
     DEBUGASSERT(flags);
-    CURL_TRC_SSH(data, "pollset, flags=%x", flags);
+    CURL_TRC_SSH(data, "pollset, flags=%x", (unsigned int)flags);
     return Curl_pollset_change(data, ps, sock, flags, 0);
   }
   /* While we still have a session, we listen incoming data. */
@@ -2611,7 +2611,7 @@ static CURLcode myssh_connect(struct Curl_easy *data, bool *done)
 
   sshc->ssh_session = ssh_new();
   if(!sshc->ssh_session) {
-    failf(data, "Failure initialising ssh session");
+    failf(data, "Failure initializing ssh session");
     return CURLE_FAILED_INIT;
   }
 

@@ -488,7 +488,7 @@ static int writeit(struct testcase *test, struct tftphdr * volatile *dpp,
  * synch.  Ie: that what I think is the other side's response to packet N is
  * really their response to packet N-1.
  *
- * So, to try to prevent that, we flush all the input queued up for us on the
+ * To try to prevent that, we flush all the input queued up for us on the
  * network connection on our host.
  *
  * We return the number of packets we flushed (mostly for reporting when trace
@@ -918,10 +918,10 @@ static int do_tftp(struct testcase *test, struct tftphdr *tp, ssize_t size)
   cp = (char *)&tp->th_stuff;
   filename = cp;
   do {
-    bool endofit = true;
+    bool endofit = TRUE;
     while(cp < &trsbuf.storage[size]) {
       if(*cp == '\0') {
-        endofit = false;
+        endofit = FALSE;
         break;
       }
       cp++;
@@ -970,7 +970,7 @@ static int do_tftp(struct testcase *test, struct tftphdr *tp, ssize_t size)
   curlx_fclose(server);
 
   for(pf = formata; pf->f_mode; pf++)
-    if(strcmp(pf->f_mode, mode) == 0)
+    if(!strcmp(pf->f_mode, mode))
       break;
   if(!pf->f_mode) {
     nak(TFTP_EBADOP);
@@ -1015,7 +1015,7 @@ static int test_tftpd(int argc, const char **argv)
   curl_socket_t sock = CURL_SOCKET_BAD;
   int flag;
   int rc;
-  int error;
+  int sockerr;
   char errbuf[STRERROR_LEN];
   struct testcase test;
   int result = 0;
@@ -1109,7 +1109,7 @@ static int test_tftpd(int argc, const char **argv)
   snprintf(loglockfile, sizeof(loglockfile), "%s/%s/tftp-%s.lock",
            logdir, SERVERLOGS_LOCKDIR, ipv_inuse);
 
-  install_signal_handlers(true);
+  install_signal_handlers(TRUE);
 
 #ifdef USE_IPV6
   if(!use_ipv6)
@@ -1121,18 +1121,18 @@ static int test_tftpd(int argc, const char **argv)
 #endif
 
   if(sock == CURL_SOCKET_BAD) {
-    error = SOCKERRNO;
+    sockerr = SOCKERRNO;
     logmsg("Error creating socket (%d) %s",
-           error, curlx_strerror(error, errbuf, sizeof(errbuf)));
+           sockerr, curlx_strerror(sockerr, errbuf, sizeof(errbuf)));
     result = 1;
     goto tftpd_cleanup;
   }
 
   flag = 1;
   if(setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (void *)&flag, sizeof(flag))) {
-    error = SOCKERRNO;
+    sockerr = SOCKERRNO;
     logmsg("setsockopt(SO_REUSEADDR) failed with error (%d) %s",
-           error, curlx_strerror(error, errbuf, sizeof(errbuf)));
+           sockerr, curlx_strerror(sockerr, errbuf, sizeof(errbuf)));
     result = 1;
     goto tftpd_cleanup;
   }
@@ -1156,9 +1156,9 @@ static int test_tftpd(int argc, const char **argv)
   }
 #endif /* USE_IPV6 */
   if(rc) {
-    error = SOCKERRNO;
+    sockerr = SOCKERRNO;
     logmsg("Error binding socket on port %hu (%d) %s", port,
-           error, curlx_strerror(error, errbuf, sizeof(errbuf)));
+           sockerr, curlx_strerror(sockerr, errbuf, sizeof(errbuf)));
     result = 1;
     goto tftpd_cleanup;
   }
@@ -1178,9 +1178,9 @@ static int test_tftpd(int argc, const char **argv)
       la_size = sizeof(localaddr.sa6);
 #endif
     if(getsockname(sock, &localaddr.sa, &la_size) < 0) {
-      error = SOCKERRNO;
+      sockerr = SOCKERRNO;
       logmsg("getsockname() failed with error (%d) %s",
-             error, curlx_strerror(error, errbuf, sizeof(errbuf)));
+             sockerr, curlx_strerror(sockerr, errbuf, sizeof(errbuf)));
       sclose(sock);
       goto tftpd_cleanup;
     }
@@ -1327,7 +1327,7 @@ tftpd_cleanup:
     clear_advisor_read_lock(loglockfile);
   }
 
-  restore_signal_handlers(true);
+  restore_signal_handlers(TRUE);
 
   if(got_exit_signal) {
     logmsg("========> %s tftpd (port: %d pid: %ld) exits with signal (%d)",

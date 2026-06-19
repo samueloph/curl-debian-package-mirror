@@ -29,7 +29,7 @@ static CURLcode test_unit1675(const char *arg)
 {
   UNITTEST_BEGIN_SIMPLE
 
-    /* Test ipv4_normalize */
+  /* Test ipv4_normalize */
   {
     struct dynbuf host;
     int fails = 0;
@@ -111,6 +111,7 @@ static CURLcode test_unit1675(const char *arg)
       int rc;
       curlx_dyn_reset(&host);
       if(curlx_dyn_add(&host, tests[i].in)) {
+        curlx_dyn_free(&host);
         return CURLE_OUT_OF_MEMORY;
       }
       rc = ipv4_normalize(&host);
@@ -123,13 +124,11 @@ static CURLcode test_unit1675(const char *arg)
           fails++;
         }
       }
-      else {
-        if(rc == HOST_IPV4) {
-          curl_mfprintf(stderr, "ipv4_normalize('%s') succeeded unexpectedly:"
-                        " got '%s'\n",
-                        tests[i].in, curlx_dyn_ptr(&host));
-          fails++;
-        }
+      else if(rc == HOST_IPV4) {
+        curl_mfprintf(stderr, "ipv4_normalize('%s') succeeded unexpectedly:"
+                      " got '%s'\n",
+                      tests[i].in, curlx_dyn_ptr(&host));
+        fails++;
       }
     }
     curlx_dyn_free(&host);
@@ -238,12 +237,10 @@ static CURLcode test_unit1675(const char *arg)
           }
         }
       }
-      else {
-        if(!uc) {
-          curl_mfprintf(stderr, "ipv6_parse('%s') succeeded unexpectedly\n",
-                        tests[i].in);
-          fails++;
-        }
+      else if(!uc) {
+        curl_mfprintf(stderr, "ipv6_parse('%s') succeeded unexpectedly\n",
+                      tests[i].in);
+        fails++;
       }
       curlx_free(u.host);
       curlx_free(u.zoneid);
@@ -346,7 +343,7 @@ static CURLcode test_unit1675(const char *arg)
       uc = curl_url_set(base, CURLUPART_URL, tests[i].base, 0);
       if(uc) {
         curl_mfprintf(stderr, "failed to parse %u base %s -> %d\n", i,
-                      tests[i].base, uc);
+                      tests[i].base, (int)uc);
         fails++;
         goto loop_end;
       }
@@ -361,7 +358,7 @@ static CURLcode test_unit1675(const char *arg)
       if(uc) {
         curl_mfprintf(stderr, "failed to parse %u href %s://%s:%s%s -> %d\n",
                       i, tests[i].scheme, tests[i].host, tests[i].port,
-                      tests[i].path, uc);
+                      tests[i].path, (int)uc);
         fails++;
         goto loop_end;
       }
@@ -428,7 +425,7 @@ loop_end:
          (u.options && tests[i].options &&
           strcmp(u.options, tests[i].options)) ||
          offset != tests[i].offset) {
-        curl_mfprintf(stderr, "%d: parse_hostname_login('%s') host failed:"
+        curl_mfprintf(stderr, "%u: parse_hostname_login('%s') host failed:"
                       " expected '%d/%s/%s/%s/%zu', got '%d/%s/%s/%s/%zu'\n",
                       i, tests[i].in, (int)tests[i].uc, tests[i].user,
                       tests[i].password, tests[i].options, tests[i].offset,

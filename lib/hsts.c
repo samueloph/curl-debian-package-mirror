@@ -96,7 +96,7 @@ void Curl_hsts_cleanup(struct hsts **hp)
 static void hsts_append(struct hsts *h, struct stsentry *sts)
 {
   if(Curl_llist_count(&h->list) == MAX_HSTS_ENTRIES) {
-    /* It's full. Remove the first entry in the list */
+    /* It is full. Remove the first entry in the list */
     struct Curl_llist_node *e = Curl_llist_head(&h->list);
     struct stsentry *oldsts = Curl_node_elem(e);
     Curl_node_remove(e);
@@ -126,6 +126,25 @@ static CURLcode hsts_create(struct hsts *h,
     sts->expires = expires;
     sts->includeSubDomains = subdomains;
     hsts_append(h, sts);
+  }
+  return CURLE_OK;
+}
+
+/* Copy all live entries from src into dst. Used by curl_easy_duphandle so the
+ * clone inherits entries learned at runtime. E.g. Strict-Transport-Security.
+ */
+CURLcode Curl_hsts_copy(struct hsts *dst, struct hsts *src)
+{
+  struct Curl_llist_node *e;
+  time_t now = time(NULL);
+  for(e = Curl_llist_head(&src->list); e; e = Curl_node_next(e)) {
+    struct stsentry *sts = Curl_node_elem(e);
+    if(sts->expires > now) {
+      CURLcode result = hsts_create(dst, sts->host, strlen(sts->host),
+                                    sts->includeSubDomains != 0, sts->expires);
+      if(result)
+        return result;
+    }
   }
   return CURLE_OK;
 }

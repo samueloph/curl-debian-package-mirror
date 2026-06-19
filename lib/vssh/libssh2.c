@@ -152,8 +152,7 @@ static void kbd_callback(const char *name, int name_len,
     /* this function must allocate memory that can be freed by libssh2, which
        uses the LIBSSH2_FREE_FUNC callback */
     responses[0].text = Curl_cstrdup(passwd);
-    responses[0].length =
-      responses[0].text == NULL ? 0 : curlx_uztoui(strlen(passwd));
+    responses[0].length = responses[0].text ? curlx_uztoui(strlen(passwd)) : 0;
   }
   (void)prompts;
 } /* kbd_callback */
@@ -479,9 +478,9 @@ static CURLcode ssh_check_fingerprint(struct Curl_easy *data,
   const char *pubkey_sha256 = data->set.str[STRING_SSH_HOST_PUBLIC_KEY_SHA256];
 
   infof(data, "SSH MD5 public key: %s",
-        pubkey_md5 != NULL ? pubkey_md5 : "NULL");
+        pubkey_md5 ? pubkey_md5 : "NULL");
   infof(data, "SSH SHA256 public key: %s",
-        pubkey_sha256 != NULL ? pubkey_sha256 : "NULL");
+        pubkey_sha256 ? pubkey_sha256 : "NULL");
 
   if(pubkey_sha256) {
     const char *fingerprint = NULL;
@@ -663,14 +662,14 @@ static CURLcode ssh_force_knownhost_key_type(struct Curl_easy *data,
             if(!curlx_str_number(&p, &port, 0xffff) &&
                (kh_name_end && (port == conn->origin->port))) {
               kh_name_size = strlen(store->name) - 1 - strlen(kh_name_end);
-              if(strncmp(store->name + 1,
-                         conn->origin->hostname, kh_name_size) == 0) {
+              if(!strncmp(store->name + 1, conn->origin->hostname,
+                          kh_name_size)) {
                 found = TRUE;
                 break;
               }
             }
           }
-          else if(strcmp(store->name, conn->origin->hostname) == 0) {
+          else if(!strcmp(store->name, conn->origin->hostname)) {
             found = TRUE;
             break;
           }
@@ -713,7 +712,7 @@ static CURLcode ssh_force_knownhost_key_type(struct Curl_easy *data,
         failf(data, "Found host key type RSA1 which is not supported");
         return CURLE_SSH;
       default:
-        failf(data, "Unknown host key type: %i",
+        failf(data, "Unknown host key type: %d",
               (store->typemask & LIBSSH2_KNOWNHOST_KEY_MASK));
         return CURLE_SSH;
       }
@@ -1098,7 +1097,7 @@ static CURLcode ssh_state_pkey_init(struct Curl_easy *data,
   sshc->authed = FALSE;
 
   if((data->set.ssh_auth_types & CURLSSH_AUTH_PUBLICKEY) &&
-     (strstr(sshc->authlist, "publickey") != NULL)) {
+     strstr(sshc->authlist, "publickey")) {
     bool out_of_memory = FALSE;
 
     sshc->rsa_pub = sshc->rsa = NULL;
@@ -1587,7 +1586,7 @@ static CURLcode ssh_state_auth_pass_init(struct Curl_easy *data,
                                          struct ssh_conn *sshc)
 {
   if((data->set.ssh_auth_types & CURLSSH_AUTH_PASSWORD) &&
-     (strstr(sshc->authlist, "password") != NULL)) {
+     strstr(sshc->authlist, "password")) {
     myssh_to(data, sshc, SSH_AUTH_PASS);
   }
   else {
@@ -1626,7 +1625,7 @@ static CURLcode ssh_state_auth_host_init(struct Curl_easy *data,
                                          struct ssh_conn *sshc)
 {
   if((data->set.ssh_auth_types & CURLSSH_AUTH_HOST) &&
-     (strstr(sshc->authlist, "hostbased") != NULL)) {
+     strstr(sshc->authlist, "hostbased")) {
     myssh_to(data, sshc, SSH_AUTH_HOST);
   }
   else {
@@ -1640,7 +1639,7 @@ static CURLcode ssh_state_auth_agent_init(struct Curl_easy *data,
 {
   int rc = 0;
   if((data->set.ssh_auth_types & CURLSSH_AUTH_AGENT) &&
-     (strstr(sshc->authlist, "publickey") != NULL)) {
+     strstr(sshc->authlist, "publickey")) {
 
     /* Connect to the ssh-agent */
     /* The agent could be shared by a curl thread i believe
@@ -1736,7 +1735,7 @@ static CURLcode ssh_state_auth_key_init(struct Curl_easy *data,
                                         struct ssh_conn *sshc)
 {
   if((data->set.ssh_auth_types & CURLSSH_AUTH_KEYBOARD) &&
-     (strstr(sshc->authlist, "keyboard-interactive") != NULL)) {
+     strstr(sshc->authlist, "keyboard-interactive")) {
     myssh_to(data, sshc, SSH_AUTH_KEY);
   }
   else {
@@ -2607,12 +2606,12 @@ static CURLcode sshc_cleanup(struct ssh_conn *sshc, struct Curl_easy *data,
   }
 
   /* worst-case scenario cleanup */
-  DEBUGASSERT(sshc->ssh_session == NULL);
-  DEBUGASSERT(sshc->ssh_channel == NULL);
-  DEBUGASSERT(sshc->sftp_session == NULL);
-  DEBUGASSERT(sshc->sftp_handle == NULL);
-  DEBUGASSERT(sshc->kh == NULL);
-  DEBUGASSERT(sshc->ssh_agent == NULL);
+  DEBUGASSERT(!sshc->ssh_session);
+  DEBUGASSERT(!sshc->ssh_channel);
+  DEBUGASSERT(!sshc->sftp_session);
+  DEBUGASSERT(!sshc->sftp_handle);
+  DEBUGASSERT(!sshc->kh);
+  DEBUGASSERT(!sshc->ssh_agent);
 
   curlx_safefree(sshc->rsa_pub);
   curlx_safefree(sshc->rsa);
@@ -3184,7 +3183,7 @@ static CURLcode ssh_statemachine(struct Curl_easy *data,
     result = CURLE_OK;
   }
   CURL_TRC_SSH(data, "[%s] statemachine() -> %d, block=%d",
-               Curl_ssh_statename(sshc->state), result, *block);
+               Curl_ssh_statename(sshc->state), (int)result, *block);
 
   return result;
 }
@@ -3210,7 +3209,7 @@ static CURLcode ssh_pollset(struct Curl_easy *data,
     if(waitfor & REQ_IO_SEND)
       flags |= CURL_POLL_OUT;
     DEBUGASSERT(flags);
-    CURL_TRC_SSH(data, "pollset, flags=%x", flags);
+    CURL_TRC_SSH(data, "pollset, flags=%x", (unsigned int)flags);
     return Curl_pollset_change(data, ps, sock, flags, 0);
   }
   /* While we still have a session, we listen incoming data. */
@@ -3487,7 +3486,7 @@ static CURLcode ssh_connect(struct Curl_easy *data, bool *done)
                                               my_libssh2_realloc, data);
 
   if(!sshc->ssh_session) {
-    failf(data, "Failure initialising ssh session");
+    failf(data, "Failure initializing ssh session");
     return CURLE_FAILED_INIT;
   }
 
@@ -3845,7 +3844,7 @@ static CURLcode sftp_disconnect(struct Curl_easy *data,
       CURL_TRC_SSH(data, "DISCONNECT starts now");
       myssh_to(data, sshc, SSH_SFTP_SHUTDOWN);
       result = ssh_block_statemach(data, sshc, sshp, TRUE);
-      CURL_TRC_SSH(data, "DISCONNECT is done -> %d", result);
+      CURL_TRC_SSH(data, "DISCONNECT is done -> %d", (int)result);
     }
     sshc_cleanup(sshc, data, TRUE);
   }

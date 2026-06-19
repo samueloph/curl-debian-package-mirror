@@ -491,7 +491,7 @@ static CURLcode tftp_tx(struct tftp_conn *state, tftp_event_t event)
     break;
 
   default:
-    failf(data, "tftp_tx: internal error, event: %i", (int)event);
+    failf(data, "tftp_tx: internal error, event: %d", (int)event);
     break;
   }
 
@@ -874,7 +874,7 @@ static CURLcode tftp_state_machine(struct tftp_conn *state,
     infof(data, "%s", "TFTP finished");
     break;
   default:
-    DEBUGF(infof(data, "STATE: %d", state->state));
+    DEBUGF(infof(data, "STATE: %d", (int)state->state));
     failf(data, "%s", "Internal state machine error");
     result = CURLE_TFTP_ILLEGAL;
     break;
@@ -1197,9 +1197,9 @@ static CURLcode tftp_multi_statemach(struct Curl_easy *data, bool *done)
 
     if(rc == -1) {
       /* bail out */
-      int error = SOCKERRNO;
+      int sockerr = SOCKERRNO;
       char buffer[STRERROR_LEN];
-      failf(data, "%s", curlx_strerror(error, buffer, sizeof(buffer)));
+      failf(data, "%s", curlx_strerror(sockerr, buffer, sizeof(buffer)));
       state->event = TFTP_EVENT_ERROR;
     }
     else if(rc) {

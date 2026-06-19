@@ -428,7 +428,7 @@ CURLcode Curl_peer_from_url(CURLU *uh, struct Curl_easy *data,
   }
 
   if(scopeid_override)
-    /* Override any scope id from an url zone. */
+    /* Override any scope id from an URL zone. */
     pp.scopeid = scopeid_override;
   else {
     if(curl_url_get(uh, CURLUPART_ZONEID, &zoneid, 0) ==
@@ -445,7 +445,7 @@ CURLcode Curl_peer_from_url(CURLU *uh, struct Curl_easy *data,
   result = peer_create(&pp, ppeer);
   if(result)
     failf(data, "Error %d creating peer for %s:%u",
-          result, pp.host_user.str, pp.port);
+          (int)result, pp.host_user.str, pp.port);
 
 out:
   peer_parse_clear(&pp);
@@ -522,10 +522,10 @@ CURLcode Curl_peer_from_connect_to(struct Curl_easy *data,
 #endif
 
   result = peer_create(&pp, ppeer);
-  CURL_TRC_M(data, "connect-to peer_create2 -> %d", result);
+  CURL_TRC_M(data, "connect-to peer_create2 -> %d", (int)result);
 
 out:
-  CURL_TRC_M(data, "parse connect_to peer: %s -> %d", connect_to, result);
+  CURL_TRC_M(data, "parse connect_to peer: %s -> %d", connect_to, (int)result);
   peer_parse_clear(&pp);
   return result;
 }
@@ -593,7 +593,7 @@ CURLcode Curl_peer_from_proxy_url(CURLU *uh,
       result = CURLE_OUT_OF_MEMORY;
       goto out;
     }
-    /* url came without scheme, the passed `proxytype` determines it */
+    /* URL came without scheme, the passed `proxytype` determines it */
     switch(proxytype) {
     case CURLPROXY_HTTP:
     case CURLPROXY_HTTP_1_0:
@@ -630,7 +630,7 @@ CURLcode Curl_peer_from_proxy_url(CURLU *uh,
   }
   DEBUGASSERT(pp.scheme);
 
-  if(IS_HTTPS_PROXY(proxytype) &&
+  if(CURL_PROXY_IS_HTTPS(proxytype) &&
      !Curl_ssl_supports(data, SSLSUPP_HTTPS_PROXY)) {
     failf(data, "Unsupported proxy \'%s\', libcurl is built without the "
           "HTTPS-proxy support.", url);
@@ -666,7 +666,7 @@ CURLcode Curl_peer_from_proxy_url(CURLU *uh,
     curlx_free(portptr);
   }
   else {
-    /* No port in url, take the set one or the scheme's default */
+    /* No port in URL, take the set one or the scheme's default */
     if(data->set.proxyport)
       pp.port = data->set.proxyport;
     else

@@ -11,10 +11,10 @@ Forwarded: no
  1 file changed, 1 insertion(+)
 
 diff --git a/tests/http/testenv/sshd.py b/tests/http/testenv/sshd.py
-index e800ced..00ad206 100644
+index de8078d..dce4ea2 100644
 --- a/tests/http/testenv/sshd.py
 +++ b/tests/http/testenv/sshd.py
-@@ -271,6 +271,7 @@ class Sshd:
+@@ -281,6 +281,7 @@ class Sshd:
              'PasswordAuthentication no',
              # in CI, we might run as root, allow this
              'PermitRootLogin yes',

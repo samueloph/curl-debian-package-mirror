@@ -42,8 +42,8 @@ use warnings;
 my $nroff2cd = "0.1"; # to keep check
 
 sub single {
-    my ($f)=@_;
-    open(F, "<:crlf", $f) ||
+    my ($f) = @_;
+    open(F, "<:crlf", $f) or
         return 1;
     my $line;
     my $title;
@@ -67,7 +67,7 @@ sub single {
                 # remove leading directory
                 $f =~ s/(.*?\/)//;
                 close(F);
-                open(F, "<:crlf", $f) || return 1;
+                open(F, "<:crlf", $f) or return 1;
             }
             if($d =~ /^\.TH ([^ ]*) (\d) \"(.*?)\" ([^ \n]*)/) {
                 # header, this needs to be the first thing after leading comments

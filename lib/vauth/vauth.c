@@ -120,7 +120,7 @@ bool Curl_auth_user_contains_domain(struct Curl_creds *creds)
     /* Check we have a domain name or UPN present */
     const char *p = strpbrk(creds->user, "\\/@");
 
-    valid = (p != NULL) && (p > creds->user) &&
+    valid = p && (p > creds->user) &&
             (p < (creds->user + strlen(creds->user) - 1));
   }
 #if defined(HAVE_GSSAPI) || defined(USE_WINDOWS_SSPI)
@@ -139,7 +139,7 @@ bool Curl_auth_user_contains_domain(struct Curl_creds *creds)
  */
 bool Curl_auth_allowed_to_host(struct Curl_easy *data)
 {
-  return Curl_auth_allowed_to_origin(data, data->conn->origin);
+  return Curl_auth_allowed_to_origin(data, data->state.origin);
 }
 
 bool Curl_auth_allowed_to_origin(struct Curl_easy *data,

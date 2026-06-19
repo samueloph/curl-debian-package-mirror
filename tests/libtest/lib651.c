@@ -53,7 +53,7 @@ static CURLcode test_lib651(const char *URL)
                         CURLFORM_COPYCONTENTS, testbuf,
                         CURLFORM_END);
   if(formrc)
-    curl_mprintf("curl_formadd(1) = %d\n", formrc);
+    curl_mprintf("curl_formadd(1) = %d\n", (int)formrc);
 
   curl = curl_easy_init();
   if(!curl) {
@@ -75,7 +75,7 @@ static CURLcode test_lib651(const char *URL)
   /* include headers in the output */
   test_setopt(curl, CURLOPT_HEADER, 1L);
 
-  /* Perform the request, result will get the return code */
+  /* Perform the request, result gets the return code */
   result = curl_easy_perform(curl);
 
 test_cleanup:
