@@ -1,3 +1,9 @@
+curl (8.21.0~rc3-1+exp1) experimental; urgency=medium
+
+  * Upload to experimental.
+
+ -- Carlos Henrique Lima Melara <charlesmelara@riseup.net>  Fri, 19 Jun 2026 00:23:16 -0300
+
 curl (8.21.0~rc3-1) unstable; urgency=medium
 
   * New upstream version 8.21.0~rc3. (Closes: #1140043)
