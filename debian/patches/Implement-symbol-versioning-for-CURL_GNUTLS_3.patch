@@ -104,7 +104,7 @@ Forwarded: not-needed
  create mode 100644 lib/libcurl-gnutls.vers.in
 
 diff --git a/configure.ac b/configure.ac
-index 14ff2ba..473cde2 100644
+index d9748a4..18f9f44 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -5491,6 +5491,7 @@ AC_CONFIG_FILES([\
@@ -729,10 +729,10 @@ index b290a9e..c24ee58 100644
 +#endif
  #endif
 diff --git a/lib/http2.c b/lib/http2.c
-index 2133c5a..18ed46b 100644
+index a820439..57a6928 100644
 --- a/lib/http2.c
 +++ b/lib/http2.c
-@@ -665,6 +665,14 @@ char *curl_pushheader_bynum(struct curl_pushheaders *h, size_t num)
+@@ -661,6 +661,14 @@ char *curl_pushheader_bynum(struct curl_pushheaders *h, size_t num)
    }
    return NULL;
  }
@@ -747,7 +747,7 @@ index 2133c5a..18ed46b 100644
  
  /*
   * push header access function. Only to be used from within the push callback
-@@ -699,6 +707,14 @@ char *curl_pushheader_byname(struct curl_pushheaders *h, const char *name)
+@@ -695,6 +703,14 @@ char *curl_pushheader_byname(struct curl_pushheaders *h, const char *name)
    }
    return NULL;
  }
@@ -762,7 +762,7 @@ index 2133c5a..18ed46b 100644
  
  static struct Curl_easy *h2_duphandle(struct Curl_cfilter *cf,
                                        struct Curl_easy *data)
-@@ -2987,6 +3003,14 @@ char *curl_pushheader_bynum(struct curl_pushheaders *h, size_t num)
+@@ -2983,6 +2999,14 @@ char *curl_pushheader_bynum(struct curl_pushheaders *h, size_t num)
    (void)num;
    return NULL;
  }
@@ -777,7 +777,7 @@ index 2133c5a..18ed46b 100644
  
  char *curl_pushheader_byname(struct curl_pushheaders *h, const char *name)
  {
-@@ -2994,5 +3018,13 @@ char *curl_pushheader_byname(struct curl_pushheaders *h, const char *name)
+@@ -2990,5 +3014,13 @@ char *curl_pushheader_byname(struct curl_pushheaders *h, const char *name)
    (void)name;
    return NULL;
  }
@@ -1364,7 +1364,7 @@ index 230b554..c1ecf0e 100644
 +__asm__(".symver __curl_compat_curl_mvfprintf, curl_mvfprintf@CURL_GNUTLS_3");
 +#endif
 diff --git a/lib/multi.c b/lib/multi.c
-index d0fa68a..0865e2d 100644
+index d6ae111..24da0c0 100644
 --- a/lib/multi.c
 +++ b/lib/multi.c
 @@ -373,6 +373,13 @@ CURLM *curl_multi_init(void)
@@ -1381,7 +1381,7 @@ index d0fa68a..0865e2d 100644
  
  #if defined(DEBUGBUILD) && defined(CURLVERBOSE)
  static void multi_warn_debug(struct Curl_multi *multi, struct Curl_easy *data)
-@@ -581,6 +588,14 @@ CURLMcode curl_multi_add_handle(CURLM *m, CURL *curl)
+@@ -577,6 +584,14 @@ CURLMcode curl_multi_add_handle(CURLM *m, CURL *curl)
               Curl_uint32_tbl_count(&multi->xfers));
    return CURLM_OK;
  }
@@ -1396,7 +1396,7 @@ index d0fa68a..0865e2d 100644
  
  #if 0
  /* Debug-function, used like this:
-@@ -934,6 +949,15 @@ CURLMcode curl_multi_remove_handle(CURLM *m, CURL *curl)
+@@ -936,6 +951,15 @@ CURLMcode curl_multi_remove_handle(CURLM *m, CURL *curl)
               Curl_uint32_tbl_count(&multi->xfers));
    return CURLM_OK;
  }
@@ -1412,7 +1412,7 @@ index d0fa68a..0865e2d 100644
  
  /* Return TRUE if the application asked for multiplexing */
  bool Curl_multiplex_wanted(const struct Curl_multi *multi)
-@@ -1310,6 +1334,13 @@ CURLMcode curl_multi_fdset(CURLM *m,
+@@ -1314,6 +1338,13 @@ CURLMcode curl_multi_fdset(CURLM *m,
  
    return CURLM_OK;
  }
@@ -1426,7 +1426,7 @@ index d0fa68a..0865e2d 100644
  
  CURLMcode curl_multi_waitfds(CURLM *m,
                               struct curl_waitfd *ufds,
-@@ -1358,6 +1389,13 @@ CURLMcode curl_multi_waitfds(CURLM *m,
+@@ -1362,6 +1393,13 @@ CURLMcode curl_multi_waitfds(CURLM *m,
    Curl_pollset_cleanup(&ps);
    return mresult;
  }
@@ -1440,7 +1440,7 @@ index d0fa68a..0865e2d 100644
  
  #ifdef USE_WINSOCK
  /* Reset FD_WRITE for TCP sockets. Nothing is actually sent. UDP sockets cannot
-@@ -1674,6 +1712,13 @@ CURLMcode curl_multi_wait(CURLM *m,
+@@ -1678,6 +1716,13 @@ CURLMcode curl_multi_wait(CURLM *m,
  {
    return multi_wait(m, extra_fds, extra_nfds, timeout_ms, ret, FALSE);
  }
@@ -1454,7 +1454,7 @@ index d0fa68a..0865e2d 100644
  
  CURLMcode curl_multi_poll(CURLM *m,
                            struct curl_waitfd extra_fds[],
-@@ -1683,6 +1728,13 @@ CURLMcode curl_multi_poll(CURLM *m,
+@@ -1687,6 +1732,13 @@ CURLMcode curl_multi_poll(CURLM *m,
  {
    return multi_wait(m, extra_fds, extra_nfds, timeout_ms, ret, TRUE);
  }
@@ -1468,7 +1468,7 @@ index d0fa68a..0865e2d 100644
  
  CURLMcode curl_multi_wakeup(CURLM *m)
  {
-@@ -1709,6 +1761,13 @@ CURLMcode curl_multi_wakeup(CURLM *m)
+@@ -1713,6 +1765,13 @@ CURLMcode curl_multi_wakeup(CURLM *m)
  #endif
    return mresult;
  }
@@ -1482,7 +1482,7 @@ index d0fa68a..0865e2d 100644
  
  /*
   * multi_ischanged() is called
-@@ -2953,6 +3012,13 @@ CURLMcode curl_multi_perform(CURLM *m, int *running_handles)
+@@ -2975,6 +3034,13 @@ CURLMcode curl_multi_perform(CURLM *m, int *running_handles)
  
    return multi_perform(multi, running_handles);
  }
@@ -1496,7 +1496,7 @@ index d0fa68a..0865e2d 100644
  
  CURLMcode curl_multi_cleanup(CURLM *m)
  {
-@@ -3049,6 +3115,13 @@ CURLMcode curl_multi_cleanup(CURLM *m)
+@@ -3071,6 +3137,13 @@ CURLMcode curl_multi_cleanup(CURLM *m)
    }
    return CURLM_BAD_HANDLE;
  }
@@ -1510,7 +1510,7 @@ index d0fa68a..0865e2d 100644
  
  /*
   * curl_multi_info_read()
-@@ -3087,6 +3160,13 @@ CURLMsg *curl_multi_info_read(CURLM *m, int *msgs_in_queue)
+@@ -3109,6 +3182,13 @@ CURLMsg *curl_multi_info_read(CURLM *m, int *msgs_in_queue)
    }
    return NULL;
  }
@@ -1524,7 +1524,7 @@ index d0fa68a..0865e2d 100644
  
  void Curl_multi_will_close(struct Curl_easy *data, curl_socket_t s)
  {
-@@ -3435,6 +3515,13 @@ CURLMcode curl_multi_setopt(CURLM *m, CURLMoption option, ...)
+@@ -3457,6 +3537,13 @@ CURLMcode curl_multi_setopt(CURLM *m, CURLMoption option, ...)
    va_end(param);
    return mresult;
  }
@@ -1538,7 +1538,7 @@ index d0fa68a..0865e2d 100644
  
  /* we define curl_multi_socket() in the public multi.h header */
  #undef curl_multi_socket
-@@ -3448,6 +3535,13 @@ CURLMcode curl_multi_socket(CURLM *m, curl_socket_t s, int *running_handles)
+@@ -3470,6 +3557,13 @@ CURLMcode curl_multi_socket(CURLM *m, curl_socket_t s, int *running_handles)
      return CURLM_RECURSIVE_API_CALL;
    return multi_socket(multi, FALSE, s, 0, running_handles);
  }
@@ -1552,7 +1552,7 @@ index d0fa68a..0865e2d 100644
  
  CURLMcode curl_multi_socket_action(CURLM *m, curl_socket_t s,
                                     int ev_bitmask, int *running_handles)
-@@ -3459,6 +3553,15 @@ CURLMcode curl_multi_socket_action(CURLM *m, curl_socket_t s,
+@@ -3481,6 +3575,15 @@ CURLMcode curl_multi_socket_action(CURLM *m, curl_socket_t s,
      return CURLM_RECURSIVE_API_CALL;
    return multi_socket(multi, FALSE, s, ev_bitmask, running_handles);
  }
@@ -1568,7 +1568,7 @@ index d0fa68a..0865e2d 100644
  
  CURLMcode curl_multi_socket_all(CURLM *m, int *running_handles)
  {
-@@ -3469,6 +3572,14 @@ CURLMcode curl_multi_socket_all(CURLM *m, int *running_handles)
+@@ -3491,6 +3594,14 @@ CURLMcode curl_multi_socket_all(CURLM *m, int *running_handles)
      return CURLM_RECURSIVE_API_CALL;
    return multi_socket(multi, TRUE, CURL_SOCKET_BAD, 0, running_handles);
  }
@@ -1583,7 +1583,7 @@ index d0fa68a..0865e2d 100644
  
  static bool multi_has_dirties(struct Curl_multi *multi)
  {
-@@ -3568,6 +3679,13 @@ CURLMcode curl_multi_timeout(CURLM *m,
+@@ -3590,6 +3701,13 @@ CURLMcode curl_multi_timeout(CURLM *m,
    multi_timeout(multi, &expire_time, timeout_ms);
    return CURLM_OK;
  }
@@ -1597,7 +1597,7 @@ index d0fa68a..0865e2d 100644
  
  /*
   * Tell the application it should update its timers, if it subscribes to the
-@@ -3820,6 +3938,13 @@ CURLMcode curl_multi_assign(CURLM *m, curl_socket_t sockfd,
+@@ -3842,6 +3960,13 @@ CURLMcode curl_multi_assign(CURLM *m, curl_socket_t sockfd,
  
    return Curl_multi_ev_assign(multi, sockfd, sockp);
  }
@@ -1611,7 +1611,7 @@ index d0fa68a..0865e2d 100644
  
  static void move_pending_to_connect(struct Curl_multi *multi,
                                      struct Curl_easy *data)
-@@ -3923,6 +4048,14 @@ CURL **curl_multi_get_handles(CURLM *m)
+@@ -3945,6 +4070,14 @@ CURL **curl_multi_get_handles(CURLM *m)
    }
    return a;
  }
@@ -1626,7 +1626,7 @@ index d0fa68a..0865e2d 100644
  
  CURLMcode curl_multi_get_offt(CURLM *m,
                                CURLMinfo_offt info,
-@@ -3963,6 +4096,13 @@ CURLMcode curl_multi_get_offt(CURLM *m,
+@@ -3985,6 +4118,13 @@ CURLMcode curl_multi_get_offt(CURLM *m,
      return CURLM_UNKNOWN_OPTION;
    }
  }
@@ -1640,7 +1640,7 @@ index d0fa68a..0865e2d 100644
  
  CURLcode Curl_multi_xfer_buf_borrow(struct Curl_easy *data,
                                      char **pbuf, size_t *pbuflen)
-@@ -4173,6 +4313,15 @@ CURLMcode curl_multi_notify_enable(CURLM *m, unsigned int notification)
+@@ -4195,6 +4335,15 @@ CURLMcode curl_multi_notify_enable(CURLM *m, unsigned int notification)
      return CURLM_BAD_HANDLE;
    return Curl_mntfy_enable(multi, notification);
  }
@@ -1656,7 +1656,7 @@ index d0fa68a..0865e2d 100644
  
  CURLMcode curl_multi_notify_disable(CURLM *m, unsigned int notification)
  {
-@@ -4182,6 +4331,15 @@ CURLMcode curl_multi_notify_disable(CURLM *m, unsigned int notification)
+@@ -4204,6 +4353,15 @@ CURLMcode curl_multi_notify_disable(CURLM *m, unsigned int notification)
      return CURLM_BAD_HANDLE;
    return Curl_mntfy_disable(multi, notification);
  }
@@ -1690,10 +1690,10 @@ index b194231..4025330 100644
  /* Curl_getdate_capped() differs from curl_getdate() in that this will return
     TIME_T_MAX in case the parsed time value was too big, instead of an
 diff --git a/lib/setopt.c b/lib/setopt.c
-index 00dda4e..eab4e42 100644
+index eb9ff2e..3c63820 100644
 --- a/lib/setopt.c
 +++ b/lib/setopt.c
-@@ -2954,3 +2954,10 @@ CURLcode curl_easy_setopt(CURL *curl, CURLoption option, ...)
+@@ -2950,3 +2950,10 @@ CURLcode curl_easy_setopt(CURL *curl, CURLoption option, ...)
      failf(data, "setopt 0x%x got bad argument", (unsigned int)option);
    return result;
  }
@@ -1919,10 +1919,10 @@ index 299caee..46722d4 100644
 +__asm__(".symver __curl_compat_curl_version_info, curl_version_info@CURL_GNUTLS_3");
 +#endif
 diff --git a/lib/ws.c b/lib/ws.c
-index 3f3a074..54ba6aa 100644
+index 9820c3e..f1d8fa3 100644
 --- a/lib/ws.c
 +++ b/lib/ws.c
-@@ -1625,6 +1625,12 @@ CURLcode curl_ws_recv(CURL *curl, void *buffer,
+@@ -1628,6 +1628,12 @@ CURLcode curl_ws_recv(CURL *curl, void *buffer,
    }
    return CURLE_OK;
  }
@@ -1935,7 +1935,7 @@ index 3f3a074..54ba6aa 100644
  
  static CURLcode ws_flush(struct Curl_easy *data, struct websocket *ws,
                           bool blocking)
-@@ -1851,6 +1857,12 @@ out:
+@@ -1854,6 +1860,12 @@ out:
                *pnsent);
    return result;
  }
@@ -1948,7 +1948,7 @@ index 3f3a074..54ba6aa 100644
  
  static CURLcode ws_setup_conn(struct Curl_easy *data,
                                struct connectdata *conn)
-@@ -1877,6 +1889,12 @@ const struct curl_ws_frame *curl_ws_meta(CURL *curl)
+@@ -1880,6 +1892,12 @@ const struct curl_ws_frame *curl_ws_meta(CURL *curl)
    }
    return NULL;
  }
@@ -1961,7 +1961,7 @@ index 3f3a074..54ba6aa 100644
  
  CURL_EXTERN CURLcode curl_ws_start_frame(CURL *curl,
                                           unsigned int flags,
-@@ -1924,6 +1942,13 @@ CURL_EXTERN CURLcode curl_ws_start_frame(CURL *curl,
+@@ -1927,6 +1945,13 @@ CURL_EXTERN CURLcode curl_ws_start_frame(CURL *curl,
  out:
    return result;
  }
@@ -1975,7 +1975,7 @@ index 3f3a074..54ba6aa 100644
  
  const struct Curl_protocol Curl_protocol_ws = {
    ws_setup_conn,                        /* setup_connection */
-@@ -1958,6 +1983,12 @@ CURLcode curl_ws_recv(CURL *curl, void *buffer, size_t buflen,
+@@ -1961,6 +1986,12 @@ CURLcode curl_ws_recv(CURL *curl, void *buffer, size_t buflen,
    (void)metap;
    return CURLE_NOT_BUILT_IN;
  }
@@ -1988,7 +1988,7 @@ index 3f3a074..54ba6aa 100644
  
  CURLcode curl_ws_send(CURL *curl, const void *buffer,
                        size_t buflen, size_t *sent,
-@@ -1972,12 +2003,24 @@ CURLcode curl_ws_send(CURL *curl, const void *buffer,
+@@ -1975,12 +2006,24 @@ CURLcode curl_ws_send(CURL *curl, const void *buffer,
    (void)flags;
    return CURLE_NOT_BUILT_IN;
  }
@@ -2013,7 +2013,7 @@ index 3f3a074..54ba6aa 100644
  
  CURL_EXTERN CURLcode curl_ws_start_frame(CURL *curl,
                                           unsigned int flags,
-@@ -1988,5 +2031,12 @@ CURL_EXTERN CURLcode curl_ws_start_frame(CURL *curl,
+@@ -1991,5 +2034,12 @@ CURL_EXTERN CURLcode curl_ws_start_frame(CURL *curl,
    (void)frame_len;
    return CURLE_NOT_BUILT_IN;
  }

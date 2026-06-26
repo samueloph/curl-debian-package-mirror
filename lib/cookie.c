@@ -759,10 +759,12 @@ static CURLcode parse_netscape(struct Cookie *co,
       if(!co->name)
         return CURLE_OUT_OF_MEMORY;
       else {
-        /* For Netscape file format cookies we check prefix on the name */
-        if(curl_strnequal("__Secure-", co->name, 9))
+        /* For Netscape file format cookies we check prefix on the name.
+           These prefixes are matched case sensitively, same as on the
+           header path and as the 6265bis document specifies. */
+        if(!strncmp("__Secure-", co->name, 9))
           co->prefix_secure = TRUE;
-        else if(curl_strnequal("__Host-", co->name, 7))
+        else if(!strncmp("__Host-", co->name, 7))
           co->prefix_host = TRUE;
       }
       break;
@@ -784,6 +786,14 @@ static CURLcode parse_netscape(struct Cookie *co,
 
   if(fields != 7)
     /* we did not find the sufficient number of fields */
+    return CURLE_OK;
+
+  /* Reject control octets in the name or value, matching the filtering done
+     for cookies set over HTTP. A cookie loaded from a file is later sent in
+     request headers, so the same bytes that make a server reject a request
+     must not slip in through the file. */
+  if(invalid_octets(co->name, strlen(co->name)) ||
+     invalid_octets(co->value, strlen(co->value)))
     return CURLE_OK;
 
   *okay = TRUE;

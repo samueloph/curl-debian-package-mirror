@@ -1317,7 +1317,6 @@ static struct connectdata *allocate_conn(struct Curl_easy *data)
 #if defined(HAVE_GSSAPI) || defined(USE_WINDOWS_SSPI)
   conn->gssapi_delegation = data->set.gssapi_delegation;
 #endif
-  DEBUGF(infof(data, "alloc connection, bits.close=%d", conn->bits.close));
   return conn;
 error:
 
@@ -1677,13 +1676,11 @@ static CURLcode setup_connection_internals(struct Curl_easy *data,
   struct Curl_peer *peer = NULL;
   CURLcode result;
 
-  DEBUGF(infof(data, "setup connection, bits.close=%d", conn->bits.close));
   if(conn->scheme->run->setup_connection) {
     result = conn->scheme->run->setup_connection(data, conn);
     if(result)
       return result;
   }
-  DEBUGF(infof(data, "setup connection, bits.close=%d", conn->bits.close));
 
   /* Now create the destination name */
   peer = Curl_conn_get_destination(conn, FIRSTSOCKET);
@@ -2103,7 +2100,7 @@ static CURLcode url_create_needle(struct Curl_easy *data,
                  Curl_hash_str, curlx_str_key_compare, conn_meta_freeentry);
 
   /*************************************************************
-   * Determine `conn->origin` and propulate `data->state.up` and
+   * Determine `conn->origin` and populate `data->state.up` and
    * other URL related properties.
    *************************************************************/
   result = url_set_conn_origin_etc(data, needle);
@@ -2138,6 +2135,15 @@ static CURLcode url_create_needle(struct Curl_easy *data,
       goto out;
   }
 
+  /*************************************************************
+   * Check whether the host and the "connect to host" are equal.
+   * Do this after the hostnames have been IDN-converted and
+   * before initializing the proxy.
+   *************************************************************/
+  if(Curl_peer_equal(needle->origin, needle->via_peer)) {
+    Curl_peer_unlink(&needle->via_peer);
+  }
+
 #ifndef CURL_DISABLE_PROXY
   /* Going via a unix socket ignores any proxy settings */
   if(network_scheme &&
@@ -2151,14 +2157,6 @@ static CURLcode url_create_needle(struct Curl_easy *data,
   result = url_set_conn_login(data, needle); /* default credentials */
   if(result)
     goto out;
-
-  /*************************************************************
-   * Check whether the host and the "connect to host" are equal.
-   * Do this after the hostnames have been IDN-converted.
-   *************************************************************/
-  if(Curl_peer_equal(needle->origin, needle->via_peer)) {
-    Curl_peer_unlink(&needle->via_peer);
-  }
 
   /*************************************************************
    * Setup internals depending on protocol. Needs to be done after
@@ -2423,7 +2421,6 @@ static CURLcode url_find_or_create_conn(struct Curl_easy *data)
     /* We have decided that we want a new connection. We may not be able to do
        that if we have reached the limit of how many connections we are
        allowed to open. */
-    DEBUGF(infof(data, "new connection, bits.close=%d", needle->bits.close));
 
     if(waitpipe) {
       /* There is a connection that *might* become usable for multiplexing

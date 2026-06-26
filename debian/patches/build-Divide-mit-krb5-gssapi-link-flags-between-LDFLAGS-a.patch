@@ -17,7 +17,7 @@ Signed-off-by: Simon McVittie <smcv@collabora.com>
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/configure.ac b/configure.ac
-index abc8853..14ff2ba 100644
+index 56cedfb..d9748a4 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -1996,7 +1996,8 @@ if test "$want_gss" = "yes"; then

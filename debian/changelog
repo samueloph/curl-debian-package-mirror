@@ -1,3 +1,11 @@
+curl (8.21.0-1) unstable; urgency=medium
+
+  * New upstream version 8.21.0.
+  * debian/copyright: update upstream copyright holders for new release.
+  * debian/patches: rebase patches.
+
+ -- Carlos Henrique Lima Melara <charlesmelara@riseup.net>  Wed, 24 Jun 2026 22:26:04 -0300
+
 curl (8.21.0~rc3-1+exp1) experimental; urgency=medium
 
   * Upload to experimental.

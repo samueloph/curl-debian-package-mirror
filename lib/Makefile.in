@@ -219,10 +219,10 @@ libcurl_la_LIBADD =
 am__libcurl_la_SOURCES_DIST = altsvc.c amigaos.c asyn-ares.c \
 	asyn-base.c asyn-thrdd.c bufq.c bufref.c cf-dns.c \
 	cf-h1-proxy.c cf-h2-proxy.c cf-haproxy.c cf-https-connect.c \
-	cf-ip-happy.c cf-setup.c cf-socket.c cfilters.c conncache.c \
-	connect.c content_encoding.c cookie.c creds.c cshutdn.c \
-	curl_addrinfo.c curl_endian.c curl_fnmatch.c curl_fopen.c \
-	curl_get_line.c curl_gethostname.c curl_gssapi.c \
+	cf-ip-happy.c cf-recvbuf.c cf-setup.c cf-socket.c cfilters.c \
+	conncache.c connect.c content_encoding.c cookie.c creds.c \
+	cshutdn.c curl_addrinfo.c curl_endian.c curl_fnmatch.c \
+	curl_fopen.c curl_get_line.c curl_gethostname.c curl_gssapi.c \
 	curl_memrchr.c curl_ntlm_core.c curl_range.c curl_sasl.c \
 	curl_sha512_256.c curl_share.c curl_sspi.c curl_threads.c \
 	curl_trc.c cw-out.c cw-pause.c dict.c dnscache.c doh.c \
@@ -262,39 +262,40 @@ am__libcurl_la_SOURCES_DIST = altsvc.c amigaos.c asyn-ares.c \
 	curlx/wait.c curlx/warnless.c curlx/winapi.c dllmain.c \
 	altsvc.h amigaos.h arpa_telnet.h asyn.h bufq.h bufref.h \
 	cf-dns.h cf-h1-proxy.h cf-h2-proxy.h cf-haproxy.h \
-	cf-https-connect.h cf-ip-happy.h cf-setup.h cf-socket.h \
-	cfilters.h conncache.h cshutdn.h connect.h content_encoding.h \
-	cookie.h creds.h curl_addrinfo.h curl_ctype.h curl_endian.h \
-	curl_fnmatch.h curl_fopen.h curl_get_line.h curl_gethostname.h \
-	curl_gssapi.h curl_hmac.h curl_ldap.h curl_md4.h curl_md5.h \
-	curl_memrchr.h curl_ntlm_core.h curl_printf.h curl_range.h \
-	curl_sasl.h curl_setup.h curl_sha256.h curl_sha512_256.h \
-	curl_share.h curl_sspi.h curl_threads.h curl_trc.h cw-out.h \
-	cw-pause.h dict.h dnscache.h doh.h dynhds.h easy_lock.h \
-	easyif.h easyoptions.h escape.h fake_addrinfo.h file.h \
-	fileinfo.h formdata.h ftp.h ftp-int.h ftplistparser.h \
-	functypes.h getinfo.h gopher.h hash.h headers.h hostip.h \
-	hsts.h http.h http1.h http2.h http_aws_sigv4.h http_chunks.h \
-	http_digest.h http_negotiate.h http_ntlm.h http_proxy.h \
-	httpsrr.h idn.h if2ip.h imap.h llist.h macos.h mime.h mqtt.h \
-	multihandle.h multi_ev.h multi_ntfy.h multiif.h netrc.h \
-	parsedate.h peer.h pingpong.h pop3.h progress.h protocol.h \
-	proxy.h psl.h rand.h ratelimit.h request.h rtsp.h select.h \
-	sendf.h setopt.h setup-os400.h setup-vms.h setup-win32.h \
-	sigpipe.h slist.h smb.h smtp.h sockaddr.h socketpair.h socks.h \
-	splay.h strcase.h strerror.h system_win32.h telnet.h tftp.h \
-	thrdpool.h thrdqueue.h transfer.h uint-bset.h uint-hash.h \
-	uint-spbset.h uint-table.h url.h urlapi-int.h urldata.h ws.h \
-	vauth/digest.h vauth/vauth.h vtls/apple.h vtls/cipher_suite.h \
-	vtls/gtls.h vtls/hostcheck.h vtls/keylog.h vtls/mbedtls.h \
-	vtls/openssl.h vtls/rustls.h vtls/schannel.h \
-	vtls/schannel_int.h vtls/vtls.h vtls/vtls_config.h \
-	vtls/vtls_int.h vtls/vtls_scache.h vtls/vtls_spack.h \
-	vtls/wolfssl.h vtls/x509asn1.h vquic/capsule.h \
-	vquic/cf-capsule.h vquic/cf-ngtcp2.h vquic/cf-ngtcp2-cmn.h \
-	vquic/cf-ngtcp2-proxy.h vquic/cf-quiche.h vquic/vquic.h \
-	vquic/vquic_int.h vquic/vquic-tls.h vssh/vssh.h vssh/ssh.h \
-	curlx/base64.h curlx/basename.h curlx/dynbuf.h curlx/fopen.h \
+	cf-https-connect.h cf-ip-happy.h cf-recvbuf.h cf-setup.h \
+	cf-socket.h cfilters.h conncache.h cshutdn.h connect.h \
+	content_encoding.h cookie.h creds.h curl_addrinfo.h \
+	curl_ctype.h curl_endian.h curl_fnmatch.h curl_fopen.h \
+	curl_get_line.h curl_gethostname.h curl_gssapi.h curl_hmac.h \
+	curl_ldap.h curl_md4.h curl_md5.h curl_memrchr.h \
+	curl_ntlm_core.h curl_printf.h curl_range.h curl_sasl.h \
+	curl_setup.h curl_sha256.h curl_sha512_256.h curl_share.h \
+	curl_sspi.h curl_threads.h curl_trc.h cw-out.h cw-pause.h \
+	dict.h dnscache.h doh.h dynhds.h easy_lock.h easyif.h \
+	easyoptions.h escape.h fake_addrinfo.h file.h fileinfo.h \
+	formdata.h ftp.h ftp-int.h ftplistparser.h functypes.h \
+	getinfo.h gopher.h hash.h headers.h hostip.h hsts.h http.h \
+	http1.h http2.h http_aws_sigv4.h http_chunks.h http_digest.h \
+	http_negotiate.h http_ntlm.h http_proxy.h httpsrr.h idn.h \
+	if2ip.h imap.h llist.h macos.h mime.h mqtt.h multihandle.h \
+	multi_ev.h multi_ntfy.h multiif.h netrc.h parsedate.h peer.h \
+	pingpong.h pop3.h progress.h protocol.h proxy.h psl.h rand.h \
+	ratelimit.h request.h rtsp.h select.h sendf.h setopt.h \
+	setup-os400.h setup-vms.h setup-win32.h sigpipe.h slist.h \
+	smb.h smtp.h sockaddr.h socketpair.h socks.h splay.h strcase.h \
+	strerror.h system_win32.h telnet.h tftp.h thrdpool.h \
+	thrdqueue.h transfer.h uint-bset.h uint-hash.h uint-spbset.h \
+	uint-table.h url.h urlapi-int.h urldata.h ws.h vauth/digest.h \
+	vauth/vauth.h vtls/apple.h vtls/cipher_suite.h vtls/gtls.h \
+	vtls/hostcheck.h vtls/keylog.h vtls/mbedtls.h vtls/openssl.h \
+	vtls/rustls.h vtls/schannel.h vtls/schannel_int.h vtls/vtls.h \
+	vtls/vtls_config.h vtls/vtls_int.h vtls/vtls_scache.h \
+	vtls/vtls_spack.h vtls/wolfssl.h vtls/x509asn1.h \
+	vquic/capsule.h vquic/cf-capsule.h vquic/cf-ngtcp2.h \
+	vquic/cf-ngtcp2-cmn.h vquic/cf-ngtcp2-proxy.h \
+	vquic/cf-quiche.h vquic/vquic.h vquic/vquic_int.h \
+	vquic/vquic-tls.h vssh/vssh.h vssh/ssh.h curlx/base64.h \
+	curlx/basename.h curlx/dynbuf.h curlx/fopen.h \
 	curlx/inet_ntop.h curlx/inet_pton.h curlx/multibyte.h \
 	curlx/nonblock.h curlx/snprintf.h curlx/strcopy.h \
 	curlx/strdup.h curlx/strerr.h curlx/strparse.h \
@@ -306,11 +307,11 @@ am__objects_1 = libcurl_la-altsvc.lo libcurl_la-amigaos.lo \
 	libcurl_la-bufref.lo libcurl_la-cf-dns.lo \
 	libcurl_la-cf-h1-proxy.lo libcurl_la-cf-h2-proxy.lo \
 	libcurl_la-cf-haproxy.lo libcurl_la-cf-https-connect.lo \
-	libcurl_la-cf-ip-happy.lo libcurl_la-cf-setup.lo \
-	libcurl_la-cf-socket.lo libcurl_la-cfilters.lo \
-	libcurl_la-conncache.lo libcurl_la-connect.lo \
-	libcurl_la-content_encoding.lo libcurl_la-cookie.lo \
-	libcurl_la-creds.lo libcurl_la-cshutdn.lo \
+	libcurl_la-cf-ip-happy.lo libcurl_la-cf-recvbuf.lo \
+	libcurl_la-cf-setup.lo libcurl_la-cf-socket.lo \
+	libcurl_la-cfilters.lo libcurl_la-conncache.lo \
+	libcurl_la-connect.lo libcurl_la-content_encoding.lo \
+	libcurl_la-cookie.lo libcurl_la-creds.lo libcurl_la-cshutdn.lo \
 	libcurl_la-curl_addrinfo.lo libcurl_la-curl_endian.lo \
 	libcurl_la-curl_fnmatch.lo libcurl_la-curl_fopen.lo \
 	libcurl_la-curl_get_line.lo libcurl_la-curl_gethostname.lo \
@@ -421,10 +422,10 @@ libcurlu_la_LIBADD =
 am__libcurlu_la_SOURCES_DIST = altsvc.c amigaos.c asyn-ares.c \
 	asyn-base.c asyn-thrdd.c bufq.c bufref.c cf-dns.c \
 	cf-h1-proxy.c cf-h2-proxy.c cf-haproxy.c cf-https-connect.c \
-	cf-ip-happy.c cf-setup.c cf-socket.c cfilters.c conncache.c \
-	connect.c content_encoding.c cookie.c creds.c cshutdn.c \
-	curl_addrinfo.c curl_endian.c curl_fnmatch.c curl_fopen.c \
-	curl_get_line.c curl_gethostname.c curl_gssapi.c \
+	cf-ip-happy.c cf-recvbuf.c cf-setup.c cf-socket.c cfilters.c \
+	conncache.c connect.c content_encoding.c cookie.c creds.c \
+	cshutdn.c curl_addrinfo.c curl_endian.c curl_fnmatch.c \
+	curl_fopen.c curl_get_line.c curl_gethostname.c curl_gssapi.c \
 	curl_memrchr.c curl_ntlm_core.c curl_range.c curl_sasl.c \
 	curl_sha512_256.c curl_share.c curl_sspi.c curl_threads.c \
 	curl_trc.c cw-out.c cw-pause.c dict.c dnscache.c doh.c \
@@ -464,39 +465,40 @@ am__libcurlu_la_SOURCES_DIST = altsvc.c amigaos.c asyn-ares.c \
 	curlx/wait.c curlx/warnless.c curlx/winapi.c dllmain.c \
 	altsvc.h amigaos.h arpa_telnet.h asyn.h bufq.h bufref.h \
 	cf-dns.h cf-h1-proxy.h cf-h2-proxy.h cf-haproxy.h \
-	cf-https-connect.h cf-ip-happy.h cf-setup.h cf-socket.h \
-	cfilters.h conncache.h cshutdn.h connect.h content_encoding.h \
-	cookie.h creds.h curl_addrinfo.h curl_ctype.h curl_endian.h \
-	curl_fnmatch.h curl_fopen.h curl_get_line.h curl_gethostname.h \
-	curl_gssapi.h curl_hmac.h curl_ldap.h curl_md4.h curl_md5.h \
-	curl_memrchr.h curl_ntlm_core.h curl_printf.h curl_range.h \
-	curl_sasl.h curl_setup.h curl_sha256.h curl_sha512_256.h \
-	curl_share.h curl_sspi.h curl_threads.h curl_trc.h cw-out.h \
-	cw-pause.h dict.h dnscache.h doh.h dynhds.h easy_lock.h \
-	easyif.h easyoptions.h escape.h fake_addrinfo.h file.h \
-	fileinfo.h formdata.h ftp.h ftp-int.h ftplistparser.h \
-	functypes.h getinfo.h gopher.h hash.h headers.h hostip.h \
-	hsts.h http.h http1.h http2.h http_aws_sigv4.h http_chunks.h \
-	http_digest.h http_negotiate.h http_ntlm.h http_proxy.h \
-	httpsrr.h idn.h if2ip.h imap.h llist.h macos.h mime.h mqtt.h \
-	multihandle.h multi_ev.h multi_ntfy.h multiif.h netrc.h \
-	parsedate.h peer.h pingpong.h pop3.h progress.h protocol.h \
-	proxy.h psl.h rand.h ratelimit.h request.h rtsp.h select.h \
-	sendf.h setopt.h setup-os400.h setup-vms.h setup-win32.h \
-	sigpipe.h slist.h smb.h smtp.h sockaddr.h socketpair.h socks.h \
-	splay.h strcase.h strerror.h system_win32.h telnet.h tftp.h \
-	thrdpool.h thrdqueue.h transfer.h uint-bset.h uint-hash.h \
-	uint-spbset.h uint-table.h url.h urlapi-int.h urldata.h ws.h \
-	vauth/digest.h vauth/vauth.h vtls/apple.h vtls/cipher_suite.h \
-	vtls/gtls.h vtls/hostcheck.h vtls/keylog.h vtls/mbedtls.h \
-	vtls/openssl.h vtls/rustls.h vtls/schannel.h \
-	vtls/schannel_int.h vtls/vtls.h vtls/vtls_config.h \
-	vtls/vtls_int.h vtls/vtls_scache.h vtls/vtls_spack.h \
-	vtls/wolfssl.h vtls/x509asn1.h vquic/capsule.h \
-	vquic/cf-capsule.h vquic/cf-ngtcp2.h vquic/cf-ngtcp2-cmn.h \
-	vquic/cf-ngtcp2-proxy.h vquic/cf-quiche.h vquic/vquic.h \
-	vquic/vquic_int.h vquic/vquic-tls.h vssh/vssh.h vssh/ssh.h \
-	curlx/base64.h curlx/basename.h curlx/dynbuf.h curlx/fopen.h \
+	cf-https-connect.h cf-ip-happy.h cf-recvbuf.h cf-setup.h \
+	cf-socket.h cfilters.h conncache.h cshutdn.h connect.h \
+	content_encoding.h cookie.h creds.h curl_addrinfo.h \
+	curl_ctype.h curl_endian.h curl_fnmatch.h curl_fopen.h \
+	curl_get_line.h curl_gethostname.h curl_gssapi.h curl_hmac.h \
+	curl_ldap.h curl_md4.h curl_md5.h curl_memrchr.h \
+	curl_ntlm_core.h curl_printf.h curl_range.h curl_sasl.h \
+	curl_setup.h curl_sha256.h curl_sha512_256.h curl_share.h \
+	curl_sspi.h curl_threads.h curl_trc.h cw-out.h cw-pause.h \
+	dict.h dnscache.h doh.h dynhds.h easy_lock.h easyif.h \
+	easyoptions.h escape.h fake_addrinfo.h file.h fileinfo.h \
+	formdata.h ftp.h ftp-int.h ftplistparser.h functypes.h \
+	getinfo.h gopher.h hash.h headers.h hostip.h hsts.h http.h \
+	http1.h http2.h http_aws_sigv4.h http_chunks.h http_digest.h \
+	http_negotiate.h http_ntlm.h http_proxy.h httpsrr.h idn.h \
+	if2ip.h imap.h llist.h macos.h mime.h mqtt.h multihandle.h \
+	multi_ev.h multi_ntfy.h multiif.h netrc.h parsedate.h peer.h \
+	pingpong.h pop3.h progress.h protocol.h proxy.h psl.h rand.h \
+	ratelimit.h request.h rtsp.h select.h sendf.h setopt.h \
+	setup-os400.h setup-vms.h setup-win32.h sigpipe.h slist.h \
+	smb.h smtp.h sockaddr.h socketpair.h socks.h splay.h strcase.h \
+	strerror.h system_win32.h telnet.h tftp.h thrdpool.h \
+	thrdqueue.h transfer.h uint-bset.h uint-hash.h uint-spbset.h \
+	uint-table.h url.h urlapi-int.h urldata.h ws.h vauth/digest.h \
+	vauth/vauth.h vtls/apple.h vtls/cipher_suite.h vtls/gtls.h \
+	vtls/hostcheck.h vtls/keylog.h vtls/mbedtls.h vtls/openssl.h \
+	vtls/rustls.h vtls/schannel.h vtls/schannel_int.h vtls/vtls.h \
+	vtls/vtls_config.h vtls/vtls_int.h vtls/vtls_scache.h \
+	vtls/vtls_spack.h vtls/wolfssl.h vtls/x509asn1.h \
+	vquic/capsule.h vquic/cf-capsule.h vquic/cf-ngtcp2.h \
+	vquic/cf-ngtcp2-cmn.h vquic/cf-ngtcp2-proxy.h \
+	vquic/cf-quiche.h vquic/vquic.h vquic/vquic_int.h \
+	vquic/vquic-tls.h vssh/vssh.h vssh/ssh.h curlx/base64.h \
+	curlx/basename.h curlx/dynbuf.h curlx/fopen.h \
 	curlx/inet_ntop.h curlx/inet_pton.h curlx/multibyte.h \
 	curlx/nonblock.h curlx/snprintf.h curlx/strcopy.h \
 	curlx/strdup.h curlx/strerr.h curlx/strparse.h \
@@ -508,21 +510,22 @@ am__objects_13 = libcurlu_la-altsvc.lo libcurlu_la-amigaos.lo \
 	libcurlu_la-bufref.lo libcurlu_la-cf-dns.lo \
 	libcurlu_la-cf-h1-proxy.lo libcurlu_la-cf-h2-proxy.lo \
 	libcurlu_la-cf-haproxy.lo libcurlu_la-cf-https-connect.lo \
-	libcurlu_la-cf-ip-happy.lo libcurlu_la-cf-setup.lo \
-	libcurlu_la-cf-socket.lo libcurlu_la-cfilters.lo \
-	libcurlu_la-conncache.lo libcurlu_la-connect.lo \
-	libcurlu_la-content_encoding.lo libcurlu_la-cookie.lo \
-	libcurlu_la-creds.lo libcurlu_la-cshutdn.lo \
-	libcurlu_la-curl_addrinfo.lo libcurlu_la-curl_endian.lo \
-	libcurlu_la-curl_fnmatch.lo libcurlu_la-curl_fopen.lo \
-	libcurlu_la-curl_get_line.lo libcurlu_la-curl_gethostname.lo \
-	libcurlu_la-curl_gssapi.lo libcurlu_la-curl_memrchr.lo \
-	libcurlu_la-curl_ntlm_core.lo libcurlu_la-curl_range.lo \
-	libcurlu_la-curl_sasl.lo libcurlu_la-curl_sha512_256.lo \
-	libcurlu_la-curl_share.lo libcurlu_la-curl_sspi.lo \
-	libcurlu_la-curl_threads.lo libcurlu_la-curl_trc.lo \
-	libcurlu_la-cw-out.lo libcurlu_la-cw-pause.lo \
-	libcurlu_la-dict.lo libcurlu_la-dnscache.lo libcurlu_la-doh.lo \
+	libcurlu_la-cf-ip-happy.lo libcurlu_la-cf-recvbuf.lo \
+	libcurlu_la-cf-setup.lo libcurlu_la-cf-socket.lo \
+	libcurlu_la-cfilters.lo libcurlu_la-conncache.lo \
+	libcurlu_la-connect.lo libcurlu_la-content_encoding.lo \
+	libcurlu_la-cookie.lo libcurlu_la-creds.lo \
+	libcurlu_la-cshutdn.lo libcurlu_la-curl_addrinfo.lo \
+	libcurlu_la-curl_endian.lo libcurlu_la-curl_fnmatch.lo \
+	libcurlu_la-curl_fopen.lo libcurlu_la-curl_get_line.lo \
+	libcurlu_la-curl_gethostname.lo libcurlu_la-curl_gssapi.lo \
+	libcurlu_la-curl_memrchr.lo libcurlu_la-curl_ntlm_core.lo \
+	libcurlu_la-curl_range.lo libcurlu_la-curl_sasl.lo \
+	libcurlu_la-curl_sha512_256.lo libcurlu_la-curl_share.lo \
+	libcurlu_la-curl_sspi.lo libcurlu_la-curl_threads.lo \
+	libcurlu_la-curl_trc.lo libcurlu_la-cw-out.lo \
+	libcurlu_la-cw-pause.lo libcurlu_la-dict.lo \
+	libcurlu_la-dnscache.lo libcurlu_la-doh.lo \
 	libcurlu_la-dynhds.lo libcurlu_la-easy.lo \
 	libcurlu_la-easygetopt.lo libcurlu_la-easyoptions.lo \
 	libcurlu_la-escape.lo libcurlu_la-fake_addrinfo.lo \
@@ -641,6 +644,7 @@ am__depfiles_remade = ./$(DEPDIR)/libcurl_la-altsvc.Plo \
 	./$(DEPDIR)/libcurl_la-cf-haproxy.Plo \
 	./$(DEPDIR)/libcurl_la-cf-https-connect.Plo \
 	./$(DEPDIR)/libcurl_la-cf-ip-happy.Plo \
+	./$(DEPDIR)/libcurl_la-cf-recvbuf.Plo \
 	./$(DEPDIR)/libcurl_la-cf-setup.Plo \
 	./$(DEPDIR)/libcurl_la-cf-socket.Plo \
 	./$(DEPDIR)/libcurl_la-cfilters.Plo \
@@ -772,6 +776,7 @@ am__depfiles_remade = ./$(DEPDIR)/libcurl_la-altsvc.Plo \
 	./$(DEPDIR)/libcurlu_la-cf-haproxy.Plo \
 	./$(DEPDIR)/libcurlu_la-cf-https-connect.Plo \
 	./$(DEPDIR)/libcurlu_la-cf-ip-happy.Plo \
+	./$(DEPDIR)/libcurlu_la-cf-recvbuf.Plo \
 	./$(DEPDIR)/libcurlu_la-cf-setup.Plo \
 	./$(DEPDIR)/libcurlu_la-cf-socket.Plo \
 	./$(DEPDIR)/libcurlu_la-cfilters.Plo \
@@ -1400,6 +1405,7 @@ LIB_CFILES = \
   cf-haproxy.c       \
   cf-https-connect.c \
   cf-ip-happy.c      \
+  cf-recvbuf.c       \
   cf-setup.c         \
   cf-socket.c        \
   cfilters.c         \
@@ -1533,6 +1539,7 @@ LIB_HFILES = \
   cf-haproxy.h       \
   cf-https-connect.h \
   cf-ip-happy.h      \
+  cf-recvbuf.h       \
   cf-setup.h         \
   cf-socket.h        \
   cfilters.h         \
@@ -2126,6 +2133,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcurl_la-cf-haproxy.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcurl_la-cf-https-connect.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcurl_la-cf-ip-happy.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcurl_la-cf-recvbuf.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcurl_la-cf-setup.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcurl_la-cf-socket.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcurl_la-cfilters.Plo@am__quote@ # am--include-marker
@@ -2260,6 +2268,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcurlu_la-cf-haproxy.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcurlu_la-cf-https-connect.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcurlu_la-cf-ip-happy.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcurlu_la-cf-recvbuf.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcurlu_la-cf-setup.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcurlu_la-cf-socket.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcurlu_la-cfilters.Plo@am__quote@ # am--include-marker
@@ -2620,6 +2629,13 @@ libcurl_la-cf-ip-happy.lo: cf-ip-happy.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='cf-ip-happy.c' object='libcurl_la-cf-ip-happy.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libcurl_la_CPPFLAGS) $(CPPFLAGS) $(libcurl_la_CFLAGS) $(CFLAGS) -c -o libcurl_la-cf-ip-happy.lo `test -f 'cf-ip-happy.c' || echo '$(srcdir)/'`cf-ip-happy.c
+
+libcurl_la-cf-recvbuf.lo: cf-recvbuf.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libcurl_la_CPPFLAGS) $(CPPFLAGS) $(libcurl_la_CFLAGS) $(CFLAGS) -MT libcurl_la-cf-recvbuf.lo -MD -MP -MF $(DEPDIR)/libcurl_la-cf-recvbuf.Tpo -c -o libcurl_la-cf-recvbuf.lo `test -f 'cf-recvbuf.c' || echo '$(srcdir)/'`cf-recvbuf.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libcurl_la-cf-recvbuf.Tpo $(DEPDIR)/libcurl_la-cf-recvbuf.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='cf-recvbuf.c' object='libcurl_la-cf-recvbuf.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libcurl_la_CPPFLAGS) $(CPPFLAGS) $(libcurl_la_CFLAGS) $(CFLAGS) -c -o libcurl_la-cf-recvbuf.lo `test -f 'cf-recvbuf.c' || echo '$(srcdir)/'`cf-recvbuf.c
 
 libcurl_la-cf-setup.lo: cf-setup.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libcurl_la_CPPFLAGS) $(CPPFLAGS) $(libcurl_la_CFLAGS) $(CFLAGS) -MT libcurl_la-cf-setup.lo -MD -MP -MF $(DEPDIR)/libcurl_la-cf-setup.Tpo -c -o libcurl_la-cf-setup.lo `test -f 'cf-setup.c' || echo '$(srcdir)/'`cf-setup.c
@@ -3971,6 +3987,13 @@ libcurlu_la-cf-ip-happy.lo: cf-ip-happy.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='cf-ip-happy.c' object='libcurlu_la-cf-ip-happy.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libcurlu_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libcurlu_la-cf-ip-happy.lo `test -f 'cf-ip-happy.c' || echo '$(srcdir)/'`cf-ip-happy.c
+
+libcurlu_la-cf-recvbuf.lo: cf-recvbuf.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libcurlu_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libcurlu_la-cf-recvbuf.lo -MD -MP -MF $(DEPDIR)/libcurlu_la-cf-recvbuf.Tpo -c -o libcurlu_la-cf-recvbuf.lo `test -f 'cf-recvbuf.c' || echo '$(srcdir)/'`cf-recvbuf.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libcurlu_la-cf-recvbuf.Tpo $(DEPDIR)/libcurlu_la-cf-recvbuf.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='cf-recvbuf.c' object='libcurlu_la-cf-recvbuf.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libcurlu_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libcurlu_la-cf-recvbuf.lo `test -f 'cf-recvbuf.c' || echo '$(srcdir)/'`cf-recvbuf.c
 
 libcurlu_la-cf-setup.lo: cf-setup.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libcurlu_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libcurlu_la-cf-setup.lo -MD -MP -MF $(DEPDIR)/libcurlu_la-cf-setup.Tpo -c -o libcurlu_la-cf-setup.lo `test -f 'cf-setup.c' || echo '$(srcdir)/'`cf-setup.c
@@ -5394,6 +5417,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/libcurl_la-cf-haproxy.Plo
 	-rm -f ./$(DEPDIR)/libcurl_la-cf-https-connect.Plo
 	-rm -f ./$(DEPDIR)/libcurl_la-cf-ip-happy.Plo
+	-rm -f ./$(DEPDIR)/libcurl_la-cf-recvbuf.Plo
 	-rm -f ./$(DEPDIR)/libcurl_la-cf-setup.Plo
 	-rm -f ./$(DEPDIR)/libcurl_la-cf-socket.Plo
 	-rm -f ./$(DEPDIR)/libcurl_la-cfilters.Plo
@@ -5528,6 +5552,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/libcurlu_la-cf-haproxy.Plo
 	-rm -f ./$(DEPDIR)/libcurlu_la-cf-https-connect.Plo
 	-rm -f ./$(DEPDIR)/libcurlu_la-cf-ip-happy.Plo
+	-rm -f ./$(DEPDIR)/libcurlu_la-cf-recvbuf.Plo
 	-rm -f ./$(DEPDIR)/libcurlu_la-cf-setup.Plo
 	-rm -f ./$(DEPDIR)/libcurlu_la-cf-socket.Plo
 	-rm -f ./$(DEPDIR)/libcurlu_la-cfilters.Plo
@@ -5825,6 +5850,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/libcurl_la-cf-haproxy.Plo
 	-rm -f ./$(DEPDIR)/libcurl_la-cf-https-connect.Plo
 	-rm -f ./$(DEPDIR)/libcurl_la-cf-ip-happy.Plo
+	-rm -f ./$(DEPDIR)/libcurl_la-cf-recvbuf.Plo
 	-rm -f ./$(DEPDIR)/libcurl_la-cf-setup.Plo
 	-rm -f ./$(DEPDIR)/libcurl_la-cf-socket.Plo
 	-rm -f ./$(DEPDIR)/libcurl_la-cfilters.Plo
@@ -5959,6 +5985,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/libcurlu_la-cf-haproxy.Plo
 	-rm -f ./$(DEPDIR)/libcurlu_la-cf-https-connect.Plo
 	-rm -f ./$(DEPDIR)/libcurlu_la-cf-ip-happy.Plo
+	-rm -f ./$(DEPDIR)/libcurlu_la-cf-recvbuf.Plo
 	-rm -f ./$(DEPDIR)/libcurlu_la-cf-setup.Plo
 	-rm -f ./$(DEPDIR)/libcurlu_la-cf-socket.Plo
 	-rm -f ./$(DEPDIR)/libcurlu_la-cfilters.Plo
