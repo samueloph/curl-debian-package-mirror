@@ -1,4 +1,3 @@
-From c6ae07c6a541e0e96d0040afb62b45dd37711300 Mon Sep 17 00:00:00 2001
 From: Daniel Stenberg <daniel@haxx.se>
 Date: Mon, 11 Aug 2025 20:23:05 +0200
 Subject: [PATCH] cookie: don't treat the leading slash as trailing
@@ -13,7 +12,7 @@ Closes #18266
  1 file changed, 6 insertions(+), 5 deletions(-)
 
 diff --git a/lib/cookie.c b/lib/cookie.c
-index 914a4aca1..b72dd99bc 100644
+index 1a8426c..bfdd4ad 100644
 --- a/lib/cookie.c
 +++ b/lib/cookie.c
 @@ -296,9 +296,9 @@ static char *sanitize_cookie_path(const char *cookie_path)
@@ -49,6 +48,3 @@ index 914a4aca1..b72dd99bc 100644
          if(sep)
            cllen = sep - clist->spath;
          else
--- 
-2.47.3
-

@@ -1,4 +1,3 @@
-From 5f805eec1149c218145097ec2a24ac7fb7d46f25 Mon Sep 17 00:00:00 2001
 From: Dan Fandrich <dan@coneharvesters.com>
 Date: Fri, 6 Jun 2025 10:21:09 -0700
 Subject: [PATCH] tool_getparam: fix --ftp-pasv
@@ -13,15 +12,15 @@ Reported-by: fjaell on github
 Fixes #17545
 Closes #17547
 ---
- docs/cmdline-opts/ftp-pasv.md |  3 +-
- src/tool_getparam.c           |  8 ++---
- tests/data/Makefile.am        |  2 +-
- tests/data/test1547           | 59 +++++++++++++++++++++++++++++++++++
- 4 files changed, 66 insertions(+), 6 deletions(-)
- create mode 100644 tests/data/test1547
+ docs/cmdline-opts/ftp-pasv.md     | 3 ++-
+ src/tool_getparam.c               | 8 ++++----
+ tests/data/Makefile.am            | 2 +-
+ tests/data/{test1153 => test1547} | 9 +++------
+ 4 files changed, 10 insertions(+), 12 deletions(-)
+ copy tests/data/{test1153 => test1547} (88%)
 
 diff --git a/docs/cmdline-opts/ftp-pasv.md b/docs/cmdline-opts/ftp-pasv.md
-index 964f9769ae59..02deee30ded8 100644
+index 964f976..02deee3 100644
 --- a/docs/cmdline-opts/ftp-pasv.md
 +++ b/docs/cmdline-opts/ftp-pasv.md
 @@ -6,7 +6,8 @@ Help: Send PASV/EPSV instead of PORT
@@ -35,7 +34,7 @@ index 964f9769ae59..02deee30ded8 100644
    - disable-epsv
  Example:
 diff --git a/src/tool_getparam.c b/src/tool_getparam.c
-index 51156e46b97e..6d7020987d0a 100644
+index 51156e4..6d70209 100644
 --- a/src/tool_getparam.c
 +++ b/src/tool_getparam.c
 @@ -153,7 +153,7 @@ static const struct LongShort aliases[]= {
@@ -68,7 +67,7 @@ index 51156e46b97e..6d7020987d0a 100644
      /*  socks5 proxy to use, and resolves the name locally and passes on the
          resolved address */
 diff --git a/tests/data/Makefile.am b/tests/data/Makefile.am
-index 1ef85cd3a2da..446674605835 100644
+index 1ef85cd..4466746 100644
 --- a/tests/data/Makefile.am
 +++ b/tests/data/Makefile.am
 @@ -203,7 +203,7 @@ test1508 test1509 test1510 test1511 test1512 test1513 test1514 test1515 \
@@ -80,68 +79,40 @@ index 1ef85cd3a2da..446674605835 100644
  \
  test1550 test1551 test1552 test1553 test1554 test1555 test1556 test1557 \
  test1558 test1559 test1560 test1561 test1562 test1563 test1564 test1565 \
-diff --git a/tests/data/test1547 b/tests/data/test1547
-new file mode 100644
-index 000000000000..244151a5abd1
---- /dev/null
+diff --git a/tests/data/test1153 b/tests/data/test1547
+similarity index 88%
+copy from tests/data/test1153
+copy to tests/data/test1547
+index 56ed840..244151a 100644
+--- a/tests/data/test1153
 +++ b/tests/data/test1547
-@@ -0,0 +1,59 @@
-+<testcase>
+@@ -1,4 +1,5 @@
+ <testcase>
 +# Based on test100 & test101
-+<info>
-+<keywords>
-+FTP
-+PASV
-+LIST
-+</keywords>
-+</info>
-+#
-+# Server-side
-+<reply>
-+<data mode="text">
-+total 20
-+drwxr-xr-x   8 98       98           512 Oct 22 13:06 .
-+drwxr-xr-x   8 98       98           512 Oct 22 13:06 ..
-+drwxr-xr-x   2 98       98           512 May  2  1996 curl-releases
-+-r--r--r--   1 0        1             35 Jul 16  1996 README
-+lrwxrwxrwx   1 0        1              7 Dec  9  1999 bin -> usr/bin
-+dr-xr-xr-x   2 0        1            512 Oct  1  1997 dev
-+drwxrwxrwx   2 98       98           512 May 29 16:04 download.html
-+dr-xr-xr-x   2 0        1            512 Nov 30  1995 etc
-+drwxrwxrwx   2 98       1            512 Oct 30 14:33 pub
-+dr-xr-xr-x   5 0        1            512 Oct  1  1997 usr
-+</data>
-+</reply>
-+
-+#
-+# Client-side
-+<client>
-+<server>
-+ftp
-+</server>
-+<name>
+ <info>
+ <keywords>
+ FTP
+@@ -9,10 +10,6 @@ LIST
+ #
+ # Server-side
+ <reply>
+-<servercmd>
+-REPLY PWD 257 "/""hello"""
+-</servercmd>
+-
+ <data mode="text">
+ total 20
+ drwxr-xr-x   8 98       98           512 Oct 22 13:06 .
+@@ -35,10 +32,10 @@ dr-xr-xr-x   5 0        1            512 Oct  1  1997 usr
+ ftp
+ </server>
+ <name>
+-FTP with quoted double quotes
 +FTP dir list PASV overriding PORT
-+</name>
-+<command>
+ </name>
+ <command>
+-ftp://%HOSTIP:%FTPPORT/test-%TESTNUMBER/
 +ftp://%HOSTIP:%FTPPORT/test-%TESTNUMBER/ -P %CLIENTIP --ftp-pasv
-+</command>
-+</client>
-+
-+#
-+# Verify data after the test has been "shot"
-+<verify>
-+<strip>
-+QUIT
-+</strip>
-+<protocol>
-+USER anonymous
-+PASS ftp@example.com
-+PWD
-+CWD test-%TESTNUMBER
-+EPSV
-+TYPE A
-+LIST
-+QUIT
-+</protocol>
-+</verify>
-+</testcase>
+ </command>
+ </client>
+ 

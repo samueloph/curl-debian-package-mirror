@@ -1,4 +1,3 @@
-From 0ede81dcc61844cecce8904fb4de24319afeb024 Mon Sep 17 00:00:00 2001
 From: Carlos Henrique Lima Melara <charlesmelara@riseup.net>
 Date: Thu, 5 Jun 2025 14:29:06 +0200
 Subject: [PATCH] curl_path: make SFTP handle a path like /~ properly.
@@ -12,7 +11,7 @@ Closes #17542
  1 file changed, 6 insertions(+)
 
 diff --git a/lib/vssh/curl_path.c b/lib/vssh/curl_path.c
-index 117d2e6009f6..474a5ecb8e27 100644
+index 117d2e6..474a5ec 100644
 --- a/lib/vssh/curl_path.c
 +++ b/lib/vssh/curl_path.c
 @@ -84,6 +84,12 @@ CURLcode Curl_getworkingpath(struct Curl_easy *data,
