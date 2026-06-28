@@ -1,19 +1,26 @@
 ZZZgnutls-build.patch
 build-Divide-mit-krb5-gssapi-link-flags-between-LDFLAGS-a.patch
 11_omit-directories-from-config.patch
-
-# Post 8.14.1 patches
 tool_getparam_fix_ftp_pasv.patch
 curl_path_make_SFTP_handle_a_path.patch
 tool_operate_fix_return_code_when_retry_is_used_but_not_triggered.patch
-
-# CVE-2025-9086
 cookie-don-t-treat-the-leading-slash-as-trailing.patch
-
 CVE-2025-10148.patch
-
 wcurl-Set-CURL_OPTIONS-right-before-the-url.patch
 wcurl-Fix-example-for-continue-at.patch
-# CVE-2025-11563
 wcurl-CVE-2025-11563.patch
 CVE-2025-13034.patch
+CVE-2025-14524.patch
+CVE-2025-14819.patch
+CVE-2026-1965_1.patch
+CVE-2026-1965_2.patch
+CVE-2026-3783.patch
+CVE-2026-3784.patch
+CVE-2026-3805.patch
+CVE-2026-4873.patch
+CVE-2026-5545.patch
+CVE-2026-6253.patch
+CVE-2026-5773.patch
+CVE-2026-6276.patch
+CVE-2026-7168.patch
+CVE-2026-6429.patch
