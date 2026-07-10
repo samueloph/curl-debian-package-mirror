@@ -24,3 +24,4 @@ CVE-2026-5773.patch
 CVE-2026-6276.patch
 CVE-2026-7168.patch
 CVE-2026-6429.patch
+openssl_fix_openssl_engines.patch

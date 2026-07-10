@@ -1,0 +1,37 @@
+From 17f2a220a99db30bacd66df4df677dfb0a18b405 Mon Sep 17 00:00:00 2001
+From: "Theodore A. Roth" <troth@openavr.org>
+Date: Thu, 12 Jun 2025 11:36:02 -0600
+Subject: [PATCH] openssl: Fix openssl engines
+
+- Return CURLE_OK if the engine successfully loaded.
+
+Prior to this change:
+
+When loading an openssl engine, the result code is initialized to
+CURLE_SSL_ENGINE_NOTFOUND, but is never set to CURLE_OK when the engine
+was successfully loaded. This causes curl to error out, falsely stating
+engine not found when it actually was.
+
+Broken since f2ce6c46 (precedes 8.14.0) which added support for using
+engines and providers at the same time.
+
+Fixes https://github.com/curl/curl/issues/17617
+Closes https://github.com/curl/curl/pull/17618
+---
+ lib/vtls/openssl.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/lib/vtls/openssl.c b/lib/vtls/openssl.c
+index 69cde17c2c5f..a32307c05bdf 100644
+--- a/lib/vtls/openssl.c
++++ b/lib/vtls/openssl.c
+@@ -1907,6 +1907,9 @@ static CURLcode ossl_set_engine(struct Curl_easy *data, const char *name)
+       result = CURLE_SSL_ENGINE_INITFAILED;
+       e = NULL;
+     }
++    else {
++      result = CURLE_OK;
++    }
+     data->state.engine = e;
+     return result;
+   }
