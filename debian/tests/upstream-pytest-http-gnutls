@@ -1,0 +1,9 @@
+#!/bin/sh
+set -e
+
+export DEB_BUILD_PROFILES="pkg.curl.gnutls-only"
+export FLAVOR="gnutls"
+export VERBOSE=1
+export SUFFIX="pytest_http_gnutls"
+
+. debian/tests/common-pytest-http

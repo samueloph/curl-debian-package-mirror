@@ -250,6 +250,7 @@ Copyright: Dan Fandrich, <dan@coneharvesters.com>, et al.
 License: curl
 
 Files: tests/libtest/lib2405.c
+       tests/libtest/lib2412.c
 Copyright: Dmitry Karpov, <dkarpov1970@gmail.com>
 License: curl
 

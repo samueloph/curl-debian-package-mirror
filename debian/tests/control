@@ -18,6 +18,36 @@ Tests: curl-ldapi-test
 Depends: gcc, libc-dev, libcurl4-openssl-dev | libcurl-dev, libldap-dev, slapd, pkgconf
 Restrictions: allow-stderr, isolation-container, needs-root
 
+Tests: upstream-pytest-http-openssl
+Depends: @builddeps@,
+  apache2,
+  apache2-dev,
+  dante-server,
+  openssh-server,
+  vsftpd,
+  python3-pytest,
+  python3-cryptography,
+  python3-filelock,
+  python3-psutil,
+  python3-pytest-xdist,
+  python3-websockets
+Restrictions: allow-stderr
+
+Tests: upstream-pytest-http-gnutls
+Depends: @builddeps@,
+  apache2,
+  apache2-dev,
+  dante-server,
+  openssh-server,
+  vsftpd,
+  python3-pytest,
+  python3-cryptography,
+  python3-filelock,
+  python3-psutil,
+  python3-pytest-xdist,
+  python3-websockets
+Restrictions: allow-stderr
+
 Tests: build-using-libcurl-openssl
 Depends: build-essential, libcurl4-openssl-dev, pkgconf
 Restrictions: superficial

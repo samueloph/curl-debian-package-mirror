@@ -1,0 +1,9 @@
+#!/bin/sh
+set -e
+
+export DEB_BUILD_PROFILES="pkg.curl.openssl-only"
+export FLAVOR="openssl"
+export VERBOSE=1
+export SUFFIX="pytest_http_openssl"
+
+. debian/tests/common-pytest-http

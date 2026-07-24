@@ -17,10 +17,10 @@ Signed-off-by: Simon McVittie <smcv@collabora.com>
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/configure.ac b/configure.ac
-index 5591fe9..d641606 100644
+index 56cedfb..d9748a4 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -1953,7 +1953,8 @@ if test "$want_gss" = "yes"; then
+@@ -1996,7 +1996,8 @@ if test "$want_gss" = "yes"; then
          gss_libs=`$GSSAPI_ROOT/bin/$host_alias-krb5-config --libs gssapi`
          LIBS="$gss_libs $LIBS"
        elif test "$PKGCONFIG" != "no"; then

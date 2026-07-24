@@ -1,0 +1,29 @@
+From: Keng-Yu Lin <kengyu@debian.org>
+Date: Sun, 28 Jun 2026 17:43:01 -0300
+Subject: tests: fix type promotion on 32-bit arches in http test code
+
+Origin: debian, https://bugs.debian.org/1140793
+Bug-Debian: https://bugs.debian.org/1140793
+Forwarded: yes, https://github.com/curl/curl/pull/22210
+Last-Update: 2026-06-28
+---
+ tests/http/testenv/mod_curltest/mod_curltest.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/tests/http/testenv/mod_curltest/mod_curltest.c b/tests/http/testenv/mod_curltest/mod_curltest.c
+index bd09c8b..b10863e 100644
+--- a/tests/http/testenv/mod_curltest/mod_curltest.c
++++ b/tests/http/testenv/mod_curltest/mod_curltest.c
+@@ -407,6 +407,12 @@ static int curltest_tweak_handler(request_rec *r)
+                 "request, %s", r->args? r->args : "(no args)");
+   r->status = http_status;
+   r->clength = with_cl ? (chunks * chunk_size) : -1;
++  if(with_cl) {
++    r->clength = (apr_off_t)chunks * chunk_size;
++  }
++  else {
++    r->clength = -1;
++  }
+   r->chunked = (r->proto_num >= HTTP_VERSION(1, 1)) && !with_cl;
+   apr_table_setn(r->headers_out, "request-id", request_id);
+   if(r->clength >= 0) {
