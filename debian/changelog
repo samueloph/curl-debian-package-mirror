@@ -1,3 +1,9 @@
+curl (8.21.0-2~bpo13+1) trixie-backports; urgency=medium
+
+  * Rebuild for trixie-backports.
+
+ -- Samuel Henrique <samueloph@debian.org>  Fri, 24 Jul 2026 09:53:57 -0300
+
 curl (8.21.0-2) unstable; urgency=medium
 
   * d/p/tests-fix-type-promotion-on-32-bit-arches.patch: add patch.
