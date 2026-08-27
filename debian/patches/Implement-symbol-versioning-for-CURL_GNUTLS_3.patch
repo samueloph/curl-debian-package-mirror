@@ -175,7 +175,7 @@ index bce6419..25727fa 100644
  CURLSHcode Curl_share_lock_share(struct Curl_share *share,
                                   struct Curl_easy *data,
 diff --git a/lib/easy.c b/lib/easy.c
-index 86c672d..6b97566 100644
+index 8c225d0..d00ac11 100644
 --- a/lib/easy.c
 +++ b/lib/easy.c
 @@ -206,6 +206,13 @@ CURLcode curl_global_init(long flags)
@@ -303,7 +303,7 @@ index 86c672d..6b97566 100644
  
  static CURLcode dupset(struct Curl_easy *dst, struct Curl_easy *src)
  {
-@@ -1099,6 +1161,13 @@ fail:
+@@ -1101,6 +1163,13 @@ fail:
    CURL_EAPI_LEAVE(&guard);
    return NULL;
  }
@@ -317,7 +317,7 @@ index 86c672d..6b97566 100644
  
  /*
   * curl_easy_reset() is an external interface that allows an app to re-
-@@ -1141,6 +1210,13 @@ void curl_easy_reset(CURL *curl)
+@@ -1143,6 +1212,13 @@ void curl_easy_reset(CURL *curl)
    }
    CURL_EAPI_LEAVE(&guard);
  }
@@ -331,7 +331,7 @@ index 86c672d..6b97566 100644
  
  /*
   * curl_easy_pause() allows an application to pause or unpause a specific
-@@ -1213,6 +1289,13 @@ out:
+@@ -1215,6 +1291,13 @@ out:
    CURL_EAPI_LEAVE(&guard);
    return result;
  }
@@ -345,7 +345,7 @@ index 86c672d..6b97566 100644
  
  static CURLcode easy_connection(struct Curl_easy *data,
                                  struct connectdata **connp)
-@@ -1262,6 +1345,12 @@ CURLcode Curl_easy_recv(struct Curl_easy *data,
+@@ -1264,6 +1347,12 @@ CURLcode Curl_easy_recv(struct Curl_easy *data,
    *n = 0;
    return Curl_conn_recv(data, FIRSTSOCKET, buffer, buflen, n);
  }
@@ -358,7 +358,7 @@ index 86c672d..6b97566 100644
  
  CURLcode curl_easy_recv(CURL *curl, void *buffer, size_t buflen, size_t *n)
  {
-@@ -1345,6 +1434,12 @@ CURLcode curl_easy_send(CURL *curl, const void *buffer, size_t buflen,
+@@ -1347,6 +1436,12 @@ CURLcode curl_easy_send(CURL *curl, const void *buffer, size_t buflen,
    CURL_EAPI_LEAVE(&guard);
    return result;
  }
@@ -371,7 +371,7 @@ index 86c672d..6b97566 100644
  
  /*
   * Performs connection upkeep for the given session handle.
-@@ -1361,6 +1456,13 @@ CURLcode curl_easy_upkeep(CURL *curl)
+@@ -1363,6 +1458,13 @@ CURLcode curl_easy_upkeep(CURL *curl)
    CURL_EAPI_LEAVE(&guard);
    return result;
  }
@@ -385,7 +385,7 @@ index 86c672d..6b97566 100644
  
  CURLcode curl_easy_ssls_import(CURL *curl, const char *session_key,
                                 const unsigned char *shmac, size_t shmac_len,
-@@ -1386,6 +1488,14 @@ CURLcode curl_easy_ssls_import(CURL *curl, const char *session_key,
+@@ -1388,6 +1490,14 @@ CURLcode curl_easy_ssls_import(CURL *curl, const char *session_key,
    return CURLE_NOT_BUILT_IN;
  #endif
  }
@@ -400,7 +400,7 @@ index 86c672d..6b97566 100644
  
  CURLcode curl_easy_ssls_export(CURL *curl,
                                 curl_ssls_export_cb *export_fn,
-@@ -1408,6 +1518,14 @@ CURLcode curl_easy_ssls_export(CURL *curl,
+@@ -1410,6 +1520,14 @@ CURLcode curl_easy_ssls_export(CURL *curl,
    return CURLE_NOT_BUILT_IN;
  #endif
  }
@@ -729,7 +729,7 @@ index a6416b0..7db83d9 100644
 +#endif
  #endif
 diff --git a/lib/http2.c b/lib/http2.c
-index 47e3e07..34e9372 100644
+index 9ac0d20..649531b 100644
 --- a/lib/http2.c
 +++ b/lib/http2.c
 @@ -662,6 +662,14 @@ char *curl_pushheader_bynum(struct curl_pushheaders *h, size_t num)
@@ -762,7 +762,7 @@ index 47e3e07..34e9372 100644
  
  static struct Curl_easy *h2_duphandle(struct Curl_cfilter *cf,
                                        struct Curl_easy *data)
-@@ -2991,6 +3007,14 @@ char *curl_pushheader_bynum(struct curl_pushheaders *h, size_t num)
+@@ -2992,6 +3008,14 @@ char *curl_pushheader_bynum(struct curl_pushheaders *h, size_t num)
    (void)num;
    return NULL;
  }
@@ -777,7 +777,7 @@ index 47e3e07..34e9372 100644
  
  char *curl_pushheader_byname(struct curl_pushheaders *h, const char *name)
  {
-@@ -2998,5 +3022,13 @@ char *curl_pushheader_byname(struct curl_pushheaders *h, const char *name)
+@@ -2999,5 +3023,13 @@ char *curl_pushheader_byname(struct curl_pushheaders *h, const char *name)
    (void)name;
    return NULL;
  }
@@ -1690,10 +1690,10 @@ index ec9f212..0ed9131 100644
  /* Curl_getdate_capped() differs from curl_getdate() in that this will return
     TIME_T_MAX in case the parsed time value was too big, instead of an
 diff --git a/lib/setopt.c b/lib/setopt.c
-index d6c641f..1cbbab6 100644
+index fe991a1..c447996 100644
 --- a/lib/setopt.c
 +++ b/lib/setopt.c
-@@ -2932,3 +2932,10 @@ CURLcode curl_easy_setopt(CURL *curl, CURLoption option, ...)
+@@ -2945,3 +2945,10 @@ CURLcode curl_easy_setopt(CURL *curl, CURLoption option, ...)
    CURL_EAPI_LEAVE(&guard);
    return result;
  }
@@ -1821,7 +1821,7 @@ index 6fc801d..465df52 100644
  #ifdef USE_WINDOWS_SSPI
  /*
 diff --git a/lib/urlapi.c b/lib/urlapi.c
-index 1b498e9..649db95 100644
+index 734efbc..725379b 100644
 --- a/lib/urlapi.c
 +++ b/lib/urlapi.c
 @@ -1358,6 +1358,12 @@ CURLU *curl_url(void)
@@ -1919,10 +1919,10 @@ index c4cdde6..144a907 100644
 +__asm__(".symver __curl_compat_curl_version_info, curl_version_info@CURL_GNUTLS_3");
 +#endif
 diff --git a/lib/ws.c b/lib/ws.c
-index 46f4505..25ac9dc 100644
+index a7653df..4d6b988 100644
 --- a/lib/ws.c
 +++ b/lib/ws.c
-@@ -1695,6 +1695,12 @@ out:
+@@ -1697,6 +1697,12 @@ out:
    CURL_EAPI_LEAVE(&guard);
    return result;
  }
@@ -1935,7 +1935,7 @@ index 46f4505..25ac9dc 100644
  
  static CURLcode ws_flush(struct Curl_easy *data, struct websocket *ws,
                           bool blocking)
-@@ -1926,6 +1932,12 @@ out:
+@@ -1928,6 +1934,12 @@ out:
    CURL_EAPI_LEAVE(&guard);
    return result;
  }
@@ -1948,7 +1948,7 @@ index 46f4505..25ac9dc 100644
  
  static CURLcode ws_setup_conn(struct Curl_easy *data,
                                struct connectdata *conn)
-@@ -1952,6 +1964,12 @@ const struct curl_ws_frame *curl_ws_meta(CURL *curl)
+@@ -1954,6 +1966,12 @@ const struct curl_ws_frame *curl_ws_meta(CURL *curl)
    }
    return NULL;
  }
@@ -1961,7 +1961,7 @@ index 46f4505..25ac9dc 100644
  
  CURL_EXTERN CURLcode curl_ws_start_frame(CURL *curl,
                                           unsigned int flags,
-@@ -2001,6 +2019,13 @@ out:
+@@ -2003,6 +2021,13 @@ out:
    CURL_EAPI_LEAVE(&guard);
    return result;
  }
@@ -1975,7 +1975,7 @@ index 46f4505..25ac9dc 100644
  
  const struct Curl_protocol Curl_protocol_ws = {
    ws_setup_conn,                        /* setup_connection */
-@@ -2035,6 +2060,12 @@ CURLcode curl_ws_recv(CURL *curl, void *buffer, size_t buflen,
+@@ -2037,6 +2062,12 @@ CURLcode curl_ws_recv(CURL *curl, void *buffer, size_t buflen,
    (void)metap;
    return CURLE_NOT_BUILT_IN;
  }
@@ -1988,7 +1988,7 @@ index 46f4505..25ac9dc 100644
  
  CURLcode curl_ws_send(CURL *curl, const void *buffer,
                        size_t buflen, size_t *sent,
-@@ -2049,12 +2080,24 @@ CURLcode curl_ws_send(CURL *curl, const void *buffer,
+@@ -2051,12 +2082,24 @@ CURLcode curl_ws_send(CURL *curl, const void *buffer,
    (void)flags;
    return CURLE_NOT_BUILT_IN;
  }
@@ -2013,7 +2013,7 @@ index 46f4505..25ac9dc 100644
  
  CURL_EXTERN CURLcode curl_ws_start_frame(CURL *curl,
                                           unsigned int flags,
-@@ -2065,5 +2108,12 @@ CURL_EXTERN CURLcode curl_ws_start_frame(CURL *curl,
+@@ -2067,5 +2110,12 @@ CURL_EXTERN CURLcode curl_ws_start_frame(CURL *curl,
    (void)frame_len;
    return CURLE_NOT_BUILT_IN;
  }
