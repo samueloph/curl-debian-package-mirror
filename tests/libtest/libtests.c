@@ -32,6 +32,7 @@
 #include "cli_ws_data.c"
 #include "cli_ws_pause.c"
 #include "cli_ws_pingpong.c"
+#include "cli_ws_write_err.c"
 #include "lib500.c"
 #include "lib501.c"
 #include "lib502.c"
@@ -304,6 +305,7 @@ const struct entry_s s_entries[] = {
   {"cli_ws_data", test_cli_ws_data},
   {"cli_ws_pause", test_cli_ws_pause},
   {"cli_ws_pingpong", test_cli_ws_pingpong},
+  {"cli_ws_write_err", test_cli_ws_write_err},
   {"lib500", test_lib500},
   {"lib501", test_lib501},
   {"lib502", test_lib502},

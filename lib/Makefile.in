@@ -238,20 +238,21 @@ am__libcurl_la_SOURCES_DIST = altsvc.c amigaos.c api.c bufq.c bufref.c \
 	smb.c smtp.c socketpair.c socks.c socks_gssapi.c socks_sspi.c \
 	splay.c strcase.c strequal.c strerror.c system_win32.c \
 	telnet.c tftp.c thrdpool.c thrdqueue.c transfer.c uint-bset.c \
-	uint-hash.c uint-spbset.c uint-table.c url.c urlapi.c \
-	version.c ws.c vauth/cleartext.c vauth/cram.c vauth/digest.c \
-	vauth/digest_sspi.c vauth/gsasl.c vauth/krb5_gssapi.c \
-	vauth/krb5_sspi.c vauth/ntlm.c vauth/ntlm_sspi.c \
-	vauth/oauth2.c vauth/spnego_gssapi.c vauth/spnego_sspi.c \
-	vauth/vauth.c vdns/asyn-ares.c vdns/asyn-base.c \
-	vdns/asyn-thrdd.c vdns/cf-dns.c vdns/dnscache.c vdns/doh.c \
-	vdns/hostip.c vdns/hostip4.c vdns/hostip6.c vdns/httpsrr.c \
-	vtls/apple.c vtls/cipher_suite.c vtls/gtls.c vtls/hostcheck.c \
-	vtls/keylog.c vtls/mbedtls.c vtls/openssl.c vtls/rustls.c \
-	vtls/schannel.c vtls/schannel_verify.c vtls/vtls.c \
-	vtls/vtls_config.c vtls/vtls_scache.c vtls/vtls_spack.c \
-	vtls/wolfssl.c vtls/x509asn1.c vquic/capsule.c \
-	vquic/cf-capsule.c vquic/cf-ngtcp2.c vquic/cf-ngtcp2-cmn.c \
+	uint-hash.c uint-hashset.c uint-spbset.c uint-table.c url.c \
+	urlapi.c version.c ws.c vauth/cleartext.c vauth/cram.c \
+	vauth/digest.c vauth/digest_sspi.c vauth/gsasl.c \
+	vauth/krb5_gssapi.c vauth/krb5_sspi.c vauth/ntlm.c \
+	vauth/ntlm_sspi.c vauth/oauth2.c vauth/spnego_gssapi.c \
+	vauth/spnego_sspi.c vauth/vauth.c vdns/asyn-ares.c \
+	vdns/asyn-base.c vdns/asyn-thrdd.c vdns/cf-dns.c \
+	vdns/dnscache.c vdns/doh.c vdns/hostip.c vdns/hostip4.c \
+	vdns/hostip6.c vdns/httpsrr.c vtls/apple.c vtls/cipher_suite.c \
+	vtls/gtls.c vtls/hostcheck.c vtls/keylog.c vtls/mbedtls.c \
+	vtls/openssl.c vtls/rustls.c vtls/schannel.c \
+	vtls/schannel_verify.c vtls/vtls.c vtls/vtls_config.c \
+	vtls/vtls_scache.c vtls/vtls_spack.c vtls/wolfssl.c \
+	vtls/x509asn1.c vquic/capsule.c vquic/cf-capsule.c \
+	vquic/cf-ngtcp2.c vquic/cf-ngtcp2-cmn.c \
 	vquic/cf-ngtcp2-proxy.c vquic/cf-quiche.c vquic/vquic.c \
 	vquic/vquic-tls.c vssh/libssh.c vssh/libssh2.c vssh/vssh.c \
 	curlx/base64.c curlx/basename.c curlx/dynbuf.c curlx/fopen.c \
@@ -283,19 +284,20 @@ am__libcurl_la_SOURCES_DIST = altsvc.c amigaos.c api.c bufq.c bufref.c \
 	setup-os400.h setup-vms.h setup-win32.h sigpipe.h slist.h \
 	smb.h smtp.h sockaddr.h socketpair.h socks.h splay.h strcase.h \
 	strerror.h system_win32.h telnet.h tftp.h thrdpool.h \
-	thrdqueue.h transfer.h uint-bset.h uint-hash.h uint-spbset.h \
-	uint-table.h url.h urlapi-int.h urldata.h ws.h vauth/digest.h \
-	vauth/vauth.h vdns/asyn.h vdns/cf-dns.h vdns/dnscache.h \
-	vdns/doh.h vdns/hostip.h vdns/httpsrr.h vtls/apple.h \
-	vtls/cipher_suite.h vtls/gtls.h vtls/hostcheck.h vtls/keylog.h \
-	vtls/mbedtls.h vtls/openssl.h vtls/rustls.h vtls/schannel.h \
-	vtls/schannel_int.h vtls/vtls.h vtls/vtls_config.h \
-	vtls/vtls_int.h vtls/vtls_scache.h vtls/vtls_spack.h \
-	vtls/wolfssl.h vtls/x509asn1.h vquic/capsule.h \
-	vquic/cf-capsule.h vquic/cf-ngtcp2.h vquic/cf-ngtcp2-cmn.h \
-	vquic/cf-ngtcp2-proxy.h vquic/cf-quiche.h vquic/vquic.h \
-	vquic/vquic_int.h vquic/vquic-tls.h vssh/vssh.h vssh/ssh.h \
-	curlx/base64.h curlx/basename.h curlx/dynbuf.h curlx/fopen.h \
+	thrdqueue.h transfer.h uint-bset.h uint-hash.h uint-hashset.h \
+	uint-spbset.h uint-table.h url.h urlapi-int.h urldata.h ws.h \
+	vauth/digest.h vauth/vauth.h vdns/asyn.h vdns/cf-dns.h \
+	vdns/dnscache.h vdns/doh.h vdns/hostip.h vdns/httpsrr.h \
+	vtls/apple.h vtls/cipher_suite.h vtls/gtls.h vtls/hostcheck.h \
+	vtls/keylog.h vtls/mbedtls.h vtls/openssl.h vtls/rustls.h \
+	vtls/schannel.h vtls/schannel_int.h vtls/vtls.h \
+	vtls/vtls_config.h vtls/vtls_int.h vtls/vtls_scache.h \
+	vtls/vtls_spack.h vtls/wolfssl.h vtls/x509asn1.h \
+	vquic/capsule.h vquic/cf-capsule.h vquic/cf-ngtcp2.h \
+	vquic/cf-ngtcp2-cmn.h vquic/cf-ngtcp2-proxy.h \
+	vquic/cf-quiche.h vquic/vquic.h vquic/vquic_int.h \
+	vquic/vquic-tls.h vssh/vssh.h vssh/ssh.h curlx/base64.h \
+	curlx/basename.h curlx/dynbuf.h curlx/fopen.h \
 	curlx/inet_ntop.h curlx/inet_pton.h curlx/multibyte.h \
 	curlx/nonblock.h curlx/snprintf.h curlx/strcopy.h \
 	curlx/strdup.h curlx/strerr.h curlx/strparse.h \
@@ -353,9 +355,9 @@ am__objects_1 = libcurl_la-altsvc.lo libcurl_la-amigaos.lo \
 	libcurl_la-telnet.lo libcurl_la-tftp.lo libcurl_la-thrdpool.lo \
 	libcurl_la-thrdqueue.lo libcurl_la-transfer.lo \
 	libcurl_la-uint-bset.lo libcurl_la-uint-hash.lo \
-	libcurl_la-uint-spbset.lo libcurl_la-uint-table.lo \
-	libcurl_la-url.lo libcurl_la-urlapi.lo libcurl_la-version.lo \
-	libcurl_la-ws.lo
+	libcurl_la-uint-hashset.lo libcurl_la-uint-spbset.lo \
+	libcurl_la-uint-table.lo libcurl_la-url.lo \
+	libcurl_la-urlapi.lo libcurl_la-version.lo libcurl_la-ws.lo
 am__dirstamp = $(am__leading_dot)dirstamp
 am__objects_2 = vauth/libcurl_la-cleartext.lo vauth/libcurl_la-cram.lo \
 	vauth/libcurl_la-digest.lo vauth/libcurl_la-digest_sspi.lo \
@@ -445,8 +447,8 @@ am__libcurlu_la_SOURCES_DIST = altsvc.c amigaos.c api.c bufq.c \
 	socks.c socks_gssapi.c socks_sspi.c splay.c strcase.c \
 	strequal.c strerror.c system_win32.c telnet.c tftp.c \
 	thrdpool.c thrdqueue.c transfer.c uint-bset.c uint-hash.c \
-	uint-spbset.c uint-table.c url.c urlapi.c version.c ws.c \
-	vauth/cleartext.c vauth/cram.c vauth/digest.c \
+	uint-hashset.c uint-spbset.c uint-table.c url.c urlapi.c \
+	version.c ws.c vauth/cleartext.c vauth/cram.c vauth/digest.c \
 	vauth/digest_sspi.c vauth/gsasl.c vauth/krb5_gssapi.c \
 	vauth/krb5_sspi.c vauth/ntlm.c vauth/ntlm_sspi.c \
 	vauth/oauth2.c vauth/spnego_gssapi.c vauth/spnego_sspi.c \
@@ -490,19 +492,20 @@ am__libcurlu_la_SOURCES_DIST = altsvc.c amigaos.c api.c bufq.c \
 	setup-os400.h setup-vms.h setup-win32.h sigpipe.h slist.h \
 	smb.h smtp.h sockaddr.h socketpair.h socks.h splay.h strcase.h \
 	strerror.h system_win32.h telnet.h tftp.h thrdpool.h \
-	thrdqueue.h transfer.h uint-bset.h uint-hash.h uint-spbset.h \
-	uint-table.h url.h urlapi-int.h urldata.h ws.h vauth/digest.h \
-	vauth/vauth.h vdns/asyn.h vdns/cf-dns.h vdns/dnscache.h \
-	vdns/doh.h vdns/hostip.h vdns/httpsrr.h vtls/apple.h \
-	vtls/cipher_suite.h vtls/gtls.h vtls/hostcheck.h vtls/keylog.h \
-	vtls/mbedtls.h vtls/openssl.h vtls/rustls.h vtls/schannel.h \
-	vtls/schannel_int.h vtls/vtls.h vtls/vtls_config.h \
-	vtls/vtls_int.h vtls/vtls_scache.h vtls/vtls_spack.h \
-	vtls/wolfssl.h vtls/x509asn1.h vquic/capsule.h \
-	vquic/cf-capsule.h vquic/cf-ngtcp2.h vquic/cf-ngtcp2-cmn.h \
-	vquic/cf-ngtcp2-proxy.h vquic/cf-quiche.h vquic/vquic.h \
-	vquic/vquic_int.h vquic/vquic-tls.h vssh/vssh.h vssh/ssh.h \
-	curlx/base64.h curlx/basename.h curlx/dynbuf.h curlx/fopen.h \
+	thrdqueue.h transfer.h uint-bset.h uint-hash.h uint-hashset.h \
+	uint-spbset.h uint-table.h url.h urlapi-int.h urldata.h ws.h \
+	vauth/digest.h vauth/vauth.h vdns/asyn.h vdns/cf-dns.h \
+	vdns/dnscache.h vdns/doh.h vdns/hostip.h vdns/httpsrr.h \
+	vtls/apple.h vtls/cipher_suite.h vtls/gtls.h vtls/hostcheck.h \
+	vtls/keylog.h vtls/mbedtls.h vtls/openssl.h vtls/rustls.h \
+	vtls/schannel.h vtls/schannel_int.h vtls/vtls.h \
+	vtls/vtls_config.h vtls/vtls_int.h vtls/vtls_scache.h \
+	vtls/vtls_spack.h vtls/wolfssl.h vtls/x509asn1.h \
+	vquic/capsule.h vquic/cf-capsule.h vquic/cf-ngtcp2.h \
+	vquic/cf-ngtcp2-cmn.h vquic/cf-ngtcp2-proxy.h \
+	vquic/cf-quiche.h vquic/vquic.h vquic/vquic_int.h \
+	vquic/vquic-tls.h vssh/vssh.h vssh/ssh.h curlx/base64.h \
+	curlx/basename.h curlx/dynbuf.h curlx/fopen.h \
 	curlx/inet_ntop.h curlx/inet_pton.h curlx/multibyte.h \
 	curlx/nonblock.h curlx/snprintf.h curlx/strcopy.h \
 	curlx/strdup.h curlx/strerr.h curlx/strparse.h \
@@ -564,9 +567,9 @@ am__objects_14 = libcurlu_la-altsvc.lo libcurlu_la-amigaos.lo \
 	libcurlu_la-tftp.lo libcurlu_la-thrdpool.lo \
 	libcurlu_la-thrdqueue.lo libcurlu_la-transfer.lo \
 	libcurlu_la-uint-bset.lo libcurlu_la-uint-hash.lo \
-	libcurlu_la-uint-spbset.lo libcurlu_la-uint-table.lo \
-	libcurlu_la-url.lo libcurlu_la-urlapi.lo \
-	libcurlu_la-version.lo libcurlu_la-ws.lo
+	libcurlu_la-uint-hashset.lo libcurlu_la-uint-spbset.lo \
+	libcurlu_la-uint-table.lo libcurlu_la-url.lo \
+	libcurlu_la-urlapi.lo libcurlu_la-version.lo libcurlu_la-ws.lo
 am__objects_15 = vauth/libcurlu_la-cleartext.lo \
 	vauth/libcurlu_la-cram.lo vauth/libcurlu_la-digest.lo \
 	vauth/libcurlu_la-digest_sspi.lo vauth/libcurlu_la-gsasl.lo \
@@ -755,6 +758,7 @@ am__depfiles_remade = ./$(DEPDIR)/libcurl_la-altsvc.Plo \
 	./$(DEPDIR)/libcurl_la-transfer.Plo \
 	./$(DEPDIR)/libcurl_la-uint-bset.Plo \
 	./$(DEPDIR)/libcurl_la-uint-hash.Plo \
+	./$(DEPDIR)/libcurl_la-uint-hashset.Plo \
 	./$(DEPDIR)/libcurl_la-uint-spbset.Plo \
 	./$(DEPDIR)/libcurl_la-uint-table.Plo \
 	./$(DEPDIR)/libcurl_la-url.Plo \
@@ -883,6 +887,7 @@ am__depfiles_remade = ./$(DEPDIR)/libcurl_la-altsvc.Plo \
 	./$(DEPDIR)/libcurlu_la-transfer.Plo \
 	./$(DEPDIR)/libcurlu_la-uint-bset.Plo \
 	./$(DEPDIR)/libcurlu_la-uint-hash.Plo \
+	./$(DEPDIR)/libcurlu_la-uint-hashset.Plo \
 	./$(DEPDIR)/libcurlu_la-uint-spbset.Plo \
 	./$(DEPDIR)/libcurlu_la-uint-table.Plo \
 	./$(DEPDIR)/libcurlu_la-url.Plo \
@@ -1544,6 +1549,7 @@ LIB_CFILES = \
   transfer.c         \
   uint-bset.c        \
   uint-hash.c        \
+  uint-hashset.c     \
   uint-spbset.c      \
   uint-table.c       \
   url.c              \
@@ -1677,6 +1683,7 @@ LIB_HFILES = \
   transfer.h         \
   uint-bset.h        \
   uint-hash.h        \
+  uint-hashset.h     \
   uint-spbset.h      \
   uint-table.h       \
   url.h              \
@@ -2313,6 +2320,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcurl_la-transfer.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcurl_la-uint-bset.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcurl_la-uint-hash.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcurl_la-uint-hashset.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcurl_la-uint-spbset.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcurl_la-uint-table.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcurl_la-url.Plo@am__quote@ # am--include-marker
@@ -2441,6 +2449,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcurlu_la-transfer.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcurlu_la-uint-bset.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcurlu_la-uint-hash.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcurlu_la-uint-hashset.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcurlu_la-uint-spbset.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcurlu_la-uint-table.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcurlu_la-url.Plo@am__quote@ # am--include-marker
@@ -3455,6 +3464,13 @@ libcurl_la-uint-hash.lo: uint-hash.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='uint-hash.c' object='libcurl_la-uint-hash.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libcurl_la_CPPFLAGS) $(CPPFLAGS) $(libcurl_la_CFLAGS) $(CFLAGS) -c -o libcurl_la-uint-hash.lo `test -f 'uint-hash.c' || echo '$(srcdir)/'`uint-hash.c
+
+libcurl_la-uint-hashset.lo: uint-hashset.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libcurl_la_CPPFLAGS) $(CPPFLAGS) $(libcurl_la_CFLAGS) $(CFLAGS) -MT libcurl_la-uint-hashset.lo -MD -MP -MF $(DEPDIR)/libcurl_la-uint-hashset.Tpo -c -o libcurl_la-uint-hashset.lo `test -f 'uint-hashset.c' || echo '$(srcdir)/'`uint-hashset.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libcurl_la-uint-hashset.Tpo $(DEPDIR)/libcurl_la-uint-hashset.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='uint-hashset.c' object='libcurl_la-uint-hashset.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libcurl_la_CPPFLAGS) $(CPPFLAGS) $(libcurl_la_CFLAGS) $(CFLAGS) -c -o libcurl_la-uint-hashset.lo `test -f 'uint-hashset.c' || echo '$(srcdir)/'`uint-hashset.c
 
 libcurl_la-uint-spbset.lo: uint-spbset.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libcurl_la_CPPFLAGS) $(CPPFLAGS) $(libcurl_la_CFLAGS) $(CFLAGS) -MT libcurl_la-uint-spbset.lo -MD -MP -MF $(DEPDIR)/libcurl_la-uint-spbset.Tpo -c -o libcurl_la-uint-spbset.lo `test -f 'uint-spbset.c' || echo '$(srcdir)/'`uint-spbset.c
@@ -4835,6 +4851,13 @@ libcurlu_la-uint-hash.lo: uint-hash.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libcurlu_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libcurlu_la-uint-hash.lo `test -f 'uint-hash.c' || echo '$(srcdir)/'`uint-hash.c
 
+libcurlu_la-uint-hashset.lo: uint-hashset.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libcurlu_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libcurlu_la-uint-hashset.lo -MD -MP -MF $(DEPDIR)/libcurlu_la-uint-hashset.Tpo -c -o libcurlu_la-uint-hashset.lo `test -f 'uint-hashset.c' || echo '$(srcdir)/'`uint-hashset.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libcurlu_la-uint-hashset.Tpo $(DEPDIR)/libcurlu_la-uint-hashset.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='uint-hashset.c' object='libcurlu_la-uint-hashset.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libcurlu_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libcurlu_la-uint-hashset.lo `test -f 'uint-hashset.c' || echo '$(srcdir)/'`uint-hashset.c
+
 libcurlu_la-uint-spbset.lo: uint-spbset.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libcurlu_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libcurlu_la-uint-spbset.lo -MD -MP -MF $(DEPDIR)/libcurlu_la-uint-spbset.Tpo -c -o libcurlu_la-uint-spbset.lo `test -f 'uint-spbset.c' || echo '$(srcdir)/'`uint-spbset.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libcurlu_la-uint-spbset.Tpo $(DEPDIR)/libcurlu_la-uint-spbset.Plo
@@ -5648,6 +5671,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/libcurl_la-transfer.Plo
 	-rm -f ./$(DEPDIR)/libcurl_la-uint-bset.Plo
 	-rm -f ./$(DEPDIR)/libcurl_la-uint-hash.Plo
+	-rm -f ./$(DEPDIR)/libcurl_la-uint-hashset.Plo
 	-rm -f ./$(DEPDIR)/libcurl_la-uint-spbset.Plo
 	-rm -f ./$(DEPDIR)/libcurl_la-uint-table.Plo
 	-rm -f ./$(DEPDIR)/libcurl_la-url.Plo
@@ -5776,6 +5800,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/libcurlu_la-transfer.Plo
 	-rm -f ./$(DEPDIR)/libcurlu_la-uint-bset.Plo
 	-rm -f ./$(DEPDIR)/libcurlu_la-uint-hash.Plo
+	-rm -f ./$(DEPDIR)/libcurlu_la-uint-hashset.Plo
 	-rm -f ./$(DEPDIR)/libcurlu_la-uint-spbset.Plo
 	-rm -f ./$(DEPDIR)/libcurlu_la-uint-table.Plo
 	-rm -f ./$(DEPDIR)/libcurlu_la-url.Plo
@@ -6087,6 +6112,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/libcurl_la-transfer.Plo
 	-rm -f ./$(DEPDIR)/libcurl_la-uint-bset.Plo
 	-rm -f ./$(DEPDIR)/libcurl_la-uint-hash.Plo
+	-rm -f ./$(DEPDIR)/libcurl_la-uint-hashset.Plo
 	-rm -f ./$(DEPDIR)/libcurl_la-uint-spbset.Plo
 	-rm -f ./$(DEPDIR)/libcurl_la-uint-table.Plo
 	-rm -f ./$(DEPDIR)/libcurl_la-url.Plo
@@ -6215,6 +6241,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/libcurlu_la-transfer.Plo
 	-rm -f ./$(DEPDIR)/libcurlu_la-uint-bset.Plo
 	-rm -f ./$(DEPDIR)/libcurlu_la-uint-hash.Plo
+	-rm -f ./$(DEPDIR)/libcurlu_la-uint-hashset.Plo
 	-rm -f ./$(DEPDIR)/libcurlu_la-uint-spbset.Plo
 	-rm -f ./$(DEPDIR)/libcurlu_la-uint-table.Plo
 	-rm -f ./$(DEPDIR)/libcurlu_la-url.Plo
