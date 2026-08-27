@@ -1018,7 +1018,7 @@ int curl_formget_ccsid(struct curl_httppost *form, void *arg,
   return curl_formget(form, (void *)&lcfc, Curl_formget_callback_ccsid);
 }
 
-CURLcode curl_easy_setopt_ccsid(CURL *easy, CURLoption tag, ...)
+CURLcode curl_easy_setopt_ccsid(CURL *curl, CURLoption tag, ...)
 {
   CURLcode result;
   va_list arg;
@@ -1026,7 +1026,7 @@ CURLcode curl_easy_setopt_ccsid(CURL *easy, CURLoption tag, ...)
   char *cp = NULL;
   unsigned int ccsid;
   curl_off_t pfsize;
-  struct Curl_easy *data = easy;
+  struct Curl_easy *data = curl;
 
   va_start(arg, tag);
 
@@ -1060,6 +1060,9 @@ CURLcode curl_easy_setopt_ccsid(CURL *easy, CURLoption tag, ...)
   case CURLOPT_FTP_ALTERNATIVE_TO_USER:
   case CURLOPT_HAPROXY_CLIENT_IP:
   case CURLOPT_HSTS:
+  case CURLOPT_HTTPSIG_HEADERS:
+  case CURLOPT_HTTPSIG_KEY:
+  case CURLOPT_HTTPSIG_KEYID:
   case CURLOPT_INTERFACE:
   case CURLOPT_ISSUERCERT:
   case CURLOPT_KEYPASSWD:
@@ -1140,7 +1143,7 @@ CURLcode curl_easy_setopt_ccsid(CURL *easy, CURLoption tag, ...)
       }
     }
 
-    result = curl_easy_setopt(easy, tag, s);
+    result = curl_easy_setopt(curl, tag, s);
     free(s);
     break;
 
@@ -1154,7 +1157,7 @@ CURLcode curl_easy_setopt_ccsid(CURL *easy, CURLoption tag, ...)
     pfsize = data->set.postfieldsize;
 
     if(!s || !pfsize || ccsid == NOCONV_CCSID || ccsid == ASCII_CCSID) {
-      result = curl_easy_setopt(easy, CURLOPT_COPYPOSTFIELDS, s);
+      result = curl_easy_setopt(curl, CURLOPT_COPYPOSTFIELDS, s);
       break;
     }
 
@@ -1201,8 +1204,8 @@ CURLcode curl_easy_setopt_ccsid(CURL *easy, CURLoption tag, ...)
       cp = NULL;
     }
 
-    result = curl_easy_setopt(easy, CURLOPT_POSTFIELDS, s);
-    data->set.str[STRING_COPYPOSTFIELDS] = s; /* Give to library. */
+    result = curl_easy_setopt(curl, CURLOPT_POSTFIELDS, s);
+    data->set.str_copypostfields = s; /* Give to library. */
     break;
 
   default:
@@ -1238,12 +1241,12 @@ CURLcode curl_easy_setopt_ccsid(CURL *easy, CURLoption tag, ...)
         blob.flags = bp->flags | CURL_BLOB_COPY;
         bp = &blob;
       }
-      result = curl_easy_setopt(easy, tag, bp);
+      result = curl_easy_setopt(curl, tag, bp);
       break;
     }
     FALLTHROUGH();
   case CURLOPT_ERRORBUFFER: /* This is an output buffer. */
-    result = Curl_vsetopt(easy, tag, arg);
+    result = Curl_vsetopt(curl, tag, arg);
     break;
   }
 

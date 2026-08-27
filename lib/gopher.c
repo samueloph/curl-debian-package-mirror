@@ -51,7 +51,7 @@ static CURLcode gopher_connecting(struct Curl_easy *data, bool *done)
 
   result = Curl_conn_connect(data, FIRSTSOCKET, TRUE, done);
   if(result)
-    connclose(conn, "Failed TLS connection");
+    connclose(conn);
   *done = TRUE;
   return result;
 }
@@ -103,6 +103,16 @@ static CURLcode gopher_do(struct Curl_easy *data, bool *done)
     if(result)
       return result;
     buf = buf_alloc;
+
+    /* A decoded CR or LF would terminate the single-line gopher request and
+       let a crafted URL smuggle additional bytes onto the wire. REJECT_ZERO
+       only blocks NUL; reject CR and LF here too. A TAB is left alone as it
+       is the legitimate gopher type-7 selector/search separator. */
+    if(memchr(buf, '\r', buf_len) || memchr(buf, '\n', buf_len)) {
+      curlx_free(buf_alloc);
+      failf(data, "Bad gopher selector, CR or LF not allowed");
+      return CURLE_URL_MALFORMAT;
+    }
   }
 
   for(; buf_len;) {
@@ -137,8 +147,7 @@ static CURLcode gopher_do(struct Curl_easy *data, bool *done)
        BLOCKING behavior which is a NO-NO. This function should rather be
        split up in a do and a doing piece where the pieces that are not
        possible to send now will be sent in the doing function repeatedly
-       until the entire request is sent.
-    */
+       until the entire request is sent. */
     what = SOCKET_WRITABLE(sockfd, timeout_ms);
     if(what < 0) {
       result = CURLE_SEND_ERROR;

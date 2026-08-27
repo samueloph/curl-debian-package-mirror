@@ -57,7 +57,6 @@
 #include "curlx/dynbuf.h"
 #include "sendf.h"
 #include "curl_trc.h"
-#include "hostip.h"
 #include "progress.h"
 #include "transfer.h"
 #include "escape.h"
@@ -613,6 +612,7 @@ static CURLcode imap_perform_login(struct Curl_easy *data,
                       passwd ? passwd : "");
 
   curlx_free(user);
+  curlx_strzero(passwd);
   curlx_free(passwd);
 
   if(!result)
@@ -641,7 +641,8 @@ static CURLcode imap_perform_authenticate(struct Curl_easy *data,
     return CURLE_FAILED_INIT;
   if(ir) {
     /* Send the AUTHENTICATE command with the initial response */
-    result = imap_sendf(data, imapc, "AUTHENTICATE %s %s", mech, ir);
+    result = imap_sendf(data, imapc, "AUTHENTICATE %s %s",
+                        mech, *ir ? ir : "=");
   }
   else {
     /* Send the AUTHENTICATE command */
@@ -1356,7 +1357,7 @@ static CURLcode imap_state_select_resp(struct Curl_easy *data,
     size_t len = curlx_dyn_len(&imapc->pp.recvbuf);
     if((len >= 18) && checkprefix("OK [UIDVALIDITY ", &line[2])) {
       curl_off_t value;
-      const char *p = &line[2] + strlen("OK [UIDVALIDITY ");
+      const char *p = &line[2] + CURL_CSTRLEN("OK [UIDVALIDITY ");
       if(!curlx_str_number(&p, &value, UINT_MAX)) {
         imapc->mb_uidvalidity = (unsigned int)value;
         imapc->mb_uidvalidity_set = TRUE;
@@ -1922,7 +1923,7 @@ static CURLcode imap_parse_custom_request(struct Curl_easy *data,
                                           struct IMAP *imap)
 {
   CURLcode result = CURLE_OK;
-  const char *custom = data->set.str[STRING_CUSTOMREQUEST];
+  const char *custom = CURL_EASY_STR(data, STRING_CUSTOMREQUEST);
 
   if(custom) {
     /* URL decode the custom request */
@@ -2009,7 +2010,8 @@ static CURLcode imap_done(struct Curl_easy *data, CURLcode status,
     return CURLE_OK;
 
   if(status) {
-    connclose(conn, "IMAP done with bad status"); /* marked for closure */
+    CURL_TRC_M(data, "IMAP done with bad status");
+    connclose(conn); /* marked for closure */
     result = status;         /* use the already set error code */
   }
   else if(!data->set.connect_only &&

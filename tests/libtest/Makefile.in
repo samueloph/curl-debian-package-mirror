@@ -251,6 +251,7 @@ CURL_CPP = @CURL_CPP@
 CURL_LIBCURL_VERSIONED_SYMBOLS_PREFIX = @CURL_LIBCURL_VERSIONED_SYMBOLS_PREFIX@
 CURL_LIBCURL_VERSIONED_SYMBOLS_SONAME = @CURL_LIBCURL_VERSIONED_SYMBOLS_SONAME@
 CURL_NETWORK_AND_TIME_LIBS = @CURL_NETWORK_AND_TIME_LIBS@
+CURL_PACKAGE_MAINTAINER = @CURL_PACKAGE_MAINTAINER@
 CYGPATH_W = @CYGPATH_W@
 DANTED = @DANTED@
 DEFS = @DEFS@
@@ -441,6 +442,8 @@ UTILS_H = testutil.h testtrace.h unitcheck.h
 CURLX_C = \
   ../../lib/curl_threads.c \
   ../../lib/curlx/fopen.c \
+  ../../lib/curlx/inet_ntop.c \
+  ../../lib/curlx/inet_pton.c \
   ../../lib/curlx/multibyte.c \
   ../../lib/curlx/strcopy.c \
   ../../lib/curlx/strerr.c \
@@ -458,6 +461,7 @@ TOOLX_C = \
 
 # All libtest programs
 TESTS_C = \
+  cli_ev_download.c \
   cli_ftp_upload.c \
   cli_h2_pausing.c \
   cli_h2_serverpush.c \
@@ -467,7 +471,9 @@ TESTS_C = \
   cli_tls_session_reuse.c \
   cli_upload_pausing.c \
   cli_ws_data.c \
+  cli_ws_pause.c \
   cli_ws_pingpong.c \
+  cli_ws_write_err.c \
   \
   lib500.c lib501.c lib502.c lib503.c lib504.c lib505.c lib506.c lib507.c \
   lib508.c lib509.c lib510.c lib511.c lib512.c lib513.c lib514.c lib515.c \
@@ -491,6 +497,7 @@ TESTS_C = \
   lib766.c \
   lib1156.c \
   lib1301.c                                                   lib1308.c \
+  lib1396.c           lib1398.c \
   lib1485.c \
   lib1500.c lib1501.c lib1502.c                               lib1506.c \
   lib1507.c lib1508.c lib1509.c lib1510.c lib1511.c lib1512.c lib1513.c \
@@ -506,7 +513,7 @@ TESTS_C = \
   lib1591.c lib1592.c lib1593.c lib1594.c                     lib1597.c \
   lib1598.c lib1599.c \
   lib1647.c lib1648.c lib1649.c \
-  lib1662.c \
+  lib1662.c                                         lib1678.c \
   lib1686.c \
   lib1900.c lib1901.c lib1902.c lib1903.c lib1905.c lib1906.c lib1907.c \
   lib1908.c           lib1910.c lib1911.c lib1912.c lib1913.c \
@@ -518,15 +525,16 @@ TESTS_C = \
   lib1955.c lib1956.c lib1957.c lib1958.c lib1959.c lib1960.c \
   lib1964.c lib1965.c           lib1967.c                     lib1970.c \
   lib1971.c lib1972.c lib1973.c lib1974.c lib1975.c lib1977.c lib1978.c \
-  lib2023.c lib2032.c lib2082.c \
+  lib2023.c lib2032.c lib2082.c lib2118.c \
   lib2301.c lib2302.c lib2304.c           lib2306.c lib2308.c lib2309.c \
   lib2402.c           lib2404.c lib2405.c \
-  lib2412.c \
+  lib2412.c           lib2414.c \
   lib2502.c lib2504.c lib2505.c lib2506.c \
   lib2700.c \
   lib3010.c lib3025.c lib3026.c lib3027.c lib3033.c lib3034.c \
   lib3100.c lib3101.c lib3102.c lib3103.c lib3104.c lib3105.c \
-  lib3207.c lib3208.c
+  lib3207.c lib3208.c \
+  lib5000.c lib5004.c
 
 
 # Get BUNDLE, FIRST_C, FIRST_H, UTILS_C, UTILS_H, CURLX_C, TOOLX_C, TESTS_C variables

@@ -7,6 +7,8 @@
 #include "testtrace.c"
 #include "../../lib/curl_threads.c"
 #include "../../lib/curlx/fopen.c"
+#include "../../lib/curlx/inet_ntop.c"
+#include "../../lib/curlx/inet_pton.c"
 #include "../../lib/curlx/multibyte.c"
 #include "../../lib/curlx/strcopy.c"
 #include "../../lib/curlx/strerr.c"
@@ -18,6 +20,7 @@
 #include "../../lib/curlx/warnless.c"
 #include "../../lib/curlx/winapi.c"
 #include "../../src/toolx/tool_time.c"
+#include "cli_ev_download.c"
 #include "cli_ftp_upload.c"
 #include "cli_h2_pausing.c"
 #include "cli_h2_serverpush.c"
@@ -27,7 +30,9 @@
 #include "cli_tls_session_reuse.c"
 #include "cli_upload_pausing.c"
 #include "cli_ws_data.c"
+#include "cli_ws_pause.c"
 #include "cli_ws_pingpong.c"
+#include "cli_ws_write_err.c"
 #include "lib500.c"
 #include "lib501.c"
 #include "lib502.c"
@@ -127,6 +132,8 @@
 #include "lib1156.c"
 #include "lib1301.c"
 #include "lib1308.c"
+#include "lib1396.c"
+#include "lib1398.c"
 #include "lib1485.c"
 #include "lib1500.c"
 #include "lib1501.c"
@@ -198,6 +205,7 @@
 #include "lib1648.c"
 #include "lib1649.c"
 #include "lib1662.c"
+#include "lib1678.c"
 #include "lib1686.c"
 #include "lib1900.c"
 #include "lib1901.c"
@@ -249,6 +257,7 @@
 #include "lib2023.c"
 #include "lib2032.c"
 #include "lib2082.c"
+#include "lib2118.c"
 #include "lib2301.c"
 #include "lib2302.c"
 #include "lib2304.c"
@@ -259,6 +268,7 @@
 #include "lib2404.c"
 #include "lib2405.c"
 #include "lib2412.c"
+#include "lib2414.c"
 #include "lib2502.c"
 #include "lib2504.c"
 #include "lib2505.c"
@@ -278,9 +288,12 @@
 #include "lib3105.c"
 #include "lib3207.c"
 #include "lib3208.c"
+#include "lib5000.c"
+#include "lib5004.c"
 #include "lib1521.c"
 
 const struct entry_s s_entries[] = {
+  {"cli_ev_download", test_cli_ev_download},
   {"cli_ftp_upload", test_cli_ftp_upload},
   {"cli_h2_pausing", test_cli_h2_pausing},
   {"cli_h2_serverpush", test_cli_h2_serverpush},
@@ -290,7 +303,9 @@ const struct entry_s s_entries[] = {
   {"cli_tls_session_reuse", test_cli_tls_session_reuse},
   {"cli_upload_pausing", test_cli_upload_pausing},
   {"cli_ws_data", test_cli_ws_data},
+  {"cli_ws_pause", test_cli_ws_pause},
   {"cli_ws_pingpong", test_cli_ws_pingpong},
+  {"cli_ws_write_err", test_cli_ws_write_err},
   {"lib500", test_lib500},
   {"lib501", test_lib501},
   {"lib502", test_lib502},
@@ -390,6 +405,8 @@ const struct entry_s s_entries[] = {
   {"lib1156", test_lib1156},
   {"lib1301", test_lib1301},
   {"lib1308", test_lib1308},
+  {"lib1396", test_lib1396},
+  {"lib1398", test_lib1398},
   {"lib1485", test_lib1485},
   {"lib1500", test_lib1500},
   {"lib1501", test_lib1501},
@@ -461,6 +478,7 @@ const struct entry_s s_entries[] = {
   {"lib1648", test_lib1648},
   {"lib1649", test_lib1649},
   {"lib1662", test_lib1662},
+  {"lib1678", test_lib1678},
   {"lib1686", test_lib1686},
   {"lib1900", test_lib1900},
   {"lib1901", test_lib1901},
@@ -512,6 +530,7 @@ const struct entry_s s_entries[] = {
   {"lib2023", test_lib2023},
   {"lib2032", test_lib2032},
   {"lib2082", test_lib2082},
+  {"lib2118", test_lib2118},
   {"lib2301", test_lib2301},
   {"lib2302", test_lib2302},
   {"lib2304", test_lib2304},
@@ -522,6 +541,7 @@ const struct entry_s s_entries[] = {
   {"lib2404", test_lib2404},
   {"lib2405", test_lib2405},
   {"lib2412", test_lib2412},
+  {"lib2414", test_lib2414},
   {"lib2502", test_lib2502},
   {"lib2504", test_lib2504},
   {"lib2505", test_lib2505},
@@ -541,6 +561,8 @@ const struct entry_s s_entries[] = {
   {"lib3105", test_lib3105},
   {"lib3207", test_lib3207},
   {"lib3208", test_lib3208},
+  {"lib5000", test_lib5000},
+  {"lib5004", test_lib5004},
   {"lib1521", test_lib1521},
   {NULL, NULL}
 };

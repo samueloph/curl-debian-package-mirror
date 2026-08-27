@@ -104,7 +104,7 @@ if(!x)
 For functions the opening brace should be on a separate line:
 
 ```c
-int main(int argc, char **argv)
+int main(int argc, char *argv[])
 {
   return 1;
 }
@@ -348,10 +348,12 @@ This is the full list of functions generally banned.
     _wfopen
     _wfreopen
     _wopen
+    abort
     accept
     accept4
     access
     aprintf
+    assert
     atoi
     atol
     calloc
@@ -370,6 +372,8 @@ This is the full list of functions generally banned.
     getaddrinfo
     gets
     gmtime
+    inet_ntop
+    inet_pton
     llseek
     LoadLibrary
     LoadLibraryA

@@ -60,7 +60,7 @@ test280 test281 test282 test283 test284 test285 test286 test287 test288 \
 test289 test290 test291 test292 test293 test294 test295 test296 test297 \
 test298 test299 test300 test301 test302 test303 test304 test305 test306 \
 test307 test308 test309 test310 test311 test312 test313 test314 test315 \
-test316 test317 test318 test319 test320 test321 test322 test323 test324 \
+test316 test317 test318 test319 test320                                 \
 test325 test326 test327 test328 test329 test330 test331 test332 test333 \
 test334 test335 test336 test337 test338 test339 test340 test341 test342 \
 test343 test344 test345 test346 test347 test348 test349 test350 test351 \
@@ -70,7 +70,7 @@ test370 test371 test372 test373 test374 test375 test376 test378 test379 \
 test380 test381 test383 test384 test385 test386 test387 test388 test389 \
 test390 test391 test392 test393 test394 test395 test396 test397 test398 \
 test399 test400 test401 test402 test403 test404 test405 test406 test407 \
-test408         test410 test411 test412 test413 test414 test415 test416 \
+test408 test409 test410 test411 test412 test413 test414 test415 test416 \
 test417 test418 test419 test420 test421 test422 test423 test424 test425 \
 test426 test427 test428 test429 test430 test431 test432 test433 test434 \
 test435 test436 test437 test438 test439 test440 test441 test442 test443 \
@@ -211,7 +211,7 @@ test1573 test1574 test1575 test1576 test1577 test1578 test1579 test1580 \
 test1581 test1582 test1583 test1584 test1585 test1586 test1587 test1588 \
 test1589 test1590 test1591 test1592 test1593 test1594 test1595 test1596 \
 test1597 test1598 test1599 test1600 test1601 test1602 test1603 test1604 \
-test1605 test1606 test1607 test1608          test1610 test1611 test1612 \
+test1605 test1606 test1607 test1608 test1609 test1610 test1611 test1612 \
 test1613 test1614 test1615 test1616 test1617 test1618 test1619 test1620 \
 test1621 test1622 test1623 test1624 test1625 test1626 test1627 test1628 \
 test1629 test1630 test1631 test1632 test1633 test1634 test1635 test1636 \
@@ -220,12 +220,12 @@ test1645 test1646 test1647 test1648 test1649 test1650 test1651 test1652 \
 test1653 test1654 test1655 test1656 test1657 test1658 test1659 test1660 \
 test1661 test1662 test1663 test1664 test1665 test1666 test1667 test1668 \
 test1669 test1670 test1671 test1672 test1673 test1674 test1675 test1676 \
-test1677                   test1680 test1681 test1682 test1683 test1684 \
+test1677 test1678          test1680 test1681 test1682 test1683 test1684 \
 test1685 test1686 \
 \
-test1700 test1701 test1702 test1703 test1704 test1705 test1706 test1707 \
+test1700          test1702 test1703 test1704 test1705 test1706 test1707 \
 test1708 test1709 test1710 test1711 test1712 test1713 test1714 test1715 \
-test1720 test1721 test1722 test1723 test1724 test1725 \
+test1720 test1721 test1722 test1723 test1724 test1725 test1740 test1741 \
 \
 test1800 test1801 test1802 test1847 test1848 test1849 test1850 test1851 \
 \
@@ -235,10 +235,10 @@ test1916 test1917 test1918 test1919 test1920 test1921 test1922 \
 \
 test1933 test1934 test1935 test1936 test1937 test1938 test1939 test1940 \
 test1941 test1942 test1943 test1944 test1945 test1946 test1947 test1948 \
-test1955 test1956 test1957 test1958 test1959 test1960 test1964 test1965 \
-test1966 test1967                   test1970 test1971 test1972 test1973 \
-test1974 test1975 test1976 test1977 test1978 test1979 test1980 test1981 \
-test1982 test1983 test1984 \
+test1955 test1956 test1957 test1958 test1959 test1960 test1961 \
+         test1964 test1965 test1966 test1967                   test1970 \
+test1971 test1972 test1973 test1974 test1975 test1976 test1977 test1978 \
+test1979 test1980 test1981 test1982 test1983 test1984 \
 \
 test2000 test2001 test2002 test2003 test2004 test2005 test2006 test2007 \
 test2008 test2009 test2010 test2011 test2012 test2013 test2014 test2015 \
@@ -252,22 +252,23 @@ test2056 test2057 test2058 test2059 test2060 test2061 test2062 test2063 \
 test2064 test2065 test2066 test2067 test2068 test2069 test2070 test2071 \
 test2072 test2073 test2074 test2075 test2076 test2077 test2078 test2079 \
 test2080 test2081 test2082 test2083 test2084 test2085 test2086 test2087 \
-test2088 test2089 test2090 test2091 test2092 \
+test2088 test2089 test2090 test2091 test2092 test2093 test2094 \
 test2100 test2101 test2102 test2103 test2104 test2105 test2106 test2107 \
-test2108 \
+test2108 test2109 test2110 test2113 test2114 test2115 test2116 test2117 \
+test2118 test2119 \
 \
 test2200 test2201 test2202 test2203 test2204 test2205 test2206 test2207 \
 test2208 \
 \
-test2300 test2301 test2302 test2303 test2304 test2306 test2307 test2308 \
+test2300 test2301 test2302 test2303 test2304 test2305 test2306 test2307 test2308 \
 test2309 test2310 test2311 \
 \
 test2400 test2401 test2402 test2403 test2404 test2405 test2406 test2407 \
-test2408 test2409 test2410 test2411 test2412 test2413 \
+test2408 test2409 test2410 test2411 test2412 test2413 test2414 \
 \
 test2500 test2501 test2502 test2503 test2504 test2505 test2506 \
 \
-test2600 test2601 test2602 test2603 test2604 test2605 \
+test2600 test2601 test2602 test2603 test2604 test2605 test2606 \
 \
 test2700 test2701 test2702 test2703 test2704 test2705 test2706 test2707 \
 test2708 test2709 test2710 test2711 test2712 test2713 test2714 test2715 \
@@ -284,17 +285,23 @@ test3100 test3101 test3102 test3103 test3104 test3105 test3106 \
 test3200 test3201 test3202 test3203 test3204 test3205 test3206 test3207 \
 test3208 test3209 test3210 test3211 test3212 test3213 test3214 test3215 \
 test3216 test3217 test3218 test3219 test3220 test3221 test3222 \
+test3223 test3224 test3225 test3226 test3227 test3228 test3229 \
 \
-test3300 test3301 test3302 test3303 test3304 test3305 \
+test3300 test3301 test3302 test3303 test3304 test3305 test3306 \
 \
-test3400 \
-test3401 \
+test3400 test3401 \
 \
-test4000 test4001
+test4000 test4001 \
+\
+test5000 test5001 test5002 test5003 test5004 test5005 test5006 test5007 \
+test5008 test5009 test5010 test5011 test5012 test5013 test5014 test5015 \
+test5016 test5017 test5018 test5019 test5020 test5021 test5022 test5023 \
+test5024 test5025 test5026 test5027
 
-EXTRA_DIST = $(TESTCASES) DISABLED data-xml1 data320.html \
+EXTRA_DIST = $(TESTCASES) DISABLED data-xml1 \
 data1461.txt data1463.txt  \
 data1400.c data1401.c data1402.c data1403.c data1404.c data1405.c data1406.c \
 data1407.c data1420.c data1465.c data1481.c \
 data1705-1.md data1705-2.md data1705-3.md data1705-4.md data1705-stdout.1 \
-data1706-1.md data1706-2.md data1706-3.md data1706-4.md data1706-stdout.txt
+data1706-1.md data1706-2.md data1706-3.md data1706-4.md data1706-stdout.txt \
+data-httpsig-ed25519.key data-httpsig-hmac-sha256.key

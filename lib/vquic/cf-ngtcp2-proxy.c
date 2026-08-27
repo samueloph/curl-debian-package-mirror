@@ -281,7 +281,7 @@ static void cf_h3_proxy_upd_rx_win(struct Curl_cfilter *cf,
     if(!stream->rx_offset)
       return;
 
-    avail = Curl_rlimit_avail(&data->progress.dl.rlimit, Curl_pgrs_now(data));
+    avail = Curl_rlimit_avail(&data->progress.dl.rlimit, NULL);
     if(avail <= 0) {
       /* nothing available, do not extend the rx offset */
       CURL_TRC_CF(data, cf, "[%" PRId64 "] dl rate limit exhausted (%" PRId64
@@ -431,6 +431,9 @@ static int cb_h3_proxy_recv_header(nghttp3_conn *conn, int64_t stream_id,
     pctx->tunnel.resp = resp;
   }
   else {
+    if(!pctx->tunnel.resp) {
+      return NGHTTP3_ERR_CALLBACK_FAILURE;
+    }
     /* store as an HTTP1-style header */
     CURL_TRC_CF(data, cf, "[%" PRId64 "] header: %.*s: %.*s", stream_id,
                 (int)h3name.len, h3name.base, (int)h3val.len, h3val.base);
@@ -601,6 +604,10 @@ static nghttp3_ssize cb_h3_tunnel_read_data(nghttp3_conn *conn,
   return (nghttp3_ssize)nvecs;
 }
 
+#ifdef CURL_HAVE_DIAG
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+#endif
 static nghttp3_callbacks ngh3_proxy_callbacks = {
   cb_h3_proxy_acked_req_body, /* acked_stream_data */
   cb_h3_proxy_stream_close,
@@ -625,7 +632,13 @@ static nghttp3_callbacks ngh3_proxy_callbacks = {
 #ifdef NGHTTP3_CALLBACKS_V3  /* nghttp3 v1.14.0+ */
   NULL, /* recv_settings2 */
 #endif
+#ifdef NGHTTP3_CALLBACKS_V4  /* nghttp3 v1.18.0+ */
+  NULL, /* stream_close2 */
+#endif
 };
+#ifdef CURL_HAVE_DIAG
+#pragma GCC diagnostic pop
+#endif
 
 static CURLcode cf_ngtcp2_proxy_h3_init(struct Curl_cfilter *cf,
                                         struct Curl_easy *data,
@@ -665,7 +678,7 @@ static ssize_t cf_h3_proxy_recv_closed_stream(struct Curl_cfilter *cf,
     if(stream->error3 == CURL_H3_ERR_REQUEST_REJECTED) {
       infof(data, "HTTP/3 stream %" PRId64 " refused by server, try again "
             "on a new connection", stream->id);
-      connclose(cf->conn, "REFUSED_STREAM");
+      connclose(cf->conn);
       data->state.refused_stream = TRUE;
       *err = CURLE_RECV_ERROR;
       goto out;
@@ -674,13 +687,13 @@ static ssize_t cf_h3_proxy_recv_closed_stream(struct Curl_cfilter *cf,
       CURL_TRC_CF(data, cf, "[%" PRId64 "] error after response headers, "
                   "but we did not want a body anyway, ignore error 0x%"
                   PRIx64 " %s", stream->id, stream->error3,
-                  vquic_h3_err_str(stream->error3));
+                  Curl_vquic_h3_err_str(stream->error3));
       nread = 0;
       goto out;
     }
     failf(data, "HTTP/3 stream %" PRId64 " reset by server (error 0x%" PRIx64
           " %s)", stream->id, stream->error3,
-          vquic_h3_err_str(stream->error3));
+          Curl_vquic_h3_err_str(stream->error3));
     *err = data->req.bytecount ? CURLE_PARTIAL_FILE : CURLE_HTTP3;
     goto out;
   }
@@ -1216,7 +1229,7 @@ struct Curl_cftype Curl_cft_h3_proxy = {
   Curl_cf_def_cntrl,
   Curl_cf_ngtcp2_cmn_conn_is_alive,
   Curl_cf_def_conn_keep_alive,
-  Curl_cf_def_query,
+  Curl_cf_ngtcp2_cmn_query,
 };
 
 CURLcode Curl_cf_ngtcp2_proxy_create(struct Curl_cfilter **pcf,

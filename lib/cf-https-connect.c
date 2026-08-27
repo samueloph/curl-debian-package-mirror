@@ -28,16 +28,16 @@
 #include "urldata.h"
 #include "curl_trc.h"
 #include "cfilters.h"
-#include "cf-dns.h"
 #include "cf-setup.h"
 #include "connect.h"
-#include "hostip.h"
-#include "httpsrr.h"
 #include "multiif.h"
 #include "cf-https-connect.h"
 #include "http2.h"
 #include "progress.h"
 #include "select.h"
+#include "vdns/cf-dns.h"
+#include "vdns/hostip.h"
+#include "vdns/httpsrr.h"
 #include "vquic/vquic.h"
 
 typedef enum {
@@ -110,6 +110,7 @@ static CURLcode cf_hc_baller_cntrl(struct cf_hc_baller *b,
 
 struct cf_hc_ctx {
   cf_hc_state state;
+  struct Curl_peer *destination; /* who we ultimately want to talk to */
   struct curltime started;  /* when connect started */
   CURLcode result;          /* overall result */
   CURLcode check_h3_result;
@@ -123,21 +124,14 @@ struct cf_hc_ctx {
   BIT(ballers_complete);
 };
 
-static void cf_hc_ctx_close(struct Curl_easy *data,
-                            struct cf_hc_ctx *ctx)
+static void cf_hc_ctx_destroy(struct Curl_easy *data,
+                              struct cf_hc_ctx *ctx)
 {
   if(ctx) {
     size_t i;
     for(i = 0; i < ctx->baller_count; ++i)
       cf_hc_baller_discard(&ctx->ballers[i], data);
-  }
-}
-
-static void cf_hc_ctx_destroy(struct Curl_easy *data,
-                              struct cf_hc_ctx *ctx)
-{
-  if(ctx) {
-    cf_hc_ctx_close(data, ctx);
+    Curl_peer_unlink(&ctx->destination);
     curlx_free(ctx);
   }
 }
@@ -222,7 +216,6 @@ static CURLcode baller_connected(struct Curl_cfilter *cf,
   ctx->state = CF_HC_SUCCESS;
   cf->connected = TRUE;
 
-  cf_hc_ctx_close(data, ctx);
   /* ballers may have failf()'d, the winner resets it, so our
    * errorbuf is clean again. */
   Curl_reset_fail(data);
@@ -296,6 +289,7 @@ static enum alpnid cf_hc_get_httpsrr_alpn(struct Curl_cfilter *cf,
                                           enum alpnid not_this_one)
 {
 #ifdef USE_HTTPSRR
+  struct cf_hc_ctx *ctx = cf->ctx;
   /* Is there an HTTPSRR use its ALPNs here.
    * We are here after having selected a connection to a host+port and
    * can no longer change that. Any HTTPSRR advice for other hosts and ports
@@ -304,9 +298,9 @@ static enum alpnid cf_hc_get_httpsrr_alpn(struct Curl_cfilter *cf,
   size_t i;
 
   /* Do we have HTTPS-RR information? */
-  rr = Curl_conn_dns_get_https(
-    data, cf->sockindex, Curl_conn_get_destination(cf->conn, cf->sockindex));
+  rr = Curl_conn_dns_get_https(data, cf->sockindex, ctx->destination);
 
+  CURL_TRC_CF(data, cf, "HTTPS-RR %savailable", rr ? "" : "not ");
   /* We do not support `rr->no_def_alpn`. */
   if(Curl_httpsrr_applicable(data, rr) && !rr->no_def_alpn) {
     for(i = 0; i < CURL_ARRAYSIZE(rr->alpns); ++i) {
@@ -495,7 +489,7 @@ static CURLcode cf_hc_connect(struct Curl_cfilter *cf,
 
   if(!ctx->httpsrr_resolved) {
     ctx->httpsrr_resolved = Curl_conn_dns_resolved_https(
-      data, cf->sockindex, Curl_conn_get_destination(cf->conn, cf->sockindex));
+      data, cf->sockindex, ctx->destination);
 #ifdef DEBUGBUILD
     if(!ctx->httpsrr_resolved && getenv("CURL_DBG_AWAIT_HTTPSRR")) {
       CURL_TRC_CF(data, cf, "awaiting HTTPS-RR");
@@ -658,26 +652,6 @@ static bool cf_hc_data_pending(struct Curl_cfilter *cf,
   return FALSE;
 }
 
-static struct curltime cf_get_max_baller_time(struct Curl_cfilter *cf,
-                                              struct Curl_easy *data,
-                                              int query)
-{
-  struct cf_hc_ctx *ctx = cf->ctx;
-  struct curltime t, tmax;
-  size_t i;
-
-  memset(&tmax, 0, sizeof(tmax));
-  for(i = 0; i < ctx->baller_count; i++) {
-    struct Curl_cfilter *cfb = ctx->ballers[i].cf;
-    memset(&t, 0, sizeof(t));
-    if(cfb && !cfb->cft->query(cfb, data, query, NULL, &t)) {
-      if((t.tv_sec || t.tv_usec) && curlx_ptimediff_us(&t, &tmax) > 0)
-        tmax = t;
-    }
-  }
-  return tmax;
-}
-
 static CURLcode cf_hc_query(struct Curl_cfilter *cf,
                             struct Curl_easy *data,
                             int query, int *pres1, void *pres2)
@@ -687,16 +661,6 @@ static CURLcode cf_hc_query(struct Curl_cfilter *cf,
 
   if(!cf->connected) {
     switch(query) {
-    case CF_QUERY_TIMER_CONNECT: {
-      struct curltime *when = pres2;
-      *when = cf_get_max_baller_time(cf, data, CF_QUERY_TIMER_CONNECT);
-      return CURLE_OK;
-    }
-    case CF_QUERY_TIMER_APPCONNECT: {
-      struct curltime *when = pres2;
-      *when = cf_get_max_baller_time(cf, data, CF_QUERY_TIMER_APPCONNECT);
-      return CURLE_OK;
-    }
     case CF_QUERY_NEED_FLUSH: {
       for(i = 0; i < ctx->baller_count; i++)
         if(cf_hc_baller_needs_flush(&ctx->ballers[i], data)) {
@@ -723,12 +687,26 @@ static CURLcode cf_hc_cntrl(struct Curl_cfilter *cf,
   size_t i;
 
   if(!cf->connected) {
-    for(i = 0; i < ctx->baller_count; i++) {
-      result = cf_hc_baller_cntrl(&ctx->ballers[i], data, event, arg1, arg2);
-      if(result && (result != CURLE_AGAIN))
-        goto out;
+    switch(event) {
+    case CF_CTRL_REPORT_STATS:
+      for(i = 0; i < ctx->baller_count; i++) {
+        /* Make the first baller that connected at network level report */
+        if(Curl_conn_cf_is_ip_connected(ctx->ballers[i].cf, data)) {
+          Curl_conn_cf_cntrl(ctx->ballers[i].cf, data, TRUE,
+                             event, arg1, arg2);
+          break;
+        }
+      }
+      break;
+    default:
+      for(i = 0; i < ctx->baller_count; i++) {
+        result = cf_hc_baller_cntrl(&ctx->ballers[i], data, event, arg1, arg2);
+        if(result && (result != CURLE_AGAIN))
+          goto out;
+      }
+      result = CURLE_OK;
+      break;
     }
-    result = CURLE_OK;
   }
 out:
   return result;
@@ -744,7 +722,7 @@ static void cf_hc_destroy(struct Curl_cfilter *cf, struct Curl_easy *data)
 
 struct Curl_cftype Curl_cft_http_connect = {
   "HTTPS-CONNECT",
-  CF_TYPE_SETUP | CF_TYPE_HTTPSRR,
+  CF_TYPE_SETUP,
   CURL_LOG_LVL_NONE,
   cf_hc_destroy,
   cf_hc_connect,
@@ -761,6 +739,7 @@ struct Curl_cftype Curl_cft_http_connect = {
 
 static CURLcode cf_hc_create(struct Curl_cfilter **pcf,
                              struct Curl_easy *data,
+                             struct Curl_peer *destination,
                              uint8_t def_transport)
 {
   struct Curl_cfilter *cf = NULL;
@@ -772,6 +751,7 @@ static CURLcode cf_hc_create(struct Curl_cfilter **pcf,
     result = CURLE_OUT_OF_MEMORY;
     goto out;
   }
+  Curl_peer_link(&ctx->destination, destination);
   ctx->def_transport = def_transport;
   ctx->hard_eyeballs_timeout_ms = data->set.happy_eyeballs_timeout;
   ctx->soft_eyeballs_timeout_ms = data->set.happy_eyeballs_timeout / 2;
@@ -788,25 +768,32 @@ out:
 }
 
 static CURLcode cf_hc_add(struct Curl_easy *data,
+                          struct Curl_peer *destination,
                           struct connectdata *conn,
-                          int sockindex,
+                          int8_t sockindex,
                           uint8_t def_transport)
 {
   struct Curl_cfilter *cf;
   CURLcode result = CURLE_OK;
 
   DEBUGASSERT(data);
-  result = cf_hc_create(&cf, data, def_transport);
+  result = cf_hc_create(&cf, data, destination, def_transport);
   if(result)
     goto out;
   Curl_conn_cf_add(data, conn, sockindex, cf);
+
+#ifdef USE_HTTPSRR
+  result = Curl_conn_dns_add_https_resolve(data, cf->conn, cf->sockindex,
+                                           destination);
+#endif
 out:
   return result;
 }
 
 CURLcode Curl_cf_https_setup(struct Curl_easy *data,
+                             struct Curl_peer *destination,
                              struct connectdata *conn,
-                             int sockindex)
+                             int8_t sockindex)
 {
   CURLcode result = CURLE_OK;
 
@@ -821,7 +808,8 @@ CURLcode Curl_cf_https_setup(struct Curl_easy *data,
      !conn->bits.tls_enable_alpn)
     goto out;
 
-  result = cf_hc_add(data, conn, sockindex, conn->transport_wanted);
+  result = cf_hc_add(data, destination, conn, sockindex,
+                     conn->transport_wanted);
 
 out:
   return result;

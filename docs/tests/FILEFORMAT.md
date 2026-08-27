@@ -421,7 +421,7 @@ issue.
 
 Commands for the test DNS server.
 
-- `A: [dotted ipv4 address]` - set IPv4 address to return
+- `A: [dotted IPv4 address]` - set IPv4 address to return
 - `AAAA: [numerical IPv6 address]` - set IPv6 address to return, with or
   without `[]`
 
@@ -445,8 +445,6 @@ What server(s) this test case requires/uses. Available servers:
 - `https`
 - `https-proxy`
 - `https-mtls`
-- `httptls+srp`
-- `httptls+srp-ipv6`
 - `http-unix`
 - `imap`
 - `mqtt`
@@ -536,6 +534,7 @@ Features testable here are:
 - `SPNEGO`
 - `SSL`
 - `SSLpinning`
+- `SSLS-EXPORT`
 - `SSPI`
 - `threaded-resolver`
 - `TLS-SRP`

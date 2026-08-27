@@ -118,6 +118,7 @@ TEST_COMMON += !documentation
 endif
 
 TEST = srcdir=$(srcdir) @PERL@ $(PERLFLAGS) $(srcdir)/runtests.pl $(TEST_COMMON)
+TEST_A = -a
 TEST_Q = -a -s
 TEST_AM = -a -am
 TEST_F = -a -p -r
@@ -136,13 +137,14 @@ endif
 
 # make sure that PERL is pointing to an executable
 perlcheck:
-	@if ! test -x "@PERL@"; then echo "No perl!"; exit 2; fi
+	@if ! test -x "@PERL@"; then echo 'No perl!'; exit 2; fi
 
 build-certs: perlcheck
 	(cd certs && $(MAKE))
 
 # alias for 'test' to match CMake, where 'test' is a reserved target
-tests: test
+tests: perlcheck all
+	$(TEST) $(TEST_A) $(TFLAGS)
 
 test: perlcheck all
 	$(TEST) $(TFLAGS)
@@ -179,7 +181,7 @@ checksrc:
 	(cd tunit && $(MAKE) checksrc)
 	(cd server && $(MAKE) checksrc)
 
-all-local: $(MANFILES) build-certs
+all-local: build-certs
 
 distclean:
-	rm -f $(MANFILES)
+	rm -f $(CLEANFILES)

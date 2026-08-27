@@ -129,8 +129,8 @@ static void memory_tracking_init(void)
 #endif
 
 /*
-** curl tool main function.
-*/
+ * curl tool main function.
+ */
 #ifdef _UNICODE
 #ifdef CURL_HAVE_DIAG
 /* GCC does not know about wmain() */
@@ -150,7 +150,7 @@ int main(int argc, char *argv[])
 #ifdef _WIN32
   /* Undocumented diagnostic option to list the full paths of all loaded
      modules. This is purposely pre-init. */
-  if(argc == 2 && !_tcscmp(argv[1], _T("--dump-module-paths"))) {
+  if(argc == 2 && !_tcscmp(argv[1], _TEXT("--dump-module-paths"))) {
     struct curl_slist *item, *head = GetLoadedModulePaths();
     for(item = head; item; item = item->next)
       curl_mprintf("%s\n", item->data);

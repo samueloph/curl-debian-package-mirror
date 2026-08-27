@@ -146,7 +146,7 @@ am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno config.status.lineno
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/lib/curl_config.h
-CONFIG_CLEAN_FILES = libcurl.pc curl-config
+CONFIG_CLEAN_FILES = curl-config libcurl.pc
 CONFIG_CLEAN_VPATH_FILES =
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
 am__vpath_adj = case $$p in \
@@ -308,6 +308,7 @@ CURL_CPP = @CURL_CPP@
 CURL_LIBCURL_VERSIONED_SYMBOLS_PREFIX = @CURL_LIBCURL_VERSIONED_SYMBOLS_PREFIX@
 CURL_LIBCURL_VERSIONED_SYMBOLS_SONAME = @CURL_LIBCURL_VERSIONED_SYMBOLS_SONAME@
 CURL_NETWORK_AND_TIME_LIBS = @CURL_NETWORK_AND_TIME_LIBS@
+CURL_PACKAGE_MAINTAINER = @CURL_PACKAGE_MAINTAINER@
 CYGPATH_W = @CYGPATH_W@
 DANTED = @DANTED@
 DEFS = @DEFS@
@@ -528,9 +529,9 @@ $(top_srcdir)/configure: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	$(am__cd) $(srcdir) && $(ACLOCAL) $(ACLOCAL_AMFLAGS)
 $(am__aclocal_m4_deps):
-libcurl.pc: $(top_builddir)/config.status $(srcdir)/libcurl.pc.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
 curl-config: $(top_builddir)/config.status $(srcdir)/curl-config.in
+	cd $(top_builddir) && $(SHELL) ./config.status $@
+libcurl.pc: $(top_builddir)/config.status $(srcdir)/libcurl.pc.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 install-binSCRIPTS: $(bin_SCRIPTS)
 	@$(NORMAL_INSTALL)
@@ -1050,6 +1051,7 @@ dist-hook:
 
 check: test examples check-docs
 
+@CROSSCOMPILING_TRUE@test-quiet: test
 @CROSSCOMPILING_TRUE@test-full: test
 @CROSSCOMPILING_TRUE@test-nonflaky: test
 @CROSSCOMPILING_TRUE@test-torture: test
@@ -1062,7 +1064,9 @@ check: test examples check-docs
 @CROSSCOMPILING_TRUE@test:
 @CROSSCOMPILING_TRUE@	@echo "NOTICE: we cannot run the tests when cross-compiling!"
 
-@CROSSCOMPILING_FALSE@test:
+@CROSSCOMPILING_FALSE@test: test-quiet
+
+@CROSSCOMPILING_FALSE@test-quiet:
 @CROSSCOMPILING_FALSE@	@(cd tests; $(MAKE) all quiet-test)
 
 @CROSSCOMPILING_FALSE@test-full:

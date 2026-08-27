@@ -32,7 +32,6 @@
 #include "rand.h"
 #include "multiif.h"
 #include "cfilters.h"
-#include "cf-dns.h"
 #include "cf-socket.h"
 #include "connect.h"
 #include "progress.h"
@@ -42,6 +41,7 @@
 #include "select.h"
 #include "transfer.h"
 #include "bufref.h"
+#include "vdns/cf-dns.h"
 #include "vquic/vquic.h"
 #include "vquic/vquic_int.h"
 #include "vquic/cf-ngtcp2-cmn.h"
@@ -175,7 +175,7 @@ static void cf_ngtcp2_upd_rx_win(struct Curl_cfilter *cf,
     if(!stream->rx_offset)
       return;
 
-    avail = Curl_rlimit_avail(&data->progress.dl.rlimit, Curl_pgrs_now(data));
+    avail = Curl_rlimit_avail(&data->progress.dl.rlimit, NULL);
     if(avail <= 0) {
       /* nothing available, do not extend the rx offset */
       CURL_TRC_CF(data, cf, "[%" PRId64 "] dl rate limit exhausted (%" PRId64
@@ -386,6 +386,10 @@ static int cb_h3_reset_stream(nghttp3_conn *conn, int64_t stream_id,
   return 0;
 }
 
+#ifdef CURL_HAVE_DIAG
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+#endif
 static nghttp3_callbacks ngh3_callbacks = {
   cb_h3_acked_req_body, /* acked_stream_data */
   cb_h3_stream_close,
@@ -410,7 +414,13 @@ static nghttp3_callbacks ngh3_callbacks = {
 #ifdef NGHTTP3_CALLBACKS_V3  /* nghttp3 v1.14.0+ */
   NULL, /* recv_settings2 */
 #endif
+#ifdef NGHTTP3_CALLBACKS_V4  /* nghttp3 v1.18.0+ */
+  NULL, /* stream_close2 */
+#endif
 };
+#ifdef CURL_HAVE_DIAG
+#pragma GCC diagnostic pop
+#endif
 
 static CURLcode init_ngh3_conn(struct Curl_cfilter *cf,
                                struct Curl_easy *data,
@@ -449,7 +459,7 @@ static CURLcode recv_closed_stream(struct Curl_cfilter *cf,
     if(stream->error3 == CURL_H3_ERR_REQUEST_REJECTED) {
       infof(data, "HTTP/3 stream %" PRId64 " refused by server, try again "
             "on a new connection", stream->id);
-      connclose(cf->conn, "REFUSED_STREAM"); /* do not use this anymore */
+      connclose(cf->conn); /* do not use this anymore */
       data->state.refused_stream = TRUE;
       return CURLE_RECV_ERROR; /* trigger Curl_retry_request() later */
     }
@@ -457,12 +467,12 @@ static CURLcode recv_closed_stream(struct Curl_cfilter *cf,
         CURL_TRC_CF(data, cf, "[%" PRId64 "] error after response headers, "
                     "but we did not want a body anyway, ignore error 0x%"
                     PRIx64 " %s", stream->id, stream->error3,
-                    vquic_h3_err_str(stream->error3));
+                    Curl_vquic_h3_err_str(stream->error3));
         return CURLE_OK;
     }
     failf(data, "HTTP/3 stream %" PRId64 " reset by server (error 0x%" PRIx64
           " %s)", stream->id, stream->error3,
-          vquic_h3_err_str(stream->error3));
+          Curl_vquic_h3_err_str(stream->error3));
     return data->req.bytecount ? CURLE_PARTIAL_FILE : CURLE_HTTP3;
   }
   else if(!stream->resp_hds_complete) {
@@ -679,9 +689,9 @@ static CURLcode h3_stream_open(struct Curl_cfilter *cf,
   }
 
   result = Curl_h1_req_parse_read(&stream->h1, buf, len, NULL,
-                                  !data->state.http_ignorecustom ?
-                                  data->set.str[STRING_CUSTOMREQUEST] : NULL,
-                                  0, pnwritten);
+    !data->state.http_ignorecustom ?
+    CURL_EASY_STR(data, STRING_CUSTOMREQUEST) : NULL,
+    0, pnwritten);
   if(result)
     goto out;
   if(!stream->h1.done) {
@@ -901,8 +911,6 @@ static CURLcode cf_ngtcp2_cntrl(struct Curl_cfilter *cf,
   struct cf_call_data save;
 
   CF_DATA_SAVE(save, cf, data);
-  (void)arg1;
-  (void)arg2;
   switch(event) {
   case CF_CTRL_DATA_SETUP:
     break;
@@ -929,6 +937,7 @@ static CURLcode cf_ngtcp2_cntrl(struct Curl_cfilter *cf,
     }
     break;
   default:
+    result = Curl_cf_ngtcp2_cmn_cntrl(cf, data, event, arg1, arg2);
     break;
   }
   CF_DATA_RESTORE(cf, save);
@@ -947,7 +956,7 @@ static void cf_ngtcp2_ctx_close(struct cf_ngtcp2_ctx *ctx)
   ctx->qlogfd = -1;
   Curl_vquic_tls_cleanup(&ctx->tls);
   Curl_ssl_peer_cleanup(&ctx->ssl_peer);
-  vquic_ctx_free(&ctx->q);
+  Curl_vquic_ctx_free(&ctx->q);
   if(ctx->h3conn) {
     nghttp3_conn_del(ctx->h3conn);
     ctx->h3conn = NULL;
@@ -1025,27 +1034,6 @@ static CURLcode cf_ngtcp2_query(struct Curl_cfilter *cf,
     CF_DATA_RESTORE(cf, save);
     return CURLE_OK;
   }
-  case CF_QUERY_CONNECT_REPLY_MS:
-    if(ctx->q.got_first_byte) {
-      timediff_t ms = curlx_ptimediff_ms(&ctx->q.first_byte_at,
-                                         &ctx->started_at);
-      *pres1 = (ms < INT_MAX) ? (int)ms : INT_MAX;
-    }
-    else
-      *pres1 = -1;
-    return CURLE_OK;
-  case CF_QUERY_TIMER_CONNECT: {
-    struct curltime *when = pres2;
-    if(ctx->q.got_first_byte)
-      *when = ctx->q.first_byte_at;
-    return CURLE_OK;
-  }
-  case CF_QUERY_TIMER_APPCONNECT: {
-    struct curltime *when = pres2;
-    if(cf->connected)
-      *when = ctx->handshake_at;
-    return CURLE_OK;
-  }
   case CF_QUERY_HTTP_VERSION:
     *pres1 = 30;
     return CURLE_OK;
@@ -1066,9 +1054,7 @@ static CURLcode cf_ngtcp2_query(struct Curl_cfilter *cf,
   default:
     break;
   }
-  return cf->next ?
-    cf->next->cft->query(cf->next, data, query, pres1, pres2) :
-    CURLE_UNKNOWN_OPTION;
+  return Curl_cf_ngtcp2_cmn_query(cf, data, query, pres1, pres2);
 }
 
 struct Curl_cftype Curl_cft_http3 = {

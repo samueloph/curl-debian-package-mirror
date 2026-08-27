@@ -12,9 +12,7 @@
 #include "unit1323.c"
 #include "unit1330.c"
 #include "unit1395.c"
-#include "unit1396.c"
 #include "unit1397.c"
-#include "unit1398.c"
 #include "unit1399.c"
 #include "unit1600.c"
 #include "unit1601.c"
@@ -56,6 +54,7 @@
 #include "unit1674.c"
 #include "unit1675.c"
 #include "unit1676.c"
+#include "unit1961.c"
 #include "unit1979.c"
 #include "unit1980.c"
 #include "unit2413.c"
@@ -65,6 +64,7 @@
 #include "unit2603.c"
 #include "unit2604.c"
 #include "unit2605.c"
+#include "unit2606.c"
 #include "unit3200.c"
 #include "unit3205.c"
 #include "unit3211.c"
@@ -73,11 +73,13 @@
 #include "unit3214.c"
 #include "unit3216.c"
 #include "unit3219.c"
+#include "unit3227.c"
 #include "unit3300.c"
 #include "unit3301.c"
 #include "unit3302.c"
 #include "unit3303.c"
 #include "unit3304.c"
+#include "unit3306.c"
 #include "unit3400.c"
 
 const struct entry_s s_entries[] = {
@@ -91,9 +93,7 @@ const struct entry_s s_entries[] = {
   {"unit1323", test_unit1323},
   {"unit1330", test_unit1330},
   {"unit1395", test_unit1395},
-  {"unit1396", test_unit1396},
   {"unit1397", test_unit1397},
-  {"unit1398", test_unit1398},
   {"unit1399", test_unit1399},
   {"unit1600", test_unit1600},
   {"unit1601", test_unit1601},
@@ -135,6 +135,7 @@ const struct entry_s s_entries[] = {
   {"unit1674", test_unit1674},
   {"unit1675", test_unit1675},
   {"unit1676", test_unit1676},
+  {"unit1961", test_unit1961},
   {"unit1979", test_unit1979},
   {"unit1980", test_unit1980},
   {"unit2413", test_unit2413},
@@ -144,6 +145,7 @@ const struct entry_s s_entries[] = {
   {"unit2603", test_unit2603},
   {"unit2604", test_unit2604},
   {"unit2605", test_unit2605},
+  {"unit2606", test_unit2606},
   {"unit3200", test_unit3200},
   {"unit3205", test_unit3205},
   {"unit3211", test_unit3211},
@@ -152,11 +154,13 @@ const struct entry_s s_entries[] = {
   {"unit3214", test_unit3214},
   {"unit3216", test_unit3216},
   {"unit3219", test_unit3219},
+  {"unit3227", test_unit3227},
   {"unit3300", test_unit3300},
   {"unit3301", test_unit3301},
   {"unit3302", test_unit3302},
   {"unit3303", test_unit3303},
   {"unit3304", test_unit3304},
+  {"unit3306", test_unit3306},
   {"unit3400", test_unit3400},
   {NULL, NULL}
 };
