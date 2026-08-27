@@ -1418,7 +1418,7 @@ static CURLcode schannel_connect_step2(struct Curl_cfilter *cf,
                     inbuf[1].cbBuffer));
       /* There are two cases where we could be getting extra data here:
          1. If we are renegotiating a connection and the handshake is already
-            complete (from the server perspective), it can encrypted app data
+            complete (from the server perspective), it can encrypt app data
             (not handshake data) in an extra buffer at this point.
          2. (sspi_status == SEC_I_CONTINUE_NEEDED) We are negotiating a
             connection and this extra data is part of the handshake.
@@ -1458,10 +1458,10 @@ static CURLcode schannel_connect_step2(struct Curl_cfilter *cf,
 
 #ifndef CURL_DISABLE_PROXY
   pubkey_ptr = Curl_ssl_cf_is_proxy(cf) ?
-    data->set.str[STRING_SSL_PINNEDPUBLICKEY_PROXY] :
-    data->set.str[STRING_SSL_PINNEDPUBLICKEY];
+    CURL_EASY_STR(data, STRING_SSL_PINNEDPUBLICKEY_PROXY) :
+    CURL_EASY_STR(data, STRING_SSL_PINNEDPUBLICKEY);
 #else
-  pubkey_ptr = data->set.str[STRING_SSL_PINNEDPUBLICKEY];
+  pubkey_ptr = CURL_EASY_STR(data, STRING_SSL_PINNEDPUBLICKEY);
 #endif
   if(pubkey_ptr) {
     result = schannel_pkp_pin_peer_pubkey(cf, data, pubkey_ptr);

@@ -923,7 +923,7 @@ static bool cr_ech_need_httpsrr(struct Curl_easy *data)
   if(!CURLECH_ENABLED(data))
     return FALSE;
   if((data->set.tls_ech == CURLECH_GREASE) ||
-     data->set.str[STRING_ECH_CONFIG])
+     CURL_EASY_STR(data, STRING_ECH_CONFIG))
     return FALSE;
   return TRUE;
 }
@@ -948,7 +948,7 @@ init_config_builder_ech(struct Curl_easy *data,
     goto cleanup;
   }
 
-  if(data->set.str[STRING_ECH_PUBLIC]) {
+  if(CURL_EASY_STR(data, STRING_ECH_PUBLIC)) {
     failf(data, "rustls: ECH outername not supported");
     result = CURLE_SSL_CONNECT_ERROR;
     goto cleanup;
@@ -964,8 +964,8 @@ init_config_builder_ech(struct Curl_easy *data,
     return CURLE_OK;
   }
 
-  if(data->set.tls_ech && data->set.str[STRING_ECH_CONFIG]) {
-    const char *b64 = data->set.str[STRING_ECH_CONFIG];
+  if(data->set.tls_ech && CURL_EASY_STR(data, STRING_ECH_CONFIG)) {
+    const char *b64 = CURL_EASY_STR(data, STRING_ECH_CONFIG);
     size_t decode_result;
     if(!b64) {
       infof(data, "rustls: ECHConfig from command line empty");
@@ -1005,7 +1005,7 @@ init_config_builder_ech(struct Curl_easy *data,
   }
 cleanup:
   /* if we base64 decoded, we can free now */
-  if(data->set.tls_ech && data->set.str[STRING_ECH_CONFIG]) {
+  if(data->set.tls_ech && CURL_EASY_STR(data, STRING_ECH_CONFIG)) {
     curlx_free(ech_config);
   }
   if(dns) {
@@ -1049,7 +1049,7 @@ static CURLcode cr_init_backend(struct Curl_cfilter *cf,
     rustls_client_config_builder_dangerous_set_certificate_verifier(
       config_builder, cr_verify_none);
   }
-  else if(ssl_config->native_ca_store) {
+  else if(conn_config->native_ca_store) {
     if(conn_config->CRLfile) {
       failf(data, "rustls: CRL file not supported with native CA store; "
             "the platform verifier has no CRL attachment API");

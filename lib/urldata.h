@@ -69,6 +69,7 @@
 #include "request.h"
 #include "ratelimit.h"
 #include "netrc.h"
+#include "uint-hashset.h"
 #include "vdns/asyn.h"
 #include "vdns/hostip.h"
 #include "vtls/vtls_config.h"
@@ -262,13 +263,6 @@ struct connectdata {
   curl_off_t connection_id; /* Contains a unique number to make it easier to
                                track the connections in the log output */
 
-  /* This is used by the connection pool logic. If this returns TRUE, this
-     handle is still used by one or more easy handles and can only used by any
-     other easy handle without careful consideration (== only for
-     multiplexing) and it cannot be used by another multi handle! */
-#define CONN_INUSE(c) (!!(c)->attached_xfers)
-  uint32_t attached_xfers; /* # of attached easy handles */
-
   /* A connection cache from a SHARE might be used in several multi handles.
    * We MUST not reuse connections that are running in another multi,
    * for concurrency reasons. That multi might run in another thread.
@@ -351,9 +345,17 @@ struct connectdata {
      that subsequent bound-requested connections are not accidentally reusing
      wrong connections. */
   char *localdev;
+  struct ConnectBits bits;    /* various state-flags for this connection */
 #if defined(HAVE_GSSAPI) || defined(USE_WINDOWS_SSPI)
   int socks5_gssapi_enctype;
 #endif
+
+  /* This is used by the connection pool logic. If this returns TRUE, this
+     handle is still used by one or more easy handles and can only used by any
+     other easy handle without careful consideration (== only for
+     multiplexing) and it cannot be used by another multi handle! */
+#define CONN_INUSE(c) (!!(c)->attached_xfers)
+  uint32_t attached_xfers; /* # of attached easy handles */
 
 #ifdef USE_IPV6
   uint32_t scope_id;  /* Scope id for IPv6 */
@@ -372,7 +374,6 @@ struct connectdata {
   uint8_t httpversion_seen;
   uint8_t gssapi_delegation; /* inherited from set.gssapi_delegation */
 
-  struct ConnectBits bits;    /* various state-flags for this connection */
 };
 
 #ifndef CURL_DISABLE_PROXY
@@ -609,13 +610,9 @@ struct UrlState {
 
   struct Curl_creds *creds; /* Credentials for the origin only */
 
-  /* Dynamically allocated strings, MUST be freed before this struct is
-     killed. */
-  struct dynamically_allocated_data {
-    char *rangeline;
-    char *host;
-  } aptr;
 #ifndef CURL_DISABLE_HTTP
+  char *rangeline; /* allocated */
+  char *http_host; /* allocated */
   struct http_negotiation http_neg;
 #endif
 #ifndef CURL_DISABLE_RTSP
@@ -808,14 +805,6 @@ enum dupstring {
   STRING_ECH_PUBLIC,            /* CURLOPT_ECH_PUBLIC */
   STRING_SSL_SIGNATURE_ALGORITHMS, /* CURLOPT_SSL_SIGNATURE_ALGORITHMS */
 
-  /* -- end of null-terminated strings -- */
-
-  STRING_LASTZEROTERMINATED,
-
-  /* -- below this are pointers to binary data that cannot be strdup'ed. --- */
-
-  STRING_COPYPOSTFIELDS,  /* if POST, set the fields' values here */
-
   STRING_LAST /* not used, an end-of-list marker */
 };
 
@@ -843,6 +832,7 @@ struct UserDefined {
   uint32_t httpauth;  /* kind of HTTP authentication to use (bitmask) */
   uint32_t proxyauth; /* kind of proxy authentication to use (bitmask) */
   void *postfields;  /* if POST, set the fields' values here */
+  char *str_copypostfields; /* CURLOPT_COPYPOSTFIELDS value */
   curl_seek_callback seek_func;      /* function that seeks the input */
   curl_off_t postfieldsize; /* if POST, this might have a size to use instead
                                of strlen(), and then the data *may* be binary
@@ -937,7 +927,7 @@ struct UserDefined {
   uint32_t ssh_auth_types;   /* allowed SSH auth types */
   uint32_t new_directory_perms; /* when creating remote dirs */
 #endif
-  char *str[STRING_LAST]; /* array of strings, pointing to allocated memory */
+  struct u8_strset strings;
   struct curl_blob *blobs[BLOB_LAST];
   uint32_t new_file_perms;      /* when creating remote files */
 #ifdef USE_IPV6
@@ -1167,8 +1157,8 @@ typedef void multi_sub_xfer_done_cb(struct Curl_easy *data,
  */
 
 struct Curl_easy {
-  /* First a simple identifier to easier detect if a user mix up this easy
-     handle with a multi handle. Set this to CURLEASY_MAGIC_NUMBER */
+  /* First a simple identifier to more easily detect if a user mixes up this
+     easy handle with a multi handle. Set this to CURLEASY_MAGIC_NUMBER */
   uint32_t magic;
   /* once an easy handle is added to a multi, either explicitly by the
    * libcurl application or implicitly during `curl_easy_perform()`,
@@ -1233,6 +1223,17 @@ struct Curl_easy {
   struct curl_tlssessioninfo tsi; /* Information about the TLS session, only
                                      valid after a client has asked for it */
 };
+
+#define CURL_EASY_STR(d, id) \
+        Curl_u8_strset_get(&(d)->set.strings, (uint8_t)(id))
+#define CURL_EASY_STR_SET(d, id, s) \
+        Curl_u8_strset_set(&(d)->set.strings, (uint8_t)(id), (s))
+#define CURL_EASY_STR_SETN(d, id, s) \
+        Curl_u8_strset_setn(&(d)->set.strings, (uint8_t)(id), (s))
+#define CURL_EASY_STR_CLEAR(d, id) \
+        Curl_u8_strset_unset(&(d)->set.strings, (uint8_t)(id))
+#define CURL_EASY_STR_CLEAR0(d, id) \
+        Curl_u8_strset_unset0(&(d)->set.strings, (uint8_t)(id))
 
 #define LIBCURL_NAME "libcurl"
 
