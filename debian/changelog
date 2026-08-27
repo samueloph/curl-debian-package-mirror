@@ -1,3 +1,13 @@
+curl (8.22.0~rc3-1) unstable; urgency=medium
+
+  * New upstream version 8.22.0~rc3
+  * d/patches: Drop patches applied upstream:
+     - tests-fix-test2064-content-length-mismatch.patch
+     - ws-fix-write-callback-error-handling.patch
+  * d/patches: Refresh Implement-symbol-versioning-for-CURL_GNUTLS_3.patch
+
+ -- Samuel Henrique <samueloph@debian.org>  Wed, 26 Aug 2026 19:36:54 -0700
+
 curl (8.22.0~rc2-2) unstable; urgency=medium
 
   * debian/patches: cherry-pick patches from upstream to fix regressions.
