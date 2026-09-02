@@ -87,11 +87,11 @@
 #ifdef LIBRESSL_VERSION_NUMBER
 /* As of LibreSSL 2.0.0-4.0.0: OPENSSL_VERSION_NUMBER == 0x20000000L */
 #  if LIBRESSL_VERSION_NUMBER < 0x2090100fL /* 2019-04-13 */
-#    error "LibreSSL 2.9.1 or later required"
+#    error "LibreSSL 2.9.1 or greater required"
 #  endif
 #elif !defined(HAVE_BORINGSSL_LIKE)
 #  ifndef HAVE_OPENSSL3 /* 2021-09-07 */
-#    error "OpenSSL 3.0.0 or later required"
+#    error "OpenSSL 3.0.0 or greater required"
 #  endif
 #endif
 
@@ -861,7 +861,7 @@ static int ssl_ui_reader(UI *ui, UI_STRING *uis)
   default:
     break;
   }
-  return (UI_method_get_reader(UI_OpenSSL()))(ui, uis);
+  return UI_method_get_reader(UI_OpenSSL())(ui, uis);
 }
 
 /*
@@ -880,7 +880,7 @@ static int ssl_ui_writer(UI *ui, UI_STRING *uis)
   default:
     break;
   }
-  return (UI_method_get_writer(UI_OpenSSL()))(ui, uis);
+  return UI_method_get_writer(UI_OpenSSL())(ui, uis);
 }
 
 /*
@@ -905,7 +905,7 @@ static int use_certificate_blob(SSL_CTX *ctx, const struct curl_blob *blob,
   X509 *x = NULL;
   /* the typecast of blob->len is fine since it is guaranteed to never be
      larger than CURL_MAX_INPUT_LENGTH */
-  BIO *in = BIO_new_mem_buf(blob->data, (int)(blob->len));
+  BIO *in = BIO_new_mem_buf(blob->data, (int)blob->len);
   if(!in)
     return CURLE_OUT_OF_MEMORY;
 
@@ -939,7 +939,7 @@ static int use_privatekey_blob(SSL_CTX *ctx, const struct curl_blob *blob,
 {
   int ret = 0;
   EVP_PKEY *pkey = NULL;
-  BIO *in = BIO_new_mem_buf(blob->data, (int)(blob->len));
+  BIO *in = BIO_new_mem_buf(blob->data, (int)blob->len);
   if(!in)
     return CURLE_OUT_OF_MEMORY;
 
@@ -967,7 +967,7 @@ static int use_certificate_chain_blob(SSL_CTX *ctx,
 {
   int ret = 0;
   X509 *x = NULL;
-  BIO *in = BIO_new_mem_buf(blob->data, (int)(blob->len));
+  BIO *in = BIO_new_mem_buf(blob->data, (int)blob->len);
   if(!in)
     return CURLE_OUT_OF_MEMORY;
 
@@ -1319,7 +1319,7 @@ static int pkcs12load(struct Curl_easy *data,
   int cert_done = 0;
   STACK_OF(X509) *ca = NULL;
   if(cert_blob) {
-    cert_bio = BIO_new_mem_buf(cert_blob->data, (int)(cert_blob->len));
+    cert_bio = BIO_new_mem_buf(cert_blob->data, (int)cert_blob->len);
     if(!cert_bio) {
       failf(data, "BIO_new_mem_buf NULL, " OSSL_PACKAGE " error %s",
             ossl_strerror(ERR_get_error(), error_buffer,
@@ -2104,17 +2104,7 @@ static CURLcode ossl_verifyhost(struct Curl_easy *data,
 
         switch(target) {
         case GEN_DNS: /* name/pattern comparison */
-          /* The OpenSSL man page explicitly says: "In general it cannot be
-             assumed that the data returned by ASN1_STRING_data() is null
-             terminated or does not contain embedded nulls.", but also that
-             "The actual format of the data depends on the actual string
-             type itself: for example for an IA5String the data is ASCII"
-
-             It has been however verified that in 0.9.6 and 0.9.7, IA5String
-             is always null-terminated. */
-          if((altlen == strlen(altptr)) &&
-             /* if this is not true, there was an embedded zero in the name
-                string and we cannot match it. */
+          if(!memchr(altptr, '\0', altlen) &&
              Curl_cert_hostcheck(altptr, altlen,
                                  peer->origin->hostname, hostlen)) {
             matched = TRUE;
@@ -4755,8 +4745,9 @@ static CURLcode ossl_apple_verify(struct Curl_cfilter *cf,
       ocsp_len = (long)SSL_get_tlsext_status_ocsp_resp(octx->ssl, &ocsp_data);
 
     /* SSL_get_tlsext_status_ocsp_resp() returns the length of the OCSP
-       response data or -1 if there is no OCSP response data. */
-    if(ocsp_len < 0) {
+       response data or -1 if there is no OCSP response data.
+       AWS-LC breaks the API and returns 0 when there is no data. */
+    if(ocsp_len <= 0) {
       ocsp_len = 0; /* no data available */
       ocsp_missing = TRUE;
     }

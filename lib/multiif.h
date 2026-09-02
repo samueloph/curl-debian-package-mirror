@@ -28,6 +28,9 @@
  */
 
 void Curl_expire(struct Curl_easy *data, timediff_t milli, expire_id eid);
+void Curl_expire_set(struct Curl_easy *data,
+                     expire_id eid, timediff_t ms,
+                     const struct curltime *pnow);
 void Curl_expire_clear(struct Curl_easy *data, expire_id eid);
 void Curl_expire_clear_all(struct Curl_easy *data);
 CURLMcode Curl_update_timer(struct Curl_multi *multi) WARN_UNUSED_RESULT;
@@ -158,8 +161,12 @@ struct Curl_easy *Curl_multi_get_easy(struct Curl_multi *multi,
 /* TRUE if multi knows about data via its `mid` */
 bool Curl_multi_knows_easy(struct Curl_multi *multi, struct Curl_easy *data);
 
+/* Get the # of transfers attached to the multi, without the internal
+ * admin handle. */
+uint32_t Curl_multi_xfers_attached(struct Curl_multi *multi);
+
 /* Get the # of transfers current in process/pending. */
-unsigned int Curl_multi_xfers_running(struct Curl_multi *multi);
+uint32_t Curl_multi_xfers_running(struct Curl_multi *multi);
 
 /* Mark a transfer as dirty, e.g. to be rerun at earliest convenience.
  * A cheap operation, can be done many times repeatedly. */
