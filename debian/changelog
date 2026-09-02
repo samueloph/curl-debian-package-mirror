@@ -1,9 +1,22 @@
-curl (8.22.0-1) UNRELEASED; urgency=medium
+curl (8.22.0-1) unstable; urgency=medium
 
   * New upstream version 8.22.0
   * d/watch: Fix regex for release tarball
+  * d/patches: rebase patches on 8.22.0:
+    ZZZgnutls-build.patch needed a conflict resolution in the test
+    Makefile.am hunks: upstream added nodist_libtests_SOURCES and
+    nodist_tunits_SOURCES next to the LDADD lines the patch rewrites to use
+    $(LIBCURL_FILESTUB).la. While there, drop the patch's gratuitous
+    $(BUNDLE).c -> ${BUNDLE}.c change in tests/tunit/Makefile.am.
+    .
+    8.22.0 also adds a new tests/perf/ directory whose LDADD refers to
+    lib/libcurl.la, so extend the patch to cover it too. Without this the
+    GnuTLS flavour fails to build the test suite with "No rule to make
+    target '../../lib/libcurl.la', needed by 'perf'".
+    .
+    The other patches only needed context refreshes.
 
- -- Samuel Henrique <samueloph@debian.org>  Tue, 01 Sep 2026 23:11:59 -0700
+ -- Samuel Henrique <samueloph@debian.org>  Tue, 01 Sep 2026 23:27:46 -0700
 
 curl (8.22.0~rc3-1) unstable; urgency=medium
 
