@@ -1523,7 +1523,8 @@ static CURLcode cr_exp100_read(struct Curl_easy *data,
                  "timeout %dms", data->set.expect_100_timeout));
     ctx->state = EXP100_AWAITING_CONTINUE;
     ctx->start = *Curl_pgrs_now(data);
-    Curl_expire(data, data->set.expect_100_timeout, EXPIRE_100_TIMEOUT);
+    Curl_expire_set(data, EXPIRE_100_TIMEOUT,
+                    data->set.expect_100_timeout, &ctx->start);
     *nread = 0;
     *eos = FALSE;
     return CURLE_OK;
@@ -1730,7 +1731,7 @@ static bool http_may_use_1_1(const struct Curl_easy *data)
     return FALSE;
   /* We want 1.0 and have seen no previous response on *this* connection
      with a higher version (maybe no response at all yet). */
-  if((data->state.http_neg.only_10) &&
+  if(data->state.http_neg.only_10 &&
      (!conn || conn->httpversion_seen <= 10))
     return FALSE;
   /* We are not restricted to use 1.0 only. */
@@ -3179,7 +3180,7 @@ static statusline checkhttpprefix(struct Curl_easy *data,
     head = head->next;
   }
 
-  if((rc != STATUS_DONE) && (checkprefixmax("HTTP/", s, len)))
+  if((rc != STATUS_DONE) && checkprefixmax("HTTP/", s, len))
     rc = onmatch;
 
   return rc;

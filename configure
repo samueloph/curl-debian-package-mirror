@@ -27299,8 +27299,8 @@ printf "%s\n" "no" >&6; }
 fi
 
 
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether to enable Amiga native SSL/TLS (AmiSSL v5)" >&5
-printf %s "checking whether to enable Amiga native SSL/TLS (AmiSSL v5)... " >&6; }
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether to enable Amiga native SSL/TLS (AmiSSL 5)" >&5
+printf %s "checking whether to enable Amiga native SSL/TLS (AmiSSL 5)... " >&6; }
 if test "$HAVE_PROTO_BSDSOCKET_H" = "1"; then
   if test "x$OPT_AMISSL" != "xno"; then
     ssl_msg=
@@ -27318,7 +27318,7 @@ int main(void)
           (OPENSSL_VERSION_NUMBER >= 0x30000000L) && defined(PROTO_AMISSL_H)
         return 0;
         #else
-        #error not AmiSSL v5 / OpenSSL 3
+        #error not AmiSSL 5 / OpenSSL 3
         #endif
 
   return 0;
@@ -28119,8 +28119,8 @@ fi
 rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
 
     if test "$ssl_msg" = 'OpenSSL'; then
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for OpenSSL >= v3" >&5
-printf %s "checking for OpenSSL >= v3... " >&6; }
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for OpenSSL >= 3" >&5
+printf %s "checking for OpenSSL >= 3... " >&6; }
       cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -28145,7 +28145,7 @@ then :
 
 else $as_nop
 
-        as_fn_error $? "OpenSSL 3.0.0 or later required." "$LINENO" 5
+        as_fn_error $? "OpenSSL 3.0.0 or greater required." "$LINENO" 5
 
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
@@ -38987,6 +38987,40 @@ then :
   printf "%s\n" "#define HAVE_NETINET_UDP_H 1" >>confdefs.h
 
 fi
+ac_fn_c_check_header_compile "$LINENO" "netinet/ip.h" "ac_cv_header_netinet_ip_h" "/* default includes */
+
+#include <stdlib.h>
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+#if !defined(_WIN32) || defined(__MINGW32__)
+#include <sys/time.h>
+#endif
+#ifdef HAVE_SYS_SELECT_H
+#include <sys/select.h>
+#elif defined(HAVE_UNISTD_H)
+#include <unistd.h>
+#endif
+#ifndef _WIN32
+#include <sys/socket.h>
+#endif
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif
+#ifdef HAVE_NETINET_IN6_H
+#include <netinet/in6.h>  /* is this really required to detect other headers? */
+#endif
+#ifdef HAVE_SYS_UN_H
+#include <sys/un.h>  /* is this really required to detect other headers? */
+#endif
+
+
+"
+if test "x$ac_cv_header_netinet_ip_h" = xyes
+then :
+  printf "%s\n" "#define HAVE_NETINET_IP_H 1" >>confdefs.h
+
+fi
 ac_fn_c_check_header_compile "$LINENO" "netdb.h" "ac_cv_header_netdb_h" "/* default includes */
 
 #include <stdlib.h>
@@ -49695,7 +49729,7 @@ SSL_BACKENDS=${ssl_backends}
 
 
 
-ac_config_files="$ac_config_files Makefile docs/Makefile docs/examples/Makefile docs/libcurl/Makefile docs/libcurl/opts/Makefile docs/cmdline-opts/Makefile include/Makefile include/curl/Makefile src/Makefile lib/Makefile scripts/Makefile lib/libcurl.vers tests/Makefile tests/config tests/configurehelp.pm tests/certs/Makefile tests/data/Makefile tests/server/Makefile tests/libtest/Makefile tests/unit/Makefile tests/tunit/Makefile tests/http/config.ini tests/http/Makefile projects/Makefile projects/vms/Makefile"
+ac_config_files="$ac_config_files Makefile docs/Makefile docs/examples/Makefile docs/libcurl/Makefile docs/libcurl/opts/Makefile docs/cmdline-opts/Makefile include/Makefile include/curl/Makefile src/Makefile lib/Makefile scripts/Makefile lib/libcurl.vers tests/Makefile tests/config tests/configurehelp.pm tests/certs/Makefile tests/data/Makefile tests/http/config.ini tests/http/Makefile tests/libtest/Makefile tests/perf/Makefile tests/server/Makefile tests/tunit/Makefile tests/unit/Makefile projects/Makefile projects/vms/Makefile"
 
 ac_config_files="$ac_config_files curl-config"
 
@@ -50911,12 +50945,13 @@ do
     "tests/configurehelp.pm") CONFIG_FILES="$CONFIG_FILES tests/configurehelp.pm" ;;
     "tests/certs/Makefile") CONFIG_FILES="$CONFIG_FILES tests/certs/Makefile" ;;
     "tests/data/Makefile") CONFIG_FILES="$CONFIG_FILES tests/data/Makefile" ;;
-    "tests/server/Makefile") CONFIG_FILES="$CONFIG_FILES tests/server/Makefile" ;;
-    "tests/libtest/Makefile") CONFIG_FILES="$CONFIG_FILES tests/libtest/Makefile" ;;
-    "tests/unit/Makefile") CONFIG_FILES="$CONFIG_FILES tests/unit/Makefile" ;;
-    "tests/tunit/Makefile") CONFIG_FILES="$CONFIG_FILES tests/tunit/Makefile" ;;
     "tests/http/config.ini") CONFIG_FILES="$CONFIG_FILES tests/http/config.ini" ;;
     "tests/http/Makefile") CONFIG_FILES="$CONFIG_FILES tests/http/Makefile" ;;
+    "tests/libtest/Makefile") CONFIG_FILES="$CONFIG_FILES tests/libtest/Makefile" ;;
+    "tests/perf/Makefile") CONFIG_FILES="$CONFIG_FILES tests/perf/Makefile" ;;
+    "tests/server/Makefile") CONFIG_FILES="$CONFIG_FILES tests/server/Makefile" ;;
+    "tests/tunit/Makefile") CONFIG_FILES="$CONFIG_FILES tests/tunit/Makefile" ;;
+    "tests/unit/Makefile") CONFIG_FILES="$CONFIG_FILES tests/unit/Makefile" ;;
     "projects/Makefile") CONFIG_FILES="$CONFIG_FILES projects/Makefile" ;;
     "projects/vms/Makefile") CONFIG_FILES="$CONFIG_FILES projects/vms/Makefile" ;;
     "curl-config") CONFIG_FILES="$CONFIG_FILES curl-config" ;;
