@@ -1,7 +1,7 @@
-curl (8.22.0~rc3-1) UNRELEASED; urgency=medium
+curl (8.22.0-1) UNRELEASED; urgency=medium
 
-  * d/watch: Fix regex for release tarball
   * New upstream version 8.22.0
+  * d/watch: Fix regex for release tarball
 
  -- Samuel Henrique <samueloph@debian.org>  Tue, 01 Sep 2026 23:11:59 -0700
 
