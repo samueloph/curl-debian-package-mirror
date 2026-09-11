@@ -1,3 +1,9 @@
+curl (8.22.0-1+exp1) experimental; urgency=medium
+
+  * Upload to experimental.
+
+ -- Samuel Henrique <samueloph@debian.org>  Thu, 10 Sep 2026 18:20:40 -0700
+
 curl (8.22.0-1) unstable; urgency=medium
 
   * New upstream version 8.22.0
