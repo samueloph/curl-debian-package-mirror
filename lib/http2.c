@@ -179,7 +179,7 @@ static void cf_h2_ctx_init(struct cf_h2_ctx *ctx, bool via_h1_upgrade)
   Curl_bufq_initp(&ctx->outbufq, &ctx->stream_bufcp, H2_NW_SEND_CHUNKS, 0);
   curlx_dyn_init(&ctx->scratch, CURL_MAX_HTTP_HEADER);
   Curl_uint32_hash_init(&ctx->streams, 63, h2_stream_hash_free);
-  ctx->remote_max_sid = 2147483647;
+  ctx->remote_max_sid = INT32_MAX;
   ctx->via_h1_upgrade = via_h1_upgrade;
   ctx->initialized = TRUE;
 }
@@ -700,7 +700,7 @@ char *curl_pushheader_byname(struct curl_pushheaders *h, const char *name)
 static struct Curl_easy *h2_duphandle(struct Curl_cfilter *cf,
                                       struct Curl_easy *data)
 {
-  struct Curl_easy *second = curl_easy_duphandle(data);
+  struct Curl_easy *second = curl_easy_init();
   if(second) {
     struct h2_stream_ctx *second_stream;
     http2_data_setup(cf, second, &second_stream);
@@ -1899,10 +1899,6 @@ static CURLcode h2_progress_ingress(struct Curl_cfilter *cf,
        * underlying buffers that will not be consumed. */
       if(!cf->next || !cf->next->cft->has_data_pending(cf->next, data))
         Curl_multi_mark_dirty(data);
-      break;
-    }
-    else if(!stream) {
-      DEBUGASSERT(0);
       break;
     }
 

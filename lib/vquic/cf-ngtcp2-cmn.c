@@ -1351,26 +1351,26 @@ void Curl_cf_ngtcp2_io_ctx_init(struct cf_ngtcp2_io_ctx *io_ctx,
                                 struct Curl_easy *data)
 {
   struct cf_ngtcp2_ctx *ctx = cf->ctx;
-  const struct curltime *pnow = Curl_pgrs_now(data);
 
   io_ctx->cf = cf;
   io_ctx->data = data;
+  io_ctx->now = *Curl_pgrs_now(data);
   ngtcp2_path_storage_zero(&io_ctx->ps);
-  Curl_vquic_ctx_set_time(&ctx->q, pnow);
-  io_ctx->ts = ((ngtcp2_tstamp)pnow->tv_sec * NGTCP2_SECONDS) +
-               ((ngtcp2_tstamp)pnow->tv_usec * NGTCP2_MICROSECONDS);
+  Curl_vquic_ctx_set_time(&ctx->q, &io_ctx->now);
+  io_ctx->ts = ((ngtcp2_tstamp)io_ctx->now.tv_sec * NGTCP2_SECONDS) +
+               ((ngtcp2_tstamp)io_ctx->now.tv_usec * NGTCP2_MICROSECONDS);
 }
 
 void Curl_cf_ngtcp2_io_ctx_update_time(struct Curl_easy *data,
-                                       struct cf_ngtcp2_io_ctx *pktx,
+                                       struct cf_ngtcp2_io_ctx *io_ctx,
                                        struct Curl_cfilter *cf)
 {
   struct cf_ngtcp2_ctx *ctx = cf->ctx;
-  const struct curltime *pnow = Curl_pgrs_now(data);
 
-  Curl_vquic_ctx_update_time(&ctx->q, pnow);
-  pktx->ts = ((ngtcp2_tstamp)pnow->tv_sec * NGTCP2_SECONDS) +
-             ((ngtcp2_tstamp)pnow->tv_usec * NGTCP2_MICROSECONDS);
+  io_ctx->now = *Curl_pgrs_now(data);
+  Curl_vquic_ctx_update_time(&ctx->q, &io_ctx->now);
+  io_ctx->ts = ((ngtcp2_tstamp)io_ctx->now.tv_sec * NGTCP2_SECONDS) +
+               ((ngtcp2_tstamp)io_ctx->now.tv_usec * NGTCP2_MICROSECONDS);
 }
 
 #if NGTCP2_VERSION_NUM < 0x011100
@@ -1547,7 +1547,7 @@ CURLcode Curl_cf_ngtcp2_progress_egress(struct Curl_cfilter *cf,
   result = Curl_vquic_flush(cf, data, &ctx->q);
   if(result) {
     if(result == CURLE_AGAIN) {
-      Curl_expire(data, 1, EXPIRE_QUIC);
+      Curl_expire_set(data, EXPIRE_QUIC, 1, &pktx->now);
       return CURLE_OK;
     }
     return result;
@@ -1599,7 +1599,7 @@ CURLcode Curl_cf_ngtcp2_progress_egress(struct Curl_cfilter *cf,
                                             gsolen, nread, nread);
         if(result) {
           if(result == CURLE_AGAIN) {
-            Curl_expire(data, 1, EXPIRE_QUIC);
+            Curl_expire_set(data, EXPIRE_QUIC, 1, &pktx->now);
             return CURLE_OK;
           }
           return result;
@@ -1621,7 +1621,7 @@ CURLcode Curl_cf_ngtcp2_progress_egress(struct Curl_cfilter *cf,
     result = Curl_vquic_send(cf, data, &ctx->q, gsolen);
     if(result) {
       if(result == CURLE_AGAIN) {
-        Curl_expire(data, 1, EXPIRE_QUIC);
+        Curl_expire_set(data, EXPIRE_QUIC, 1, &pktx->now);
         return CURLE_OK;
       }
       return result;
@@ -1640,7 +1640,7 @@ struct cf_ngtcp2_recv_ctx {
 static CURLcode cf_ngtcp2_recv_pkts(const unsigned char *buf, size_t buflen,
                                     size_t gso_size,
                                     struct sockaddr_storage *remote_addr,
-                                    socklen_t remote_addrlen, int ecn,
+                                    socklen_t remote_addrlen, uint8_t ecn,
                                     void *userp)
 {
   struct cf_ngtcp2_recv_ctx *rctx = userp;
@@ -1658,7 +1658,7 @@ static CURLcode cf_ngtcp2_recv_pkts(const unsigned char *buf, size_t buflen,
 
   if(ecn)
     CURL_TRC_CF(pktx->data, pktx->cf, "vquic_recv(len=%zu, gso=%zu, ecn=%x)",
-                buflen, gso_size, (unsigned int)ecn);
+                buflen, gso_size, (unsigned)ecn);
   ngtcp2_addr_init(&path.local, (struct sockaddr *)&ctx->q.local_addr,
                    ctx->q.local_addrlen);
   ngtcp2_addr_init(&path.remote, (struct sockaddr *)remote_addr,
@@ -1827,8 +1827,9 @@ CURLcode Curl_cf_ngtcp2_cmn_set_expiry(struct Curl_cfilter *cf,
       if(timeout % NGTCP2_MILLISECONDS) {
         timeout += NGTCP2_MILLISECONDS;
       }
-      Curl_expire(data, (timediff_t)(timeout / NGTCP2_MILLISECONDS),
-                  EXPIRE_QUIC);
+      Curl_expire_set(data, EXPIRE_QUIC,
+                      (timediff_t)(timeout / NGTCP2_MILLISECONDS),
+                      &pktx->now);
     }
   }
   return CURLE_OK;
@@ -1890,11 +1891,12 @@ CURLcode Curl_cf_ngtcp2_h3_stream_setup(struct Curl_cfilter *cf,
   stream->id = -1;
   stream->rx_offset = 0;
   stream->rx_offset_max = H3_STREAM_WINDOW_SIZE_INITIAL;
+  stream->tx_in_flight_ideal = H3_STREAM_SEND_BUF_INITIAL;
 
   /* on send, we control how much we put into the buffer */
   Curl_bufq_initp(&stream->sendbuf, &ctx->stream_bufcp,
                   H3_STREAM_SEND_CHUNKS, BUFQ_OPT_NONE);
-  stream->sendbuf_len_in_flight = 0;
+  stream->tx_in_flight_size = 0;
   stream->window_size_max = H3_STREAM_WINDOW_SIZE_INITIAL;
   Curl_h1_req_parse_init(&stream->h1, H1_PARSE_DEFAULT_MAX_LINE_LEN);
 
@@ -2032,7 +2034,6 @@ CURLcode Curl_cf_ngtcp2_h3_init_ctrls(struct cf_ngtcp2_ctx *ctx,
   }
   return CURLE_OK;
 }
-
 
 CURLcode Curl_cf_ngtcp2_cmn_query(struct Curl_cfilter *cf,
                                   struct Curl_easy *data,

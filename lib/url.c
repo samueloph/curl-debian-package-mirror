@@ -83,7 +83,6 @@
 #include "getinfo.h"
 #include "pop3.h"
 #include "urlapi-int.h"
-#include "system_win32.h"
 #include "hsts.h"
 #include "proxy.h"
 #include "cfilters.h"
@@ -723,6 +722,10 @@ static bool url_match_ssl_use(struct connectdata *conn,
     if(!(m->needle->scheme->flags & PROTOPT_SSL_REUSE) ||
        (get_protocol_family(conn->scheme) != m->needle->scheme->protocol))
       return FALSE;
+    /* We may reuse this as an auto-TLS upgrade, but only if the SSL
+     * config parameters match. */
+    if(!Curl_ssl_conn_config_match(m->data, conn, FALSE))
+      return FALSE;
   }
   else if(m->require_tls)
     /* a clear-text STARTTLS protocol with required TLS */
@@ -894,31 +897,6 @@ static bool url_match_ssl_config(struct connectdata *conn,
   return TRUE;
 }
 
-#if defined(USE_SPNEGO) || defined(USE_NTLM)
-static bool url_allow_sspi_empty_creds(struct Curl_creds *conn_creds,
-                                       struct Curl_easy *data,
-                                       struct connectdata *conn)
-{
-#ifdef USE_WINDOWS_SSPI
-  /* Empty user: SSPI on Windows can make use of an "ambient"
-   * user from a "SecurityToken" associated with the current thread or
-   * process. This token can be switched at any time. We are therefore
-   * not able to find out reliably what token the connection really
-   * used, nor what token in the next connect attempt will use.
-   * To avoid TOCTOU attacks, do not reuse on empty credentials
-   * UNLESS this connection is the one used by this transfer before. */
-  if(!Curl_creds_has_user(conn_creds) &&
-     (data->state.lastconnect_id != conn->connection_id))
-    return FALSE;
-#else
-  (void)conn_creds;
-  (void)data;
-  (void)conn;
-#endif
-  return TRUE;
-}
-#endif /* USE_SPNEGO || USE_NTLM */
-
 #ifdef USE_NTLM
 static bool url_match_auth_ntlm(struct connectdata *conn,
                                 struct url_conn_match *m)
@@ -929,9 +907,6 @@ static bool url_match_auth_ntlm(struct connectdata *conn,
     if(!m->want_ntlm_http ||
        !Curl_creds_same(conn->creds, m->data->state.creds) ||
        !Curl_peer_equal(conn->creds_origin, m->data->state.origin))
-      return FALSE;
-    /* Empty credentials need more careful matching for WINDOWS_SSPI */
-    if(!url_allow_sspi_empty_creds(conn->creds, m->data, conn))
       return FALSE;
   }
   else if(m->want_ntlm_http) {
@@ -948,9 +923,6 @@ static bool url_match_auth_ntlm(struct connectdata *conn,
   if(conn->proxy_ntlm_state != NTLMSTATE_NONE) {
     if(!m->want_proxy_ntlm_http ||
        !Curl_creds_same(m->needle->http_proxy.creds, conn->http_proxy.creds))
-      return FALSE;
-    if(!url_allow_sspi_empty_creds(m->needle->http_proxy.creds,
-                                   m->data, conn))
       return FALSE;
   }
   else if(m->want_proxy_ntlm_http) {
@@ -994,8 +966,6 @@ static bool url_match_auth_nego(struct connectdata *conn,
        !Curl_creds_same(conn->creds, m->data->state.creds) ||
        !Curl_peer_equal(conn->creds_origin, m->data->state.origin))
       return FALSE;
-    if(!url_allow_sspi_empty_creds(conn->creds, m->data, conn))
-      return FALSE;
   }
   else if(m->want_nego_http) {
     /* Transfer wants Negotiate, connection is not using it.
@@ -1011,9 +981,6 @@ static bool url_match_auth_nego(struct connectdata *conn,
   if(conn->proxy_negotiate_state != GSS_AUTHNONE) {
     if(!m->want_proxy_nego_http ||
        !Curl_creds_same(m->needle->http_proxy.creds, conn->http_proxy.creds))
-      return FALSE;
-    if(!url_allow_sspi_empty_creds(m->needle->http_proxy.creds,
-                                   m->data, conn))
       return FALSE;
   }
   else if(m->want_proxy_nego_http) {
@@ -1094,6 +1061,16 @@ static bool url_match_conn(struct connectdata *conn, void *userdata)
 
   if(!url_match_multiplex_limits(conn, m))
     return FALSE;
+
+  if(m->data->set.conn_max_age_ms > 0) {
+    timediff_t age_ms = curlx_ptimediff_ms(&m->now, &conn->created);
+    if(age_ms > m->data->set.conn_max_age_ms) {
+      /* Transfer is looking for a younger connection. */
+      if(!CONN_INUSE(conn))
+        Curl_conn_close(m->data, conn, FALSE);
+      return FALSE;
+    }
+  }
 
   /* If we are going to pick an idle connection, do an extra
    * health check before we reuse it. */
@@ -1562,11 +1539,6 @@ static CURLcode url_set_conn_origin_etc(struct Curl_easy *data,
     }
   }
 
-#ifdef USE_IPV6
-  conn->scope_id = data->set.scope_id ?
-                   data->set.scope_id : data->state.origin->scopeid;
-#endif
-
 out:
   return result;
 }
@@ -1644,6 +1616,17 @@ static CURLcode setup_connection_internals(struct Curl_easy *data,
 
   Curl_strntolower(conn->destination, conn->destination,
                    strlen(conn->destination));
+
+#ifdef USE_IPV6
+  if(data->set.scope_id)
+    conn->scope_id = data->set.scope_id;
+  else {
+    struct Curl_peer *first = Curl_conn_get_first_peer(conn, FIRSTSOCKET);
+    if(!first)
+      return CURLE_FAILED_INIT;
+    conn->scope_id = first->scopeid;
+  }
+#endif
 
   return CURLE_OK;
 }
@@ -2282,7 +2265,7 @@ static CURLcode url_find_or_create_conn(struct Curl_easy *data)
     DEBUGASSERT(needle->scheme->run->connect_it);
     data->info.conn_scheme = needle->scheme->name;
     /* conn_protocol can only provide "old" protocols */
-    data->info.conn_protocol = (needle->scheme->protocol) & CURLPROTO_MASK;
+    data->info.conn_protocol = needle->scheme->protocol & CURLPROTO_MASK;
     result = needle->scheme->run->connect_it(data, &done);
     if(result)
       goto out;
@@ -2364,7 +2347,7 @@ static CURLcode url_find_or_create_conn(struct Curl_easy *data)
       goto out;
     }
     else {
-      switch(Curl_cpool_check_limits(data, needle)) {
+      switch(Curl_cpool_check_limits(data, needle, &needle->created)) {
       case CPOOL_LIMIT_DEST:
         infof(data, "No more connections allowed to host");
         result = CURLE_NO_CONNECTION_AVAILABLE;
@@ -2434,7 +2417,7 @@ static CURLcode url_find_or_create_conn(struct Curl_easy *data)
   /* persist the scheme and handler the transfer is using */
   data->info.conn_scheme = data->conn->scheme->name;
   /* conn_protocol can only provide "old" protocols */
-  data->info.conn_protocol = (data->conn->scheme->protocol) & CURLPROTO_MASK;
+  data->info.conn_protocol = data->conn->scheme->protocol & CURLPROTO_MASK;
   data->info.used_proxy =
 #ifdef CURL_DISABLE_PROXY
     0

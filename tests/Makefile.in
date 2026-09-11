@@ -464,7 +464,7 @@ EXTRA_DIST = \
 @BUILD_UNITTESTS_TRUE@BUILD_UNIT = unit tunit
 @BUILD_UNITTESTS_FALSE@DIST_UNIT = unit tunit
 @BUILD_UNITTESTS_TRUE@DIST_UNIT = 
-SUBDIRS = certs data server libtest http $(BUILD_UNIT)
+SUBDIRS = certs data perf server libtest http $(BUILD_UNIT)
 DIST_SUBDIRS = $(SUBDIRS) $(DIST_UNIT)
 PERLFLAGS = -I$(srcdir)
 CLEANFILES = .http.pid .https.pid .ftp.pid .ftps.pid
@@ -848,9 +848,10 @@ ci-pytest: all
 
 checksrc:
 	(cd libtest && $(MAKE) checksrc)
-	(cd unit && $(MAKE) checksrc)
-	(cd tunit && $(MAKE) checksrc)
+	(cd perf && $(MAKE) checksrc)
 	(cd server && $(MAKE) checksrc)
+	(cd tunit && $(MAKE) checksrc)
+	(cd unit && $(MAKE) checksrc)
 
 all-local: build-certs
 

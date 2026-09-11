@@ -37,6 +37,9 @@
 #ifdef HAVE_NETINET_UDP_H
 #include <netinet/udp.h>
 #endif
+#ifdef HAVE_NETINET_IP_H
+#include <netinet/ip.h>
+#endif
 #ifdef HAVE_SYS_IOCTL_H
 #include <sys/ioctl.h>
 #endif
@@ -75,7 +78,6 @@
 #include "rand.h"
 #include "sockaddr.h"
 #include "curlx/strdup.h"
-#include "system_win32.h"
 #include "curlx/nonblock.h"
 #include "curlx/strcopy.h"
 #include "curlx/version_win32.h"
@@ -1140,14 +1142,13 @@ static int cf_socktype(int x)
 #ifdef SOCK_CLOEXEC
   x &= ~SOCK_CLOEXEC;
 #endif
-#ifdef SOCK_NONBLOCK
+#ifdef CURL_USE_SOCK_NONBLOCK
   x &= ~SOCK_NONBLOCK;
 #endif
   return x;
 }
 
 #ifdef _WIN32
-
 /* Offered by mingw-w64 v10+, MS SDK 8.0/~VS2012+ */
 #ifndef SIO_TCP_INITIAL_RTO
 #define SIO_TCP_INITIAL_RTO _WSAIOW(IOC_VENDOR, 17)
@@ -1158,7 +1159,7 @@ typedef struct _TCP_INITIAL_RTO_PARAMETERS {
   USHORT Rtt;
   UCHAR MaxSynRetransmissions;
 } TCP_INITIAL_RTO_PARAMETERS;
-#endif
+#endif /* SIO_TCP_INITIAL_RTO */
 
 #ifndef TCP_INITIAL_RTO_NO_SYN_RETRANSMISSIONS
 #define TCP_INITIAL_RTO_NO_SYN_RETRANSMISSIONS 0xFE /* -2 */
@@ -1189,7 +1190,7 @@ static void tcplocalhost(struct Curl_cfilter *cf,
 }
 #else
 #define tcplocalhost(x, y)
-#endif
+#endif /* _WIN32 */
 
 static CURLcode cf_socket_open(struct Curl_cfilter *cf,
                                struct Curl_easy *data)
@@ -1202,7 +1203,7 @@ static CURLcode cf_socket_open(struct Curl_cfilter *cf,
 
   DEBUGASSERT(ctx->sock == CURL_SOCKET_BAD);
   ctx->started_at = *Curl_pgrs_now(data);
-#ifdef SOCK_NONBLOCK
+#ifdef CURL_USE_SOCK_NONBLOCK
   /* Do not tuck SOCK_NONBLOCK into socktype when opensocket callback is set
    * because we would not know how socktype is about to be used in the
    * callback, SOCK_NONBLOCK might get factored out before calling socket().
@@ -1211,7 +1212,7 @@ static CURLcode cf_socket_open(struct Curl_cfilter *cf,
     ctx->addr.socktype |= SOCK_NONBLOCK;
 #endif
   result = socket_open(data, &ctx->addr, &ctx->sock);
-#ifdef SOCK_NONBLOCK
+#ifdef CURL_USE_SOCK_NONBLOCK
   /* Restore the socktype after the socket is created. */
   if(!data->set.fopensocket)
     ctx->addr.socktype &= ~SOCK_NONBLOCK;
@@ -1312,7 +1313,7 @@ static CURLcode cf_socket_open(struct Curl_cfilter *cf,
   }
 #endif
 
-#ifndef SOCK_NONBLOCK
+#ifndef CURL_USE_SOCK_NONBLOCK
   /* Set socket non-blocking, must be a non-blocking socket for
    * a non-blocking connect. */
   error = curlx_nonblock(ctx->sock, TRUE);
@@ -1944,6 +1945,47 @@ static void linux_quic_gro(struct cf_socket_ctx *ctx)
 #define linux_quic_gro(x)
 #endif
 
+#if (defined(__linux__) || defined(__APPLE__)) && defined(IP_RECVTOS)
+static void linux_quic_ecn(struct cf_socket_ctx *ctx)
+{
+  unsigned int tos = 1;
+  switch(ctx->addr.family) {
+  case AF_INET:
+    (void)setsockopt(ctx->sock, IPPROTO_IP, IP_RECVTOS, &tos, sizeof(tos));
+    break;
+#ifdef IPV6_RECVTCLASS
+  case AF_INET6:
+    (void)setsockopt(ctx->sock, IPPROTO_IPV6, IPV6_RECVTCLASS,
+                     &tos, sizeof(tos));
+    break;
+#endif
+  }
+}
+#else
+#define linux_quic_ecn(x)
+#endif
+
+#if (defined(__linux__) || defined(__APPLE__)) && defined(IP_DONTFRAG)
+static void linux_ip_dontfrag(struct cf_socket_ctx *ctx)
+{
+  int val = 1;
+
+  switch(ctx->addr.family) {
+  case AF_INET:
+    (void)setsockopt(ctx->sock, IPPROTO_IP, IP_DONTFRAG, &val, sizeof(val));
+    break;
+#ifdef IPV6_DONTFRAG
+  case AF_INET6:
+    (void)setsockopt(ctx->sock, IPPROTO_IPV6, IPV6_DONTFRAG,
+                     &val, sizeof(val));
+    break;
+#endif
+  }
+}
+#else
+#define linux_ip_dontfrag(x)
+#endif
+
 static CURLcode cf_udp_setup_quic(struct Curl_cfilter *cf,
                                   struct Curl_easy *data)
 {
@@ -1973,7 +2015,9 @@ static CURLcode cf_udp_setup_quic(struct Curl_cfilter *cf,
    * non-blocking socket created by cf_socket_open() to it. Thus, we
    * do not need to call curlx_nonblock() in cf_udp_setup_quic() anymore.
    */
+  linux_quic_ecn(ctx);
   linux_quic_mtu(ctx);
+  linux_ip_dontfrag(ctx);
   linux_quic_gro(ctx);
 
   return CURLE_OK;

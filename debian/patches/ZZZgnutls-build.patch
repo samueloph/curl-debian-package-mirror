@@ -11,11 +11,12 @@ Last-Update: 2024-11-06
  lib/Makefile.am           | 62 +++++++++++++++++++++++++++++++++++++++++++++++
  src/Makefile.am           |  2 +-
  tests/libtest/Makefile.am |  2 +-
- tests/tunit/Makefile.am   |  4 +--
- 6 files changed, 75 insertions(+), 5 deletions(-)
+ tests/perf/Makefile.am    |  2 +-
+ tests/tunit/Makefile.am   |  2 +-
+ 7 files changed, 75 insertions(+), 5 deletions(-)
 
 diff --git a/configure.ac b/configure.ac
-index f130bc5..cae28cc 100644
+index 4c4fac2..dcf6dab 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -277,6 +277,14 @@ AS_HELP_STRING([--with-gnutls=PATH],[where to look for GnuTLS, PATH points to th
@@ -47,12 +48,12 @@ index 0885b92..d1a54ce 100644
  # This might hold -Werror
  CFLAGS += @CURL_CFLAG_EXTRAS@
 diff --git a/lib/Makefile.am b/lib/Makefile.am
-index b2e64c7..c0c0e66 100644
+index 9a3189c..c7d22d7 100644
 --- a/lib/Makefile.am
 +++ b/lib/Makefile.am
-@@ -32,7 +32,11 @@ EXTRA_DIST = config-mac.h config-os400.h config-win32.h
-   curl_config.h.in $(LIB_RCFILES) libcurl.def $(CMAKE_DIST) Makefile.soname     \
-   optiontable.pl
+@@ -38,7 +38,11 @@ EXTRA_DIST = \
+   optiontable.pl \
+   $(LIB_RCFILES)
  
 +if GNUTLSBUILD
 +lib_LTLIBRARIES = libcurl-gnutls.la
@@ -62,7 +63,7 @@ index b2e64c7..c0c0e66 100644
  
  if BUILD_UNITTESTS
  noinst_LTLIBRARIES = libcurlu.la
-@@ -77,63 +81,121 @@ if USE_UNITY
+@@ -83,63 +87,121 @@ if USE_UNITY
  libcurl_unity.c: $(top_srcdir)/scripts/mk-unity.pl $(CSOURCES)
  	@PERL@ $(top_srcdir)/scripts/mk-unity.pl --include $(CSOURCES) > libcurl_unity.c
  
@@ -198,30 +199,41 @@ index 69554ee..de66be2 100644
  # if unit tests are enabled, build a static library to link them with
  if BUILD_UNITTESTS
 diff --git a/tests/libtest/Makefile.am b/tests/libtest/Makefile.am
-index db7c9d7..11c5a14 100644
+index 74eb150..632c0c7 100644
 --- a/tests/libtest/Makefile.am
 +++ b/tests/libtest/Makefile.am
-@@ -68,7 +68,7 @@ $(BUNDLE).c: $(top_srcdir)/scripts/mk-unity.pl Makefile.inc $(FIRST_C) $(UTILS_C
- 	@PERL@ $(top_srcdir)/scripts/mk-unity.pl --include $(UTILS_C) $(curlx_c_lib) $(TOOLX_C) --test $(TESTS_C) lib1521.c > $(BUNDLE).c
+@@ -73,7 +73,7 @@ $(BUNDLE).c: $(top_srcdir)/scripts/mk-unity.pl Makefile.inc $(FIRST_C) $(UTILS_C
  
  noinst_PROGRAMS = $(BUNDLE)
+ nodist_libtests_SOURCES = $(BUNDLE).c
 -LDADD = $(top_builddir)/lib/libcurl.la @LIBCURL_PC_LIBS_PRIVATE@
 +LDADD = $(top_builddir)/lib/$(LIBCURL_FILESTUB).la @LIBCURL_PC_LIBS_PRIVATE@
  CLEANFILES = $(BUNDLE).c lib1521.c
  
  lib1521.c: $(top_srcdir)/tests/libtest/mk-lib1521.pl $(top_srcdir)/include/curl/curl.h
-diff --git a/tests/tunit/Makefile.am b/tests/tunit/Makefile.am
-index c45a4b9..7af0f31 100644
---- a/tests/tunit/Makefile.am
-+++ b/tests/tunit/Makefile.am
-@@ -60,8 +60,8 @@ $(BUNDLE).c: $(top_srcdir)/scripts/mk-unity.pl Makefile.inc $(FIRST_C) $(TESTS_C
- 	@PERL@ $(top_srcdir)/scripts/mk-unity.pl --test $(TESTS_C) > $(BUNDLE).c
+diff --git a/tests/perf/Makefile.am b/tests/perf/Makefile.am
+index 903bf16..8fffdd7 100644
+--- a/tests/perf/Makefile.am
++++ b/tests/perf/Makefile.am
+@@ -67,7 +67,7 @@ $(BUNDLE).c: $(top_srcdir)/scripts/mk-unity.pl Makefile.inc $(FIRST_C) $(UTILS_C
  
  noinst_PROGRAMS = $(BUNDLE)
+ nodist_perf_SOURCES = $(BUNDLE).c
+-LDADD = $(top_builddir)/lib/libcurl.la @LIBCURL_PC_LIBS_PRIVATE@
++LDADD = $(top_builddir)/lib/$(LIBCURL_FILESTUB).la @LIBCURL_PC_LIBS_PRIVATE@
+ CLEANFILES = $(BUNDLE).c
+ 
+ CHECKSRC = $(CS_$(V))
+diff --git a/tests/tunit/Makefile.am b/tests/tunit/Makefile.am
+index c6ce17b..fc2b877 100644
+--- a/tests/tunit/Makefile.am
++++ b/tests/tunit/Makefile.am
+@@ -61,7 +61,7 @@ $(BUNDLE).c: $(top_srcdir)/scripts/mk-unity.pl Makefile.inc $(FIRST_C) $(TESTS_C
+ 
+ noinst_PROGRAMS = $(BUNDLE)
+ nodist_tunits_SOURCES = $(BUNDLE).c
 -LDADD = $(top_builddir)/src/libcurltool.la $(top_builddir)/lib/libcurl.la
--CLEANFILES = $(BUNDLE).c
 +LDADD = $(top_builddir)/src/libcurltool.la $(top_builddir)/lib/$(LIBCURL_FILESTUB).la
-+CLEANFILES = ${BUNDLE}.c
+ CLEANFILES = $(BUNDLE).c
  else
  noinst_PROGRAMS =
- endif

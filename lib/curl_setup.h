@@ -77,7 +77,7 @@
 
 #if defined(__MINGW32__) && \
   (!defined(__MINGW64_VERSION_MAJOR) || (__MINGW64_VERSION_MAJOR < 3))
-#error "Building curl requires mingw-w64 3.0 or later"
+#error "mingw-w64 3.0 or greater required"
 #endif
 
 /* Visual Studio 2010 is the minimum Visual Studio version we support.
@@ -178,7 +178,7 @@
 
 #ifdef HAVE_LIBZ
 #  ifndef ZLIB_CONST
-#  define ZLIB_CONST  /* Use z_const. Supported by v1.2.5.2 and upper. */
+#  define ZLIB_CONST  /* Use z_const. Supported by v1.2.5.2 or greater. */
 #  endif
 #endif
 
@@ -269,21 +269,14 @@
 #endif
 
 /*
- * When http is disabled rtsp is not supported.
- */
-#if defined(CURL_DISABLE_HTTP) && !defined(CURL_DISABLE_RTSP)
-#  define CURL_DISABLE_RTSP
-#endif
-
-/*
  * When HTTP is disabled, disable HTTP-only features
  */
 #ifdef CURL_DISABLE_HTTP
 #  ifndef CURL_DISABLE_ALTSVC
 #  define CURL_DISABLE_ALTSVC
 #  endif
-#  ifndef CURL_DISABLE_COOKIES
-#  define CURL_DISABLE_COOKIES
+#  ifndef CURL_DISABLE_AWS
+#  define CURL_DISABLE_AWS
 #  endif
 #  ifndef CURL_DISABLE_BASIC_AUTH
 #  define CURL_DISABLE_BASIC_AUTH
@@ -291,11 +284,8 @@
 #  ifndef CURL_DISABLE_BEARER_AUTH
 #  define CURL_DISABLE_BEARER_AUTH
 #  endif
-#  ifndef CURL_DISABLE_AWS
-#  define CURL_DISABLE_AWS
-#  endif
-#  ifndef CURL_DISABLE_HTTPSIG
-#  define CURL_DISABLE_HTTPSIG
+#  ifndef CURL_DISABLE_COOKIES
+#  define CURL_DISABLE_COOKIES
 #  endif
 #  ifndef CURL_DISABLE_DOH
 #  define CURL_DISABLE_DOH
@@ -309,8 +299,14 @@
 #  ifndef CURL_DISABLE_HSTS
 #  define CURL_DISABLE_HSTS
 #  endif
+#  ifndef CURL_DISABLE_HTTPSIG
+#  define CURL_DISABLE_HTTPSIG
+#  endif
 #  ifndef CURL_DISABLE_HTTP_AUTH
 #  define CURL_DISABLE_HTTP_AUTH
+#  endif
+#  ifndef CURL_DISABLE_RTSP
+#  define CURL_DISABLE_RTSP
 #  endif
 #  ifndef CURL_DISABLE_WEBSOCKETS
 #  define CURL_DISABLE_WEBSOCKETS /* no WebSockets without HTTP present */
@@ -1625,6 +1621,12 @@ typedef struct sockaddr_un {
                            __NetBSD_Version__ */
 #endif
 
+/* NetBSD before 6.1 did not set SS_NBIO for SOCK_NONBLOCK. */
+#if defined(SOCK_NONBLOCK) && \
+  (!defined(__NetBSD__) || (__NetBSD_Version__ >= 601000000))
+#define CURL_USE_SOCK_NONBLOCK
+#endif
+
 #ifndef _CURL_LOCAL_MEMZERO /* to be removed after a couple of releases */
 #ifdef _WIN32
 #if defined(_MSC_VER) && defined(NTDDI_VERSION) && \
@@ -1642,11 +1644,11 @@ typedef struct sockaddr_un {
   (defined(__NEWLIB__) && !defined(__CLIB2__)) || \
   (defined(__GLIBC__) && \
     (__GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 25))) || \
-  (defined(__DragonFly__) && __DragonFly_version >= 500600 /* v5.6+ */) || \
-  (defined(__FreeBSD__) && __FreeBSD_version >= 1100037 /* v11.0+ */) || \
-  (defined(__OpenBSD__) && OpenBSD >= 201405 /* v5.5+ */)
+  (defined(__DragonFly__) && __DragonFly_version >= 500600 /* 5.6+ */) || \
+  (defined(__FreeBSD__) && __FreeBSD_version >= 1100037 /* 11.0+ */) || \
+  (defined(__OpenBSD__) && OpenBSD >= 201405 /* 5.5+ */)
 #define curlx_memzero_low(buf, size)  explicit_bzero(buf, size)
-#elif defined(__NetBSD__) && __NetBSD_Version__ >= 702000000 /* v7.2+ */
+#elif defined(__NetBSD__) && __NetBSD_Version__ >= 702000000 /* 7.2+ */
 #define curlx_memzero_low(buf, size)  (void)explicit_memset(buf, 0, size)
 #endif
 #endif /* !_CURL_LOCAL_MEMZERO */

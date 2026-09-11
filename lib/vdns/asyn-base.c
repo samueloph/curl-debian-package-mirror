@@ -71,7 +71,7 @@ timediff_t Curl_async_timeleft_ms(struct Curl_easy *data,
 #ifdef USE_ARES
 
 #if ARES_VERSION < 0x011000
-#error "requires c-ares 1.16.0 or newer"
+#error "c-ares 1.16.0 or greater required"
 #endif
 
 /*
@@ -266,7 +266,7 @@ CURLcode Curl_async_failed(struct Curl_easy *data,
   }
 #endif
 
-  if(async->dns_queries & (CURL_DNSQ_A|CURL_DNSQ_AAAA))
+  if(async->dns_queries & (CURL_DNSQ_A | CURL_DNSQ_AAAA))
     failf(data, "Could not resolve %s: %s%s%s%s",
           host_or_proxy, async->peer->hostname,
           detail ? " (" : "", detail ? detail : "", detail ? ")" : "");
