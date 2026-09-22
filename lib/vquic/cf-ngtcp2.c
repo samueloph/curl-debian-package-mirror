@@ -27,7 +27,7 @@
 
 #include "urldata.h"
 #include "url.h"
-#include "uint-hash.h"
+#include "u32_ptrset.h"
 #include "curl_trc.h"
 #include "rand.h"
 #include "multiif.h"
@@ -35,7 +35,7 @@
 #include "cf-socket.h"
 #include "connect.h"
 #include "progress.h"
-#include "curlx/fopen.h"
+#include "curlx/win32-fopen.h"
 #include "curlx/dynbuf.h"
 #include "http1.h"
 #include "select.h"
@@ -1053,8 +1053,10 @@ static CURLcode cf_ngtcp2_query(struct Curl_cfilter *cf,
       max_streams += avail_bidi_streams;
       *pres1 = (max_streams > INT_MAX) ? INT_MAX : (int)max_streams;
     }
-    else  /* transport params not arrived yet? take our default. */
-      *pres1 = (int)Curl_multi_max_concurrent_streams(data->multi);
+    else {  /* transport params not arrived yet? take our default. */
+      uint32_t n = Curl_multi_max_concurrent_streams(data->multi);
+      *pres1 = (n < INT_MAX) ? (int)n : INT_MAX;
+    }
     CURL_TRC_CF(data, cf, "query conn[%" FMT_OFF_T "]: "
                 "MAX_CONCURRENT -> %d (%u in use)",
                 cf->conn->connection_id, *pres1, cf->conn->attached_xfers);

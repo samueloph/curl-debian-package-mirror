@@ -2673,13 +2673,12 @@ static CURLcode ftp_state_size_resp(struct Curl_easy *data,
     if(curlx_str_number(&fdigit, &filesize, CURL_OFF_T_MAX))
       filesize = -1; /* size remain unknown */
   }
-  else if(ftpcode == 550) { /* "No such file or directory" */
-    /* allow a SIZE failure for (resumed) uploads, when probing what command
-       to use */
-    if(instate != FTP_STOR_SIZE) {
-      failf(data, "The file does not exist");
-      return CURLE_REMOTE_FILE_NOT_FOUND;
-    }
+  else if(ftpcode == 550 && /* "No such file or directory" */
+          /* allow a SIZE failure for (resumed) uploads, when probing what
+             command to use */
+          instate != FTP_STOR_SIZE) {
+    failf(data, "The file does not exist");
+    return CURLE_REMOTE_FILE_NOT_FOUND;
   }
 
   if(instate == FTP_SIZE) {
@@ -4017,15 +4016,6 @@ static CURLcode init_wc_data(struct Curl_easy *data,
     goto fail;
   }
 
-  /* backup old write_function */
-  ftpwc->backup.write_function = data->set.fwrite_func;
-  /* parsing write function */
-  data->set.fwrite_func = Curl_ftp_parselist;
-  /* backup old file descriptor */
-  ftpwc->backup.file_descriptor = data->set.out;
-  /* let the writefunc callback know the transfer */
-  data->set.out = data;
-
   infof(data, "Wildcard - Parsing started");
   return CURLE_OK;
 
@@ -4061,10 +4051,6 @@ static CURLcode wc_statemach(struct Curl_easy *data,
       /* In this state is LIST response successfully parsed, so lets restore
          previous WRITEFUNCTION callback and WRITEDATA pointer */
       struct ftp_wc *ftpwc = wildcard->ftpwc;
-      data->set.fwrite_func = ftpwc->backup.write_function;
-      data->set.out = ftpwc->backup.file_descriptor;
-      ftpwc->backup.write_function = ZERO_NULL;
-      ftpwc->backup.file_descriptor = NULL;
       wildcard->state = CURLWC_DOWNLOADING;
 
       if(Curl_ftp_parselist_geterror(ftpwc->parser)) {
@@ -4084,8 +4070,13 @@ static CURLcode wc_statemach(struct Curl_easy *data,
       /* filelist has at least one file, lets get first one */
       struct Curl_llist_node *head = Curl_llist_head(&wildcard->filelist);
       struct curl_fileinfo *finfo = Curl_node_elem(head);
+      char *tmp_path;
+      char *enc = curl_easy_escape(NULL, finfo->filename, 0);
+      if(!enc)
+        return CURLE_OUT_OF_MEMORY;
 
-      char *tmp_path = curl_maprintf("%s%s", wildcard->path, finfo->filename);
+      tmp_path = curl_maprintf("%s%s", wildcard->path, enc);
+      curl_free(enc);
       if(!tmp_path)
         return CURLE_OUT_OF_MEMORY;
 
@@ -4365,7 +4356,7 @@ static CURLcode ftp_doing(struct Curl_easy *data,
   return result;
 }
 
-static void ftp_easy_dtor(void *key, size_t klen, void *entry)
+static void ftp_easy_dtor(const void *key, size_t klen, void *entry)
 {
   struct FTP *ftp = entry;
   (void)key;
@@ -4374,7 +4365,7 @@ static void ftp_easy_dtor(void *key, size_t klen, void *entry)
   curlx_free(ftp);
 }
 
-static void ftp_conn_dtor(void *key, size_t klen, void *entry)
+static void ftp_conn_dtor(const void *key, size_t klen, void *entry)
 {
   struct ftp_conn *ftpc = entry;
   (void)key;
@@ -4480,16 +4471,15 @@ bool Curl_ftp_conns_match(struct connectdata *needle, struct connectdata *conn)
                      cftpc->alternative_to_user) ||
      (nftpc->ccc != cftpc->ccc))
     return FALSE;
-  /* A mismatch on `use_ssl` MUST have been found in connection matching
-   * before we come here. This is a check on MAYBE/MUST use of STARTTLS and
-   * it only works on FTP. But IMAP/SMTP etc have the same `use_ssl` and
-   * no extra match like FTP. We lack tests in this area, so let FTP fail
-   * loudly here to help other cases. */
-  if(nftpc->use_ssl > cftpc->use_ssl) {
-    DEBUGASSERT(0);
-    return FALSE;
+
+  switch(nftpc->use_ssl) {
+  case CURLUSESSL_TRY:
+    /* A transfer that only "tries" SSL, is compatible with a connection
+     * of similar or stricter SSL use setting. */
+    return (cftpc->use_ssl != CURLUSESSL_NONE);
+  default:
+    return (nftpc->use_ssl == cftpc->use_ssl);
   }
-  return TRUE;
 }
 
 /*
