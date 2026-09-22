@@ -1,8 +1,9 @@
-curl (8.23.0~rc1-1) UNRELEASED; urgency=medium
+curl (8.23.0~rc1-1) unstable; urgency=medium
 
   * New upstream version 8.23.0~rc1
+  * Refresh patches
 
- -- Samuel Henrique <samueloph@debian.org>  Mon, 21 Sep 2026 18:24:40 -0700
+ -- Samuel Henrique <samueloph@debian.org>  Mon, 21 Sep 2026 18:58:38 -0700
 
 curl (8.22.0-1) unstable; urgency=medium
 
