@@ -1242,10 +1242,11 @@ static CURLcode setup_input_file(struct OperationConfig *config,
     if(!config->globoff && !glob_inuse(&state->inglob))
       result = glob_url(&state->inglob, u->infile, &state->upnum, err);
     if(!result && !state->uploadfile) {
-      if(glob_inuse(&state->inglob))
+      if(glob_inuse(&state->inglob) &&
+         !glob_is_literal(&state->inglob))
         result = glob_next_url(&state->uploadfile, &state->inglob);
       else if(!state->upidx) {
-        /* copy the allocated string */
+        /* take ownership of the allocated string */
         state->uploadfile = u->infile;
         u->infile = NULL;
       }
@@ -1305,7 +1306,8 @@ static CURLcode select_next_url(struct State *state,
                                 char **url)
 {
   CURLcode result = CURLE_OK;
-  if(glob_inuse(&state->urlglob))
+  if(glob_inuse(&state->urlglob) &&
+     !glob_is_literal(&state->urlglob))
     result = glob_next_url(url, &state->urlglob);
   else if(!state->urlidx) {
     *url = curlx_strdup(u->url);
@@ -1335,6 +1337,18 @@ static CURLcode setup_transfer_upload(struct OperationConfig *config,
       config->resume_from = -1; /* -1 then forces get-it-yourself */
   }
   return result;
+}
+
+/* returns TRUE if the given stream is a terminal */
+static bool stream_isatty(FILE *stream)
+{
+#ifdef DEBUGBUILD
+  /* the test suite sets CURL_ISATTY to make curl act as if the output goes
+     to a terminal */
+  if(getenv("CURL_ISATTY"))
+    return TRUE;
+#endif
+  return !!isatty(fileno(stream));
 }
 
 /* create a transfer */
@@ -1439,7 +1453,7 @@ static CURLcode create_single(struct OperationConfig *config,
       return result;
 
     if(!outs->out_null && output_expected(per->url, per->uploadfile) &&
-       outs->stream && isatty(fileno(outs->stream)))
+       outs->stream && stream_isatty(outs->stream))
       /* we send the output to a tty, therefore we switch off the progress
          meter */
       per->noprogress = global->noprogress = global->isatty = TRUE;

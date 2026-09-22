@@ -28,7 +28,7 @@
 
 #include "urldata.h"
 #include "bufq.h"
-#include "uint-hash.h"
+#include "u32_ptrset.h"
 #include "http1.h"
 #include "http2.h"
 #include "http.h"
@@ -97,7 +97,7 @@ struct cf_h2_ctx {
   struct bufc_pool stream_bufcp; /* spares for stream buffers */
   struct dynbuf scratch;        /* scratch buffer for temp use */
 
-  struct uint_hash streams; /* hash of `data->mid` to `h2_stream_ctx` */
+  struct u32_ptrset streams; /* hash of `data->mid` to `h2_stream_ctx` */
   size_t drain_total; /* sum of all stream's UrlState drain */
   uint32_t initial_win_size; /* current initial window size (settings) */
   uint32_t max_concurrent_streams;
@@ -165,7 +165,7 @@ static void h2_stream_ctx_free(struct h2_stream_ctx *stream)
   curlx_free(stream);
 }
 
-static void h2_stream_hash_free(unsigned int id, void *stream)
+static void h2_stream_hash_free(uint32_t id, void *stream)
 {
   (void)id;
   DEBUGASSERT(stream);
@@ -178,7 +178,7 @@ static void cf_h2_ctx_init(struct cf_h2_ctx *ctx, bool via_h1_upgrade)
   Curl_bufq_initp(&ctx->inbufq, &ctx->stream_bufcp, H2_NW_RECV_CHUNKS, 0);
   Curl_bufq_initp(&ctx->outbufq, &ctx->stream_bufcp, H2_NW_SEND_CHUNKS, 0);
   curlx_dyn_init(&ctx->scratch, CURL_MAX_HTTP_HEADER);
-  Curl_uint32_hash_init(&ctx->streams, 63, h2_stream_hash_free);
+  Curl_u32_ptrset_init(&ctx->streams, h2_stream_hash_free);
   ctx->remote_max_sid = INT32_MAX;
   ctx->via_h1_upgrade = via_h1_upgrade;
   ctx->initialized = TRUE;
@@ -193,7 +193,7 @@ static void cf_h2_ctx_free(struct cf_h2_ctx *ctx)
     Curl_bufq_free(&ctx->outbufq);
     Curl_bufcp_free(&ctx->stream_bufcp);
     curlx_dyn_free(&ctx->scratch);
-    Curl_uint32_hash_destroy(&ctx->streams);
+    Curl_u32_ptrset_clear(&ctx->streams);
     memset(ctx, 0, sizeof(*ctx));
   }
   curlx_free(ctx);
@@ -255,7 +255,7 @@ static CURLcode cf_h2_update_settings(struct cf_h2_ctx *ctx,
 
 #define H2_STREAM_CTX(ctx, data)                                         \
   ((struct h2_stream_ctx *)(                                             \
-    (data) ? Curl_uint32_hash_get(&(ctx)->streams, (data)->mid) : NULL))
+    (data) ? Curl_u32_ptrset_get(&(ctx)->streams, (data)->mid) : NULL))
 
 static struct h2_stream_ctx *h2_stream_ctx_create(struct cf_h2_ctx *ctx)
 {
@@ -381,7 +381,7 @@ static CURLcode http2_data_setup(struct Curl_cfilter *cf,
   if(!stream)
     return CURLE_OUT_OF_MEMORY;
 
-  if(!Curl_uint32_hash_set(&ctx->streams, data->mid, stream)) {
+  if(Curl_u32_ptrset_set(&ctx->streams, data->mid, stream)) {
     h2_stream_ctx_free(stream);
     return CURLE_OUT_OF_MEMORY;
   }
@@ -444,7 +444,7 @@ static void http2_data_done(struct Curl_cfilter *cf, struct Curl_easy *data)
     }
   }
 
-  Curl_uint32_hash_remove(&ctx->streams, data->mid);
+  Curl_u32_ptrset_unset(&ctx->streams, data->mid);
 }
 
 static int h2_client_new(struct Curl_cfilter *cf,
@@ -496,7 +496,7 @@ static CURLcode h2_process_pending_input(struct Curl_cfilter *cf,
     rv = nghttp2_session_mem_recv(ctx->h2, (const uint8_t *)buf, blen);
     if(!curlx_sztouz(rv, &nread)) {
       failf(data, "nghttp2 recv error %zd: %s", rv, nghttp2_strerror((int)rv));
-      return CURLE_HTTP2;
+      return CURLE_RECV_ERROR;
     }
     Curl_bufq_skip(&ctx->inbufq, nread);
     if(Curl_bufq_is_empty(&ctx->inbufq)) {
@@ -762,10 +762,13 @@ static int set_transfer_url(struct Curl_easy *newhandle,
   if(uc)
     rc = 4;
 fail:
-  curl_url_cleanup(u);
-  if(rc)
+  if(rc) {
+    curl_url_cleanup(u);
     return rc;
+  }
 
+  DEBUGASSERT(!newhandle->state.uh);
+  newhandle->state.uh = u;
   Curl_bufref_set(&newhandle->state.url, url, 0, curl_free);
   return 0;
 }
@@ -1253,10 +1256,10 @@ static int cf_h2_on_invalid_frame_recv(nghttp2_session *session,
       stream->error = ngerr;
       stream->closed = TRUE;
       stream->reset = TRUE;
-      return 0;  /* keep the connection alive */
     }
   }
-  return NGHTTP2_ERR_CALLBACK_FAILURE;
+  /* Return no error, nghttp2 will RST/GOAWAY by itself when needed */
+  return 0;
 }
 
 static int on_data_chunk_recv(nghttp2_session *session, uint8_t flags,
@@ -1332,8 +1335,16 @@ static int on_stream_close(nghttp2_session *session, int32_t stream_id,
 
   stream->closed = TRUE;
   stream->error = error_code;
-  if(stream->error)
+  if(stream->error) {
     stream->reset = TRUE;
+    if((stream->error == NGHTTP2_REFUSED_STREAM) &&
+       ctx->rcvd_goaway && ctx->goaway_error)
+    /* REFUSED_STREAM is used by nghttp2 on a GOAWAY from the
+     * server where it indicated it will no longer process this stream.
+     * If the GOAWAY carried an error code, take that as the error for
+     * the stream. */
+    stream->error = ctx->goaway_error;
+  }
 
   if(stream->error)
     CURL_TRC_CF(data_s, cf, "[%d] RESET: %s (err %u)",
@@ -1440,7 +1451,7 @@ static int on_header(nghttp2_session *session, const nghttp2_frame *frame,
         /* no memory */
         return NGHTTP2_ERR_CALLBACK_FAILURE;
       if(!curl_strequal(check, (const char *)value) &&
-         ((data->state.origin->port != cf->conn->given->defport) ||
+         ((data->state.origin->port != data->state.origin->scheme->defport) ||
           !curl_strequal(data->state.origin->hostname, (const char *)value))) {
         /* This is push is not for the same authority that was asked for in
          * the URL. RFC 7540 section 8.2 says: "A client MUST treat a
@@ -2238,7 +2249,7 @@ static CURLcode cf_h2_send(struct Curl_cfilter *cf, struct Curl_easy *data,
 
   /* if the stream has been closed in egress handling (nghttp2 does that
    * when it does not like the headers, for example */
-  if(stream && stream->closed) {
+  if(stream && stream->closed && !stream->resp_hds_complete) {
     infof(data, "stream %d closed", stream->id);
     result = CURLE_SEND_ERROR;
     goto out;

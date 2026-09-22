@@ -441,7 +441,7 @@ UTILS_C = memptr.c testutil.c testtrace.c
 UTILS_H = testutil.h testtrace.h unitcheck.h
 CURLX_C = \
   ../../lib/curl_threads.c \
-  ../../lib/curlx/fopen.c \
+  ../../lib/curlx/win32-fopen.c \
   ../../lib/curlx/inet_ntop.c \
   ../../lib/curlx/inet_pton.c \
   ../../lib/curlx/multibyte.c \
@@ -643,12 +643,14 @@ TESTS_C = \
   lib1597.c \
   lib1598.c \
   lib1599.c \
+  lib1605.c \
   lib1647.c \
   lib1648.c \
   lib1649.c \
   lib1662.c \
   lib1678.c \
   lib1686.c \
+  lib1791.c \
   lib1900.c \
   lib1901.c \
   lib1902.c \
@@ -701,6 +703,7 @@ TESTS_C = \
   lib2032.c \
   lib2082.c \
   lib2118.c \
+  lib2270.c \
   lib2301.c \
   lib2302.c \
   lib2304.c \
@@ -713,11 +716,14 @@ TESTS_C = \
   lib2405.c \
   lib2412.c \
   lib2414.c \
+  lib2453.c \
   lib2502.c \
   lib2504.c \
   lib2505.c \
   lib2506.c \
   lib2700.c \
+  lib2805.c \
+  lib2924.c \
   lib3010.c \
   lib3025.c \
   lib3026.c \
@@ -730,8 +736,13 @@ TESTS_C = \
   lib3103.c \
   lib3104.c \
   lib3105.c \
+  lib3107.c \
   lib3207.c \
   lib3208.c \
+  lib3231.c \
+  lib3233.c \
+  lib3595.c \
+  lib3596.c \
   lib5000.c \
   lib5004.c
 
@@ -743,7 +754,8 @@ EXTRA_DIST = CMakeLists.txt $(FIRST_C) $(FIRST_H) $(UTILS_C) $(UTILS_H) $(TESTS_
   test1022.pl \
   test307.pl \
   test610.pl \
-  test613.pl
+  test613.pl \
+  test3500.pl
 
 # These are part of the libcurl static lib. Add them here when linking shared.
 @USE_CPPFLAG_CURL_STATICLIB_FALSE@curlx_c_lib = $(CURLX_C)
