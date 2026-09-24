@@ -1,3 +1,9 @@
+curl (8.23.0~rc1-2) unstable; urgency=medium
+
+  * d/p/sws_fix_connection-monitor...: New patch to fix test issue
+
+ -- Samuel Henrique <samueloph@debian.org>  Wed, 23 Sep 2026 20:42:15 -0700
+
 curl (8.23.0~rc1-1) unstable; urgency=medium
 
   * New upstream version 8.23.0~rc1
