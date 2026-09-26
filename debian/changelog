@@ -1,3 +1,10 @@
+curl (8.23.0~rc2-1) UNRELEASED; urgency=medium
+
+  * New upstream version 8.23.0~rc2
+  * d/p/sws_fix_connection...: Drop patch applied upstream
+
+ -- Samuel Henrique <samueloph@debian.org>  Sat, 26 Sep 2026 11:19:15 -0700
+
 curl (8.23.0~rc1-2) unstable; urgency=medium
 
   * d/p/sws_fix_connection-monitor...: New patch to fix test issue
