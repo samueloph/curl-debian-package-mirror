@@ -486,6 +486,7 @@ TESTCASES = \
   test461 \
   test462 \
   test463 \
+  test464 \
   test467 \
   test468 \
   test469 \
@@ -1470,6 +1471,7 @@ TESTCASES = \
   test1448 \
   test1449 \
   test1450 \
+  test1451 \
   test1452 \
   test1453 \
   test1454 \
@@ -1634,6 +1636,7 @@ TESTCASES = \
   test1613 \
   test1614 \
   test1615 \
+  test1616 \
   test1617 \
   test1618 \
   test1619 \
@@ -1710,6 +1713,7 @@ TESTCASES = \
   test1690 \
   test1691 \
   test1692 \
+  test1693 \
   \
   test1700 \
   test1702 \
@@ -1726,6 +1730,7 @@ TESTCASES = \
   test1713 \
   test1714 \
   test1715 \
+  test1716 \
   test1720 \
   test1721 \
   test1722 \
@@ -1734,15 +1739,23 @@ TESTCASES = \
   test1725 \
   test1740 \
   test1741 \
+  test1742 \
+  test1743 \
+  test1744 \
+  test1745 \
+  test1790 \
   test1791 \
   test1800 \
   test1801 \
   test1802 \
+  test1827 \
   test1847 \
   test1848 \
   test1849 \
   test1851 \
   test1862 \
+  test1876 \
+  test1877 \
   test1900 \
   test1901 \
   test1902 \
@@ -1811,7 +1824,7 @@ TESTCASES = \
   test1983 \
   test1984 \
   test1985 \
-  \
+  test1989 \
   test2000 \
   test2001 \
   test2002 \
@@ -1931,6 +1944,10 @@ TESTCASES = \
   test2206 \
   test2207 \
   test2208 \
+  test2209 \
+  test2210 \
+  test2211 \
+  test2212 \
   \
   test2270 \
   test2271 \
@@ -2013,9 +2030,11 @@ TESTCASES = \
   test2722 \
   test2723 \
   test2805 \
+  test2824 \
   test2885 \
   test2918 \
   test2924 \
+  test2967 \
   test3000 \
   test3001 \
   test3002 \
@@ -2099,7 +2118,7 @@ TESTCASES = \
   test3231 \
   test3232 \
   test3233 \
-  \
+  test3271 \
   test3300 \
   test3301 \
   test3302 \
