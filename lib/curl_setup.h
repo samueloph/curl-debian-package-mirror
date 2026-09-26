@@ -221,54 +221,6 @@
 #endif
 
 /*
- * Disable other protocols when http is the only one desired.
- */
-#ifdef HTTP_ONLY
-#  ifndef CURL_DISABLE_DICT
-#  define CURL_DISABLE_DICT
-#  endif
-#  ifndef CURL_DISABLE_FILE
-#  define CURL_DISABLE_FILE
-#  endif
-#  ifndef CURL_DISABLE_FTP
-#  define CURL_DISABLE_FTP
-#  endif
-#  ifndef CURL_DISABLE_GOPHER
-#  define CURL_DISABLE_GOPHER
-#  endif
-#  ifndef CURL_DISABLE_IMAP
-#  define CURL_DISABLE_IMAP
-#  endif
-#  ifndef CURL_DISABLE_LDAP
-#  define CURL_DISABLE_LDAP
-#  endif
-#  ifndef CURL_DISABLE_LDAPS
-#  define CURL_DISABLE_LDAPS
-#  endif
-#  ifndef CURL_DISABLE_MQTT
-#  define CURL_DISABLE_MQTT
-#  endif
-#  ifndef CURL_DISABLE_POP3
-#  define CURL_DISABLE_POP3
-#  endif
-#  ifndef CURL_DISABLE_RTSP
-#  define CURL_DISABLE_RTSP
-#  endif
-#  ifndef CURL_DISABLE_SMTP
-#  define CURL_DISABLE_SMTP
-#  endif
-#  ifndef CURL_DISABLE_TELNET
-#  define CURL_DISABLE_TELNET
-#  endif
-#  ifndef CURL_DISABLE_TFTP
-#  define CURL_DISABLE_TFTP
-#  endif
-#  ifndef CURL_DISABLE_WEBSOCKETS
-#  define CURL_DISABLE_WEBSOCKETS
-#  endif
-#endif
-
-/*
  * When HTTP is disabled, disable HTTP-only features
  */
 #ifdef CURL_DISABLE_HTTP
@@ -1566,8 +1518,8 @@ typedef struct sockaddr_un {
 /* OpenSSL 3 marks these functions deprecated but we have no replacements (yet)
    so tell the compiler to not warn for them:
    - DES_* (for NTLM)
-   - EVP_PKEY_get1_RSA, MD5_*, RSA_flags, RSA_free (auto-skipped for OpenSSL
-     built with no-deprecated) */
+   - EVP_PKEY_get1_RSA, RSA_flags, RSA_free (auto-skipped for OpenSSL built
+     with no-deprecated) */
 #  define OPENSSL_SUPPRESS_DEPRECATED
 #  ifdef _WIN32
 /* Silence LibreSSL warnings about wincrypt.h collision. Works in 3.8.2+ */

@@ -177,9 +177,17 @@ static void tcpnodelay(struct Curl_cfilter *cf,
   (defined(_WIN32) && !defined(TCP_KEEPIDLE))
 /* Solaris < 11.4, DragonFlyBSD < 500702 and Windows < 10.0.16299
  * use millisecond units. */
-#define KEEPALIVE_FACTOR(x) ((x) *= 1000)
+static void alive_unit(int *x)
+{
+  /* make sure this doesn't wrap */
+  if(*x < (INT_MAX / 1000))
+    *x *= 1000;
+  else
+    /* this is still almost 25 days */
+    *x = INT_MAX;
+}
 #else
-#define KEEPALIVE_FACTOR(x)
+#define alive_unit(x)
 #endif
 #endif
 
@@ -250,10 +258,10 @@ static void tcpkeepalive(struct Curl_cfilter *cf,
       DWORD dummy;
       vals.onoff = 1;
       optval = curlx_sltosi(data->set.tcp_keepidle);
-      KEEPALIVE_FACTOR(optval);
+      alive_unit(&optval);
       vals.keepalivetime = (u_long)optval;
       optval = curlx_sltosi(data->set.tcp_keepintvl);
-      KEEPALIVE_FACTOR(optval);
+      alive_unit(&optval);
       vals.keepaliveinterval = (u_long)optval;
       if(WSAIoctl(sockfd, SIO_KEEPALIVE_VALS, (LPVOID)&vals, sizeof(vals),
                   NULL, 0, &dummy, NULL, NULL) != 0) {
@@ -264,7 +272,7 @@ static void tcpkeepalive(struct Curl_cfilter *cf,
 #else /* !USE_WINSOCK */
 #ifdef TCP_KEEPIDLE
     optval = curlx_sltosi(data->set.tcp_keepidle);
-    KEEPALIVE_FACTOR(optval);
+    alive_unit(&optval);
     if(setsockopt(sockfd, IPPROTO_TCP, TCP_KEEPIDLE,
                   (void *)&optval, sizeof(optval)) < 0) {
       CURL_TRC_CF(data, cf, "Failed to set TCP_KEEPIDLE on fd "
@@ -273,7 +281,7 @@ static void tcpkeepalive(struct Curl_cfilter *cf,
 #elif defined(TCP_KEEPALIVE)
     /* macOS style */
     optval = curlx_sltosi(data->set.tcp_keepidle);
-    KEEPALIVE_FACTOR(optval);
+    alive_unit(&optval);
     if(setsockopt(sockfd, IPPROTO_TCP, TCP_KEEPALIVE,
                   (void *)&optval, sizeof(optval)) < 0) {
       CURL_TRC_CF(data, cf, "Failed to set TCP_KEEPALIVE on fd "
@@ -282,7 +290,7 @@ static void tcpkeepalive(struct Curl_cfilter *cf,
 #elif defined(TCP_KEEPALIVE_THRESHOLD)
     /* Solaris <11.4 style */
     optval = curlx_sltosi(data->set.tcp_keepidle);
-    KEEPALIVE_FACTOR(optval);
+    alive_unit(&optval);
     if(setsockopt(sockfd, IPPROTO_TCP, TCP_KEEPALIVE_THRESHOLD,
                   (void *)&optval, sizeof(optval)) < 0) {
       CURL_TRC_CF(data, cf, "Failed to set TCP_KEEPALIVE_THRESHOLD on fd "
@@ -291,7 +299,7 @@ static void tcpkeepalive(struct Curl_cfilter *cf,
 #endif
 #ifdef TCP_KEEPINTVL
     optval = curlx_sltosi(data->set.tcp_keepintvl);
-    KEEPALIVE_FACTOR(optval);
+    alive_unit(&optval);
     if(setsockopt(sockfd, IPPROTO_TCP, TCP_KEEPINTVL,
                   (void *)&optval, sizeof(optval)) < 0) {
       CURL_TRC_CF(data, cf, "Failed to set TCP_KEEPINTVL on fd "
@@ -318,7 +326,7 @@ static void tcpkeepalive(struct Curl_cfilter *cf,
       else
         optval = keepcnt * keepintvl;
     }
-    KEEPALIVE_FACTOR(optval);
+    alive_unit(&optval);
     if(setsockopt(sockfd, IPPROTO_TCP, TCP_KEEPALIVE_ABORT_THRESHOLD,
                   (void *)&optval, sizeof(optval)) < 0) {
       CURL_TRC_CF(data, cf, "Failed to set TCP_KEEPALIVE_ABORT_THRESHOLD"
@@ -688,29 +696,27 @@ static CURLcode bindlocal(struct Curl_easy *data, struct connectdata *conn,
     if2ip_result_t if2ip_result = IF2IP_NOT_FOUND;
 
 #ifdef SO_BINDTODEVICE
-    if(iface) {
-      /*
-       * This binds the local socket to a particular interface. This will
-       * force even requests to other local interfaces to go out the external
-       * interface. Only bind to the interface when specified as interface,
-       * not as a hostname or ip address.
-       *
-       * The interface might be a VRF, eg: vrf-blue, which means it cannot be
-       * converted to an IP address and would fail Curl_if2ip. Try to
-       * use it straight away.
-       */
-      if(setsockopt(sockfd, SOL_SOCKET, SO_BINDTODEVICE,
-                    iface, (curl_socklen_t)strlen(iface) + 1) == 0) {
-        /* This is often "errno 1, error: Operation not permitted" if you are
-         * not running as root or another suitable privileged user. If it
-         * succeeds it means the parameter was a valid interface and not an IP
-         * address. Return immediately.
-         */
-        if(!host_input) {
-          infof(data, "socket successfully bound to interface '%s'", iface);
-          return CURLE_OK;
-        }
-      }
+    /*
+     * This binds the local socket to a particular interface. This will
+     * force even requests to other local interfaces to go out the external
+     * interface. Only bind to the interface when specified as interface,
+     * not as a hostname or ip address.
+     *
+     * The interface might be a VRF, eg: vrf-blue, which means it cannot be
+     * converted to an IP address and would fail Curl_if2ip. Try to
+     * use it straight away.
+     */
+    if(iface &&
+       setsockopt(sockfd, SOL_SOCKET, SO_BINDTODEVICE,
+                  iface, (curl_socklen_t)strlen(iface) + 1) == 0 &&
+       /* This is often "errno 1, error: Operation not permitted" if you are
+        * not running as root or another suitable privileged user. If it
+        * succeeds it means the parameter was a valid interface and not an IP
+        * address. Return immediately.
+        */
+       !host_input) {
+      infof(data, "socket successfully bound to interface '%s'", iface);
+      return CURLE_OK;
     }
 #endif
     if(!host_input) {

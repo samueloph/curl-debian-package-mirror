@@ -449,23 +449,6 @@ the communicating parties.
 
 [curl issue 5081](https://github.com/curl/curl/issues/5081)
 
-## TLS channel binding
-
-TLS 1.2 and 1.3 provide the ability to extract some secret data from the TLS
-connection and use it in the client request (usually in some sort of
-authentication) to ensure that the data sent is bound to the specific TLS
-connection and cannot be successfully intercepted by a proxy. This
-functionality can be used in a standard authentication mechanism such as
-GSS-API or SCRAM, or in custom approaches like custom HTTP Authentication
-headers.
-
-For TLS 1.2, the binding type is usually `tls-unique`, and for TLS 1.3 it is
-`tls-exporter`.
-
-- https://datatracker.ietf.org/doc/html/rfc5929
-- https://datatracker.ietf.org/doc/html/rfc9266
-- [curl issue 9226](https://github.com/curl/curl/issues/9226)
-
 ## Defeat TLS fingerprinting
 
 By changing the order of TLS extensions provided in the TLS handshake, it is
@@ -929,13 +912,6 @@ http operations (for which we have test servers).
 
 Make the test suite work on more platforms. OpenBSD and macOS. Remove fork()s
 and it should become even more portable.
-
-## write an SMB test server to replace impacket
-
-This would allow us to run SMB tests on more platforms and do better and more
-covering tests.
-
-See [curl issue 15697](https://github.com/curl/curl/issues/15697)
 
 ## Use the RFC 6265 test suite
 

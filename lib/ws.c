@@ -669,7 +669,7 @@ static CURLcode ws_cw_dec_next(const uint8_t *buf, size_t buflen,
   struct ws_cw_dec_ctx *ctx = user_data;
   struct Curl_easy *data = ctx->data;
   struct websocket *ws = ctx->ws;
-  bool auto_pong = !data->set.ws_no_auto_pong;
+  bool auto_pong = !data->set.ws_raw_mode && !data->set.ws_no_auto_pong;
   curl_off_t remain;
   CURLcode result;
 
@@ -1360,7 +1360,7 @@ CURLcode Curl_ws_request(struct Curl_easy *data, struct dynbuf *req)
   return result;
 }
 
-static void ws_conn_dtor(void *key, size_t klen, void *entry)
+static void ws_conn_dtor(const void *key, size_t klen, void *entry)
 {
   struct websocket *ws = entry;
   (void)key;
@@ -1534,7 +1534,7 @@ static CURLcode ws_client_collect(const uint8_t *buf, size_t buflen,
 {
   struct ws_collect *ctx = userp;
   struct Curl_easy *data = ctx->data;
-  bool auto_pong = !data->set.ws_no_auto_pong;
+  bool auto_pong = !data->set.ws_raw_mode && !data->set.ws_no_auto_pong;
   curl_off_t remain;
   CURLcode result = CURLE_OK;
 

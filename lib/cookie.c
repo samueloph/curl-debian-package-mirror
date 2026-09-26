@@ -1181,7 +1181,9 @@ static CURLcode cookie_load(struct Curl_easy *data, const char *file,
   if(fp) {
     struct dynbuf buf;
     bool eof = FALSE;
-    curlx_dyn_init(&buf, MAX_COOKIE_LINE);
+    /* accept a little longer lines so that a full cookie fits and does not
+       abort the file read */
+    curlx_dyn_init(&buf, MAX_COOKIE_LINE + 48);
     do {
       result = Curl_get_line(&buf, fp, &eof);
       if(!result) {
@@ -1198,8 +1200,9 @@ static CURLcode cookie_load(struct Curl_easy *data, const char *file,
                                  (headerline ? COOKIE_HTTPHEADER : 0) |
                                  COOKIE_NOEXPIRE | COOKIE_SECURE |
                                  (flags & COOKIE_NOPSL));
-        /* File reading cookie failures are not propagated back to the
-           caller because there is no way to do that */
+        /* Ignore individual cookie problems unless we ran out of memory */
+        if(result != CURLE_OUT_OF_MEMORY)
+          result = CURLE_OK;
       }
     } while(!result && !eof);
     curlx_dyn_free(&buf); /* free the line buffer */

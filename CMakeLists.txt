@@ -498,8 +498,6 @@ option(CURL_DISABLE_SHA512_256 "Disable SHA-512/256 hash algorithm" OFF)
 mark_as_advanced(CURL_DISABLE_SHA512_256)
 option(CURL_DISABLE_SHUFFLE_DNS "Disable shuffle DNS feature" OFF)
 mark_as_advanced(CURL_DISABLE_SHUFFLE_DNS)
-option(CURL_ENABLE_SMB "Enable SMB" OFF)
-mark_as_advanced(CURL_ENABLE_SMB)
 option(CURL_DISABLE_SMTP "Disable SMTP" OFF)
 mark_as_advanced(CURL_DISABLE_SMTP)
 option(CURL_DISABLE_SOCKETPAIR "Disable use of socketpair for curl_multi_poll()" OFF)
@@ -531,28 +529,6 @@ if(CURL_DISABLE_HTTP)
   set(CURL_DISABLE_HSTS ON)
   set(CURL_DISABLE_IPFS ON)
   set(CURL_DISABLE_RTSP ON)
-  set(CURL_DISABLE_WEBSOCKETS ON)
-endif()
-
-# Corresponds to HTTP_ONLY in lib/curl_setup.h
-option(HTTP_ONLY "Disable all protocols except HTTP (This overrides all CURL_DISABLE_* options)" OFF)
-mark_as_advanced(HTTP_ONLY)
-
-if(HTTP_ONLY)
-  set(CURL_DISABLE_DICT ON)
-  set(CURL_DISABLE_FILE ON)
-  set(CURL_DISABLE_FTP ON)
-  set(CURL_DISABLE_GOPHER ON)
-  set(CURL_DISABLE_IMAP ON)
-  set(CURL_DISABLE_IPFS ON)
-  set(CURL_DISABLE_LDAP ON)
-  set(CURL_DISABLE_LDAPS ON)
-  set(CURL_DISABLE_MQTT ON)
-  set(CURL_DISABLE_POP3 ON)
-  set(CURL_DISABLE_RTSP ON)
-  set(CURL_DISABLE_SMTP ON)
-  set(CURL_DISABLE_TELNET ON)
-  set(CURL_DISABLE_TFTP ON)
   set(CURL_DISABLE_WEBSOCKETS ON)
 endif()
 
@@ -1691,6 +1667,7 @@ endif()
 if(NOT WIN32)
   check_include_file("dirent.h"         HAVE_DIRENT_H)
 
+  check_function_exists("fchmod"          HAVE_FCHMOD)
   check_function_exists("gettimeofday"    HAVE_GETTIMEOFDAY)  # sys/time.h
   check_function_exists("if_nametoindex"  HAVE_IF_NAMETOINDEX)  # net/if.h
   check_function_exists("realpath"        HAVE_REALPATH)
@@ -1819,16 +1796,7 @@ if(NOT WIN32 AND NOT CMAKE_CROSSCOMPILING)
     }" HAVE_WRITABLE_ARGV)
 endif()
 
-if(NOT CMAKE_CROSSCOMPILING)
-  include(CheckCSourceRuns)
-  check_c_source_runs("
-    #include <time.h>
-    int main(void)
-    {
-      time_t t = -1;
-      return t < 0;
-    }" HAVE_TIME_T_UNSIGNED)
-endif()
+curl_internal_test(HAVE_TIME_T_UNSIGNED)
 
 curl_internal_test(HAVE_GLIBC_STRERROR_R)
 curl_internal_test(HAVE_POSIX_STRERROR_R)
@@ -2022,10 +1990,6 @@ curl_add_if("POP3"          NOT CURL_DISABLE_POP3)
 curl_add_if("POP3S"         NOT CURL_DISABLE_POP3 AND _ssl_enabled)
 curl_add_if("IMAP"          NOT CURL_DISABLE_IMAP)
 curl_add_if("IMAPS"         NOT CURL_DISABLE_IMAP AND _ssl_enabled)
-curl_add_if("SMB"           CURL_ENABLE_SMB AND
-                            _use_curl_ntlm_core AND (SIZEOF_CURL_OFF_T GREATER 4))
-curl_add_if("SMBS"          CURL_ENABLE_SMB AND _ssl_enabled AND
-                            _use_curl_ntlm_core AND (SIZEOF_CURL_OFF_T GREATER 4))
 curl_add_if("SMTP"          NOT CURL_DISABLE_SMTP)
 curl_add_if("SMTPS"         NOT CURL_DISABLE_SMTP AND _ssl_enabled)
 curl_add_if("SCP"           USE_LIBSSH2 OR USE_LIBSSH)

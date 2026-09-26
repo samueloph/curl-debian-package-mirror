@@ -16,7 +16,7 @@ Last-Update: 2024-11-06
  7 files changed, 75 insertions(+), 5 deletions(-)
 
 diff --git a/configure.ac b/configure.ac
-index 4c4fac2..dcf6dab 100644
+index a2843b4..cfd0fe9 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -277,6 +277,14 @@ AS_HELP_STRING([--with-gnutls=PATH],[where to look for GnuTLS, PATH points to th
@@ -199,10 +199,10 @@ index 69554ee..de66be2 100644
  # if unit tests are enabled, build a static library to link them with
  if BUILD_UNITTESTS
 diff --git a/tests/libtest/Makefile.am b/tests/libtest/Makefile.am
-index 74eb150..632c0c7 100644
+index 8fdf484..49a5f71 100644
 --- a/tests/libtest/Makefile.am
 +++ b/tests/libtest/Makefile.am
-@@ -73,7 +73,7 @@ $(BUNDLE).c: $(top_srcdir)/scripts/mk-unity.pl Makefile.inc $(FIRST_C) $(UTILS_C
+@@ -74,7 +74,7 @@ $(BUNDLE).c: $(top_srcdir)/scripts/mk-unity.pl Makefile.inc $(FIRST_C) $(UTILS_C
  
  noinst_PROGRAMS = $(BUNDLE)
  nodist_libtests_SOURCES = $(BUNDLE).c

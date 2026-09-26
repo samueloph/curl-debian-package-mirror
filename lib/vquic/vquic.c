@@ -50,7 +50,8 @@
 
 #include "bufq.h"
 #include "curlx/dynbuf.h"
-#include "curlx/fopen.h"
+#include "curlx/win32-fopen.h"
+#include "connect.h"
 #include "cfilters.h"
 #include "vdns/cf-dns.h"
 #include "vquic/cf-ngtcp2.h"
@@ -564,9 +565,12 @@ static size_t vquic_msghdr_get_udp_gro(struct msghdr *msg)
 }
 #endif /* (HAVE_SENDMMSG || HAVE_SENDMSG) && !HAVE_APPLE_MSG_X */
 
+/* IP_RECVTOS was added in the macOS 10.13 SDK */
 #if (defined(HAVE_SENDMMSG) || defined(HAVE_SENDMSG) || \
   defined(HAVE_APPLE_MSG_X)) && \
-  (defined(IP_RECVTOS) || defined(IP_TOS)) && defined(IPTOS_ECN_MASK)
+  ((defined(__APPLE__) && defined(IP_RECVTOS)) || \
+   (!defined(__APPLE__) && defined(IP_TOS))) && \
+  defined(IPTOS_ECN_MASK)
 static uint8_t vquic_msghdr_get_ecn(struct msghdr *msg, int family)
 {
   struct cmsghdr *cmsg;
@@ -1189,10 +1193,9 @@ CURLcode Curl_cf_h3_proxy_create(struct Curl_cfilter **pcf,
 #endif /* !CURL_DISABLE_PROXY && USE_PROXY_HTTP3 */
 
 CURLcode Curl_conn_may_http3(struct Curl_easy *data,
-                             const struct connectdata *conn,
-                             unsigned char transport)
+                             struct connectdata *conn)
 {
-  if(transport == TRNSPRT_UNIX) {
+  if(Curl_conn_get_first_peer(conn, FIRSTSOCKET)->unix_socket) {
     failf(data, "HTTP/3 cannot be used over UNIX domain sockets");
     return CURLE_QUIC_CONNECT_ERROR;
   }
@@ -1321,12 +1324,10 @@ struct nghttp3_mem *Curl_nghttp3_mem(void)
 #else /* CURL_DISABLE_HTTP || !USE_HTTP3 */
 
 CURLcode Curl_conn_may_http3(struct Curl_easy *data,
-                             const struct connectdata *conn,
-                             unsigned char transport)
+                             struct connectdata *conn)
 {
   (void)data;
   (void)conn;
-  (void)transport;
   DEBUGF(infof(data, "QUIC is not supported in this build"));
   return CURLE_NOT_BUILT_IN;
 }
