@@ -270,6 +270,7 @@ CURLcode Curl_close(struct Curl_easy **datap)
   curlx_safefree(data->state.most_recent_ftp_entrypath);
   curlx_safefree(data->info.contenttype);
   curlx_safefree(data->info.wouldredirect);
+  curlx_safefree(data->info.effective_url);
 
   /* No longer a dirty share, if it exists */
   if(Curl_share_easy_unlink(data))
@@ -462,7 +463,8 @@ CURLcode Curl_open(struct Curl_easy **curl)
 
   data->magic = CURLEASY_MAGIC_NUMBER;
   /* most recent connection is not yet defined */
-  data->state.lastconnect_id = -1;
+  data->state.last_conn_id = -1;
+  data->state.last_cpid = UINT32_MAX;
   /* and not assigned an id yet */
   data->id = -1;
   data->mid = UINT32_MAX;
@@ -748,6 +750,16 @@ static bool url_match_proxy_use(struct connectdata *conn,
 
   if(!proxy_info_matches(&m->needle->http_proxy, &conn->http_proxy))
     return FALSE;
+
+  if(m->data->set.socks5_auth_only && !conn->bits.socks5_authenticated &&
+     ((conn->socks_proxy.proxytype == CURLPROXY_SOCKS5) ||
+      (conn->socks_proxy.proxytype == CURLPROXY_SOCKS5_HOSTNAME))) {
+    DEBUGF(infof(m->data,
+                 "Connection #%" FMT_OFF_T
+                 " was not SOCKS5 authenticated, cannot reuse",
+                 conn->connection_id));
+    return FALSE;
+  }
 
   if(CURL_PROXY_IS_HTTPS(m->needle->http_proxy.proxytype)) {
     /* https proxies come in different types, http/1.1, h2, ... */
@@ -1118,6 +1130,7 @@ static struct connectdata *allocate_conn(struct Curl_easy *data)
   conn->recv_idx = 0; /* default for receiving transfer data */
   conn->send_idx = 0; /* default for sending transfer data */
   conn->connection_id = -1;    /* no ID */
+  conn->cpid = UINT32_MAX;  /* not in connection pool yet */
   conn->attached_xfers = 0;
   conn->shutdown.start_ms[FIRSTSOCKET] =
     conn->shutdown.start_ms[SECONDARYSOCKET] = -1;
