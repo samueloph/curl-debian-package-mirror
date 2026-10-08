@@ -61,8 +61,10 @@
  */
 #ifdef CURL_SCHANNEL_DEV_DEBUG
 #define SCH_DEV(x) x
-#define SCH_DEV_SHOWBOOL(x)                                   \
-  infof(data, "schannel: " #x " %s", (x) ? "TRUE" : "FALSE");
+#define SCH_DEV_SHOWBOOL(x)                                     \
+  do {                                                          \
+    infof(data, "schannel: " #x " %s", (x) ? "TRUE" : "FALSE"); \
+  } while(0)
 #else
 #define SCH_DEV(x) do {} while(0)
 #define SCH_DEV_SHOWBOOL(x) do {} while(0)
@@ -924,6 +926,7 @@ static CURLcode schannel_connect_step1(struct Curl_cfilter *cf,
     int list_start_index = 0;
     unsigned int *extension_len = NULL;
     unsigned short *list_len = NULL;
+    const unsigned int uiALPN = SecApplicationProtocolNegotiationExt_ALPN;
     struct alpn_proto_buf proto;
 
     /* The first four bytes is an unsigned int indicating number
@@ -933,8 +936,7 @@ static CURLcode schannel_connect_step1(struct Curl_cfilter *cf,
 
     /* The next four bytes are an indicator that this buffer contains
        ALPN data, as opposed to NPN, for example. */
-    *(unsigned int *)(void *)&alpn_buffer[cur] =
-      SecApplicationProtocolNegotiationExt_ALPN;
+    memcpy(&alpn_buffer[cur], &uiALPN, sizeof(uiALPN));
     cur += (int)sizeof(unsigned int);
 
     /* The next two bytes is an unsigned short indicating the number
@@ -1318,7 +1320,8 @@ static CURLcode schannel_connect_step2(struct Curl_cfilter *cf,
 
     /* setup input buffers */
     InitSecBuffer(&inbuf[0], SECBUFFER_TOKEN,
-                  curlx_malloc(backend->encdata.offset),
+                  curlx_memdup0((const char *)backend->encdata.buffer,
+                                backend->encdata.offset),
                   curlx_uztoul(backend->encdata.offset));
     InitSecBuffer(&inbuf[1], SECBUFFER_EMPTY, NULL, 0);
     InitSecBufferDesc(&inbuf_desc, inbuf, 2);
@@ -1333,10 +1336,6 @@ static CURLcode schannel_connect_step2(struct Curl_cfilter *cf,
       failf(data, "schannel: unable to allocate memory");
       return CURLE_OUT_OF_MEMORY;
     }
-
-    /* copy received handshake data into input buffer */
-    memcpy(inbuf[0].pvBuffer, backend->encdata.buffer,
-           backend->encdata.offset);
 
     /* The socket must be writable (or a poll error occurred) before we call
        InitializeSecurityContext to continue processing the received TLS

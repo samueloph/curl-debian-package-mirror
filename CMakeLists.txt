@@ -615,12 +615,12 @@ elseif(APPLE)
   set(HAVE_WRITABLE_ARGV 1)
   set(HAVE_SENDMMSG 0)
 endif()
+if(DOS OR AMIGA)
+  set(HAVE_TIME_T_UNSIGNED 1)  # Pre-fill
+endif()
 
 if(AMIGA)
   set(HAVE_GETADDRINFO 0)  # Breaks the build when detected and used.
-endif()
-if(DOS OR AMIGA)
-  set(HAVE_TIME_T_UNSIGNED 1)
 endif()
 
 if(NOT WIN32)
@@ -808,6 +808,10 @@ if(_use_core_foundation_and_core_services)
   list(APPEND CURL_LIBS "-framework CoreServices")
 endif()
 
+if(NOT DEFINED _curl_stdlib_cxx)
+  set(_curl_stdlib_cxx "stdc++")
+endif()
+
 if(CURL_USE_OPENSSL)
   find_package(OpenSSL REQUIRED)
   set(_ssl_enabled ON)
@@ -846,9 +850,9 @@ if(CURL_USE_OPENSSL)
         message(WARNING "AWS-LC/BoringSSL requires POSIX Threads.")
       endif()
     endif()
-    if(OPENSSL_USE_STATIC_LIBS AND CMAKE_C_COMPILER_ID MATCHES "Clang")
-      list(APPEND CURL_LIBS "stdc++")
-      list(APPEND CMAKE_REQUIRED_LIBRARIES "stdc++")
+    if(OPENSSL_USE_STATIC_LIBS AND
+       (CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID MATCHES "Clang"))
+      list(APPEND CURL_LIBS "${_curl_stdlib_cxx}")
     endif()
   endif()
 
@@ -995,6 +999,10 @@ macro(curl_openssl_check_exists)
     endif()
     if(WIN32)
       list(APPEND CMAKE_REQUIRED_LIBRARIES "bcrypt")  # for OpenSSL/LibreSSL BCryptGenRandom()
+    endif()
+    if((HAVE_AWSLC OR HAVE_BORINGSSL) AND OPENSSL_USE_STATIC_LIBS AND
+       (CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID MATCHES "Clang"))
+      list(APPEND CMAKE_REQUIRED_LIBRARIES "${_curl_stdlib_cxx}")
     endif()
   endif()
   if(USE_WOLFSSL)
@@ -1658,9 +1666,10 @@ check_function_exists("setrlimit"     HAVE_SETRLIMIT)
 if(APPLE)
   check_function_exists("mach_absolute_time" HAVE_MACH_ABSOLUTE_TIME)
 else()
-  # Apple platforms do not offer pipe2(), but the iPhone Simulator-specific
+  # Apple SDK <27 do not offer pipe2(), but the iPhone Simulator-specific
   # /usr/lib/system/libsystem_sim_kernel.dylib exports it. To avoid false
   # detection, omit this feature check for Apple targets.
+  # For 27+, detection is done in-source.
   check_function_exists("pipe2"         HAVE_PIPE2)
 endif()
 

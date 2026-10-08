@@ -226,7 +226,10 @@ static CURLcode cr_recv(struct Curl_cfilter *cf, struct Curl_easy *data,
                                      plainlen - *pnread,
                                      &n);
     if(rresult == RUSTLS_RESULT_PLAINTEXT_EMPTY) {
+      /* A TLS message that carried no plaintext. Break out of the loop
+       * to prevent a server from keeping us here forever. */
       backend->data_in_pending = FALSE;
+      break;
     }
     else if(rresult == RUSTLS_RESULT_UNEXPECTED_EOF) {
       failf(data, "rustls: peer closed TCP connection "
@@ -1219,9 +1222,9 @@ static CURLcode cr_connect(struct Curl_cfilter *cf, struct Curl_easy *data,
               "rustls: handshake complete, %s, ciphersuite: %.*s, "
               "key exchange group: %.*s",
               ver,
-              (int) ciphersuite_name.len,
+              (int)ciphersuite_name.len,
               ciphersuite_name.data,
-              (int) kex_group_name.len,
+              (int)kex_group_name.len,
               kex_group_name.data);
       }
       if(data->set.ssl.certinfo) {

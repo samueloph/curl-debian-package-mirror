@@ -235,7 +235,7 @@ bool Curl_eapi_enter(struct Curl_eapi_guard *guard,
 #ifdef CURLVERBOSE
       DEBUGF(curl_mfprintf(stderr,
         "EAPI guard: calling %hu with call to %u ongoing\n", (uint16_t)fn,
-        data->callstack.calls[data->callstack.count-1]));
+        data->callstack.calls[data->callstack.count - 1]));
 #endif
       result = CURLE_RECURSIVE_API_CALL;
       goto out;
@@ -246,7 +246,7 @@ bool Curl_eapi_enter(struct Curl_eapi_guard *guard,
       DEBUGF(curl_mfprintf(stderr,
         "EAPI guard: calling %hu with multi call to %u ongoing\n",
         (uint16_t)fn,
-        data->multi->callstack.calls[data->multi->callstack.count-1]));
+        data->multi->callstack.calls[data->multi->callstack.count - 1]));
 #endif
       result = CURLE_RECURSIVE_API_CALL;
       goto out;
@@ -359,7 +359,7 @@ bool Curl_mapi_enter(struct Curl_mapi_guard *guard,
 #ifdef CURLVERBOSE
       DEBUGF(curl_mfprintf(stderr,
         "MAPI guard: calling %hu with call to %u ongoing\n", (uint16_t)fn,
-        multi->callstack.calls[multi->callstack.count-1]));
+        multi->callstack.calls[multi->callstack.count - 1]));
 #endif
     mresult = CURLM_RECURSIVE_API_CALL;
     goto out;
@@ -431,21 +431,12 @@ void Curl_cbapi_enter(struct Curl_mapi_guard *guard,
     return;
   }
   DEBUGASSERT(cbapi_fn_props[fn - CURL_CBAPI_FN_START].fn == fn);
-  if(multi->callstack.count) {
-    size_t i;
-    for(i = multi->callstack.count; i; --i) {
-      if(multi->callstack.calls[i - 1] == fn) {
-        /* recursive invocation of the same callback */
-        DEBUGASSERT(0);
-        return;
-      }
-    }
-  }
-
   /* all fine, add to data's callstack */
   /* if multi callstack already at max depth, leave */
-  if(multi->callstack.count >= CURL_MAPI_MAX_RECURSION)
+  if(multi->callstack.count >= CURL_MAPI_MAX_RECURSION) {
+    DEBUGASSERT(0);
     return;
+  }
   multi->callstack.calls[multi->callstack.count] = (uint8_t)fn;
   ++multi->callstack.count;
   guard->depth = multi->callstack.count;

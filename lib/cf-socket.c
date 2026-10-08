@@ -1189,7 +1189,13 @@ static void tcplocalhost(struct Curl_cfilter *cf,
     DWORD bytes = 0;
     memset(&rto, 0, sizeof(rto));
     rto.Rtt = TCP_INITIAL_RTO_DEFAULT_RTT;
-    rto.MaxSynRetransmissions = TCP_INITIAL_RTO_NO_SYN_RETRANSMISSIONS;
+    /* Windows 10, version 1709 (10.0.16299) and later versions can set max
+       retransmissions to zero, earlier versions could only set 1 */
+    if(curlx_verify_windows_version(10, 0, 16299, PLATFORM_WINNT,
+                                    VERSION_GREATER_THAN_EQUAL))
+      rto.MaxSynRetransmissions = TCP_INITIAL_RTO_NO_SYN_RETRANSMISSIONS;
+    else
+      rto.MaxSynRetransmissions = 1;
     (void)WSAIoctl(sockfd, SIO_TCP_INITIAL_RTO, &rto, sizeof(rto),
                    NULL, 0, &bytes, NULL, NULL);
   }
@@ -1374,7 +1380,7 @@ static int do_connect(struct Curl_cfilter *cf, struct Curl_easy *data,
     /* while connectx function is available since macOS 10.11 / iOS 9,
        it did not have the interface declared correctly until
        Xcode 9 / macOS SDK 10.13 */
-    if(__builtin_available(macOS 10.11, iOS 9.0, tvOS 9.0, watchOS 2.0, *)) {
+    if(__builtin_available(macOS 10.11, iOS 9, tvOS 9, watchOS 2, *)) {
       sa_endpoints_t endpoints;
       endpoints.sae_srcif = 0;
       endpoints.sae_srcaddr = NULL;
