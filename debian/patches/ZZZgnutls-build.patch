@@ -16,7 +16,7 @@ Last-Update: 2024-11-06
  7 files changed, 75 insertions(+), 5 deletions(-)
 
 diff --git a/configure.ac b/configure.ac
-index a2843b4..cfd0fe9 100644
+index 49886c5..d65f95c 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -277,6 +277,14 @@ AS_HELP_STRING([--with-gnutls=PATH],[where to look for GnuTLS, PATH points to th
