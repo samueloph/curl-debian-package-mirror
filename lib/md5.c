@@ -158,13 +158,13 @@ static void my_md5_final(unsigned char *digest, void *ctx)
 }
 
 #elif (defined(__MAC_OS_X_VERSION_MAX_ALLOWED) && \
-              (__MAC_OS_X_VERSION_MAX_ALLOWED >= 1040) && \
+               __MAC_OS_X_VERSION_MAX_ALLOWED >= 1040 && \
        defined(__MAC_OS_X_VERSION_MIN_REQUIRED) && \
-              (__MAC_OS_X_VERSION_MIN_REQUIRED < 101500)) || \
+               __MAC_OS_X_VERSION_MIN_REQUIRED < 101500) || \
       (defined(__IPHONE_OS_VERSION_MAX_ALLOWED) && \
-              (__IPHONE_OS_VERSION_MAX_ALLOWED >= 20000) && \
+               __IPHONE_OS_VERSION_MAX_ALLOWED >= 20000 && \
        defined(__IPHONE_OS_VERSION_MIN_REQUIRED) && \
-              (__IPHONE_OS_VERSION_MIN_REQUIRED < 130000))
+               __IPHONE_OS_VERSION_MIN_REQUIRED < 130000)
 #include <CommonCrypto/CommonDigest.h>
 
 /* For Apple operating systems: CommonCrypto has the functions we need.
@@ -177,9 +177,7 @@ static void my_md5_final(unsigned char *digest, void *ctx)
 
 static CURLcode my_md5_init(void *ctx)
 {
-  if(!CC_MD5_Init(ctx))
-    return CURLE_OUT_OF_MEMORY;
-
+  (void)CC_MD5_Init(ctx);  /* always returns 1 */
   return CURLE_OK;
 }
 

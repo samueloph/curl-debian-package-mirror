@@ -270,7 +270,8 @@ static struct h2_stream_ctx *h2_stream_ctx_create(struct cf_h2_ctx *ctx)
   Curl_bufq_initp(&stream->sendbuf, &ctx->stream_bufcp,
                   H2_STREAM_SEND_CHUNKS, BUFQ_OPT_NONE);
   Curl_h1_req_parse_init(&stream->h1, H1_PARSE_DEFAULT_MAX_LINE_LEN);
-  Curl_dynhds_init(&stream->resp_trailers, 0, DYN_HTTP_REQUEST);
+  Curl_dynhds_init(&stream->resp_trailers,
+                   MAX_HTTP_RESP_HEADER_COUNT, DYN_HTTP_REQUEST);
   stream->bodystarted = FALSE;
   stream->status_code = -1;
   stream->closed = FALSE;
@@ -707,6 +708,18 @@ static struct Curl_easy *h2_duphandle(struct Curl_cfilter *cf,
     second->state.weight = data->state.weight;
     if(data->share)
       (void)Curl_share_easy_link(second, data->share);
+    /* copy a range of options from the parent handle */
+    second->set.fwrite_func = data->set.fwrite_func;
+    second->set.out = data->set.out;
+    second->set.fwrite_header = data->set.fwrite_header;
+    second->set.writeheader = data->set.writeheader;
+    second->set.fdebug = data->set.fdebug;
+    second->set.debugdata = data->set.debugdata;
+    second->set.fxferinfo = data->set.fxferinfo;
+    second->set.fprogress = data->set.fprogress;
+    second->set.progress_client = data->set.progress_client;
+    second->progress.hide = data->progress.hide;
+    second->progress.callback = data->progress.callback;
   }
   return second;
 }
@@ -987,17 +1000,16 @@ static CURLcode on_stream_frame(struct Curl_cfilter *cf,
       return CURLE_RECV_ERROR;
 
     /* Only final status code signals the end of header */
-    if(stream->status_code / 100 != 1)
+    if(stream->status_code / 100 != 1) {
+      stream->resp_hds_complete = TRUE;
       stream->bodystarted = TRUE;
+    }
     else
       stream->status_code = -1;
 
     h2_xfer_write_resp_hd(cf, data, stream, STRCONST("\r\n"),
                           (bool)stream->closed);
 
-    if(stream->status_code / 100 != 1) {
-      stream->resp_hds_complete = TRUE;
-    }
     Curl_multi_mark_dirty(data);
     break;
   case NGHTTP2_PUSH_PROMISE:
@@ -1751,6 +1763,9 @@ static CURLcode http2_handle_stream_close(struct Curl_cfilter *cf,
                                  curlx_dyn_ptr(&dbuf), curlx_dyn_len(&dbuf));
       if(result)
         break;
+      result = Curl_bump_headersize(data, curlx_dyn_len(&dbuf), FALSE);
+      if(result)
+        return result;
     }
     curlx_dyn_free(&dbuf);
     if(result)
@@ -2089,7 +2104,7 @@ static CURLcode h2_submit(struct h2_stream_ctx **pstream,
   uint32_t initial_win_size;
 
   *pnwritten = 0;
-  Curl_dynhds_init(&h2_headers, 0, DYN_HTTP_REQUEST);
+  Curl_dynhds_init(&h2_headers, MAX_HTTP_RESP_HEADER_COUNT, DYN_HTTP_REQUEST);
 
   result = http2_data_setup(cf, data, &stream);
   if(result)

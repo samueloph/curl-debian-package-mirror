@@ -64,7 +64,8 @@ class TLSDefs:
 class TestSSLUse:
 
     @pytest.fixture(autouse=True, scope='class')
-    def _class_scope(self, env, httpd, nghttpx):
+    @classmethod
+    def _class_scope(cls, env, httpd, nghttpx):
         env.make_data_file(indir=httpd.docs_dir, fname="data-10k", fsize=10 * 1024)
 
     def test_17_01_sslinfo_plain(self, env: Env, httpd):
@@ -231,8 +232,8 @@ class TestSSLUse:
                 'TLSv1.2': 'TLSv1.2'}.items():
             for [cid13, ciphers13, succeed13] in tls13_tests:
                 for [cid12, ciphers12, succeed12] in tls12_tests:
-                    id = f'{tls_id}-{cid13}-{cid12}'
-                    ret.append(pytest.param(tls_proto, ciphers13, ciphers12, succeed13, succeed12, id=id))
+                    testid = f'{tls_id}-{cid13}-{cid12}'
+                    ret.append(pytest.param(tls_proto, ciphers13, ciphers12, succeed13, succeed12, id=testid))
         return ret
 
     @pytest.mark.parametrize(

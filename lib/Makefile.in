@@ -233,25 +233,26 @@ am__libcurl_la_SOURCES_DIST = altsvc.c amigaos.c api.c bufq.c bufref.c \
 	if2ip.c imap.c ldap.c llist.c macos.c md4.c md5.c memdebug.c \
 	mime.c mprintf.c mqtt.c multi.c multi_ev.c multi_ntfy.c \
 	netrc.c openldap.c parsedate.c peer.c pingpong.c pop3.c \
-	progress.c protocol.c proxy.c psl.c rand.c ratelimit.c \
-	request.c rtsp.c select.c sendf.c setopt.c sha256.c slist.c \
-	smtp.c socketpair.c socks.c socks_gssapi.c socks_sspi.c \
-	splay.c strcase.c strequal.c strerror.c telnet.c tftp.c \
-	thrdpool.c thrdqueue.c transfer.c u8_strset.c u32_ptrset.c \
-	uint-bset.c uint-spbset.c uint-table.c url.c urlapi.c \
-	version.c ws.c vauth/cleartext.c vauth/cram.c vauth/digest.c \
-	vauth/digest_sspi.c vauth/gsasl.c vauth/krb5_gssapi.c \
-	vauth/krb5_sspi.c vauth/ntlm.c vauth/ntlm_sspi.c \
-	vauth/oauth2.c vauth/spnego_gssapi.c vauth/spnego_sspi.c \
-	vauth/vauth.c vdns/asyn-ares.c vdns/asyn-base.c \
-	vdns/asyn-thrdd.c vdns/cf-dns.c vdns/dnscache.c vdns/doh.c \
-	vdns/hostip.c vdns/hostip4.c vdns/hostip6.c vdns/httpsrr.c \
-	vtls/apple.c vtls/cipher_suite.c vtls/gtls.c vtls/hostcheck.c \
-	vtls/keylog.c vtls/mbedtls.c vtls/openssl.c vtls/rustls.c \
-	vtls/schannel.c vtls/schannel_verify.c vtls/vtls.c \
-	vtls/vtls_config.c vtls/vtls_scache.c vtls/vtls_spack.c \
-	vtls/wolfssl.c vtls/x509asn1.c vquic/capsule.c \
-	vquic/cf-capsule.c vquic/cf-ngtcp2.c vquic/cf-ngtcp2-cmn.c \
+	progress.c protocol.c proxy.c psl.c ptrarray.c rand.c \
+	ratelimit.c request.c rtsp.c select.c sendf.c setopt.c \
+	sha256.c slist.c smtp.c socketpair.c socks.c socks_gssapi.c \
+	socks_sspi.c splay.c strcase.c strequal.c strerror.c telnet.c \
+	tftp.c thrdpool.c thrdqueue.c transfer.c u8_strset.c \
+	u32_ptrset.c uint-bset.c uint-spbset.c uint-table.c url.c \
+	urlapi.c version.c ws.c vauth/cleartext.c vauth/cram.c \
+	vauth/digest.c vauth/digest_sspi.c vauth/gsasl.c \
+	vauth/krb5_gssapi.c vauth/krb5_sspi.c vauth/ntlm.c \
+	vauth/ntlm_sspi.c vauth/oauth2.c vauth/spnego_gssapi.c \
+	vauth/spnego_sspi.c vauth/vauth.c vdns/asyn-ares.c \
+	vdns/asyn-base.c vdns/asyn-thrdd.c vdns/cf-dns.c \
+	vdns/dnscache.c vdns/doh.c vdns/hostip.c vdns/hostip4.c \
+	vdns/hostip6.c vdns/httpsrr.c vtls/apple.c vtls/cipher_suite.c \
+	vtls/gtls.c vtls/hostcheck.c vtls/keylog.c vtls/mbedtls.c \
+	vtls/openssl.c vtls/rustls.c vtls/schannel.c \
+	vtls/schannel_verify.c vtls/vtls.c vtls/vtls_config.c \
+	vtls/vtls_scache.c vtls/vtls_spack.c vtls/wolfssl.c \
+	vtls/x509asn1.c vquic/capsule.c vquic/cf-capsule.c \
+	vquic/cf-ngtcp2.c vquic/cf-ngtcp2-cmn.c \
 	vquic/cf-ngtcp2-proxy.c vquic/cf-quiche.c vquic/vquic.c \
 	vquic/vquic-tls.c vssh/libssh.c vssh/libssh2.c vssh/vssh.c \
 	curlx/base64.c curlx/basename.c curlx/dynbuf.c \
@@ -278,27 +279,28 @@ am__libcurl_la_SOURCES_DIST = altsvc.c amigaos.c api.c bufq.c bufref.c \
 	http_digest.h http_negotiate.h http_ntlm.h http_proxy.h idn.h \
 	if2ip.h imap.h llist.h macos.h mime.h mqtt.h multihandle.h \
 	multi_ev.h multi_ntfy.h multiif.h netrc.h parsedate.h peer.h \
-	pingpong.h pop3.h progress.h protocol.h proxy.h psl.h rand.h \
-	ratelimit.h request.h rtsp.h select.h sendf.h setopt.h \
-	setup-os400.h setup-vms.h setup-win32.h sigpipe.h slist.h \
-	smtp.h sockaddr.h socketpair.h socks.h splay.h strcase.h \
-	strerror.h telnet.h tftp.h thrdpool.h thrdqueue.h transfer.h \
-	u8_strset.h u32_ptrset.h uint-bset.h uint-spbset.h \
-	uint-table.h url.h urlapi-int.h urldata.h ws.h vauth/digest.h \
-	vauth/vauth.h vdns/asyn.h vdns/cf-dns.h vdns/dnscache.h \
-	vdns/doh.h vdns/hostip.h vdns/httpsrr.h vtls/apple.h \
-	vtls/cipher_suite.h vtls/gtls.h vtls/hostcheck.h vtls/keylog.h \
-	vtls/mbedtls.h vtls/openssl.h vtls/rustls.h vtls/schannel.h \
-	vtls/schannel_int.h vtls/vtls.h vtls/vtls_config.h \
-	vtls/vtls_int.h vtls/vtls_scache.h vtls/vtls_spack.h \
-	vtls/wolfssl.h vtls/x509asn1.h vquic/capsule.h \
-	vquic/cf-capsule.h vquic/cf-ngtcp2.h vquic/cf-ngtcp2-cmn.h \
-	vquic/cf-ngtcp2-proxy.h vquic/cf-quiche.h vquic/vquic.h \
-	vquic/vquic_int.h vquic/vquic-tls.h vssh/vssh.h vssh/ssh.h \
-	curlx/base64.h curlx/basename.h curlx/dynbuf.h \
-	curlx/win32-fopen.h curlx/inet_ntop.h curlx/inet_pton.h \
-	curlx/multibyte.h curlx/nonblock.h curlx/snprintf.h \
-	curlx/strcopy.h curlx/strdup.h curlx/strerr.h curlx/strparse.h \
+	pingpong.h pop3.h progress.h protocol.h proxy.h psl.h \
+	ptrarray.h rand.h ratelimit.h request.h rtsp.h select.h \
+	sendf.h setopt.h setup-os400.h setup-vms.h setup-win32.h \
+	sigpipe.h slist.h smtp.h sockaddr.h socketpair.h socks.h \
+	splay.h strcase.h strerror.h telnet.h tftp.h thrdpool.h \
+	thrdqueue.h transfer.h u8_strset.h u32_ptrset.h uint-bset.h \
+	uint-spbset.h uint-table.h url.h urlapi-int.h urldata.h ws.h \
+	vauth/digest.h vauth/vauth.h vdns/asyn.h vdns/cf-dns.h \
+	vdns/dnscache.h vdns/doh.h vdns/hostip.h vdns/httpsrr.h \
+	vtls/apple.h vtls/cipher_suite.h vtls/gtls.h vtls/hostcheck.h \
+	vtls/keylog.h vtls/mbedtls.h vtls/openssl.h vtls/rustls.h \
+	vtls/schannel.h vtls/schannel_int.h vtls/vtls.h \
+	vtls/vtls_config.h vtls/vtls_int.h vtls/vtls_scache.h \
+	vtls/vtls_spack.h vtls/wolfssl.h vtls/x509asn1.h \
+	vquic/capsule.h vquic/cf-capsule.h vquic/cf-ngtcp2.h \
+	vquic/cf-ngtcp2-cmn.h vquic/cf-ngtcp2-proxy.h \
+	vquic/cf-quiche.h vquic/vquic.h vquic/vquic_int.h \
+	vquic/vquic-tls.h vssh/vssh.h vssh/ssh.h curlx/base64.h \
+	curlx/basename.h curlx/dynbuf.h curlx/win32-fopen.h \
+	curlx/inet_ntop.h curlx/inet_pton.h curlx/multibyte.h \
+	curlx/nonblock.h curlx/snprintf.h curlx/strcopy.h \
+	curlx/strdup.h curlx/strerr.h curlx/strparse.h \
 	curlx/timediff.h curlx/timeval.h curlx/version_win32.h \
 	curlx/wait.h curlx/warnless.h curlx/winapi.h libcurl.rc
 am__objects_1 = libcurl_la-altsvc.lo libcurl_la-amigaos.lo \
@@ -341,21 +343,21 @@ am__objects_1 = libcurl_la-altsvc.lo libcurl_la-amigaos.lo \
 	libcurl_la-openldap.lo libcurl_la-parsedate.lo \
 	libcurl_la-peer.lo libcurl_la-pingpong.lo libcurl_la-pop3.lo \
 	libcurl_la-progress.lo libcurl_la-protocol.lo \
-	libcurl_la-proxy.lo libcurl_la-psl.lo libcurl_la-rand.lo \
-	libcurl_la-ratelimit.lo libcurl_la-request.lo \
-	libcurl_la-rtsp.lo libcurl_la-select.lo libcurl_la-sendf.lo \
-	libcurl_la-setopt.lo libcurl_la-sha256.lo libcurl_la-slist.lo \
-	libcurl_la-smtp.lo libcurl_la-socketpair.lo \
-	libcurl_la-socks.lo libcurl_la-socks_gssapi.lo \
-	libcurl_la-socks_sspi.lo libcurl_la-splay.lo \
-	libcurl_la-strcase.lo libcurl_la-strequal.lo \
-	libcurl_la-strerror.lo libcurl_la-telnet.lo libcurl_la-tftp.lo \
-	libcurl_la-thrdpool.lo libcurl_la-thrdqueue.lo \
-	libcurl_la-transfer.lo libcurl_la-u8_strset.lo \
-	libcurl_la-u32_ptrset.lo libcurl_la-uint-bset.lo \
-	libcurl_la-uint-spbset.lo libcurl_la-uint-table.lo \
-	libcurl_la-url.lo libcurl_la-urlapi.lo libcurl_la-version.lo \
-	libcurl_la-ws.lo
+	libcurl_la-proxy.lo libcurl_la-psl.lo libcurl_la-ptrarray.lo \
+	libcurl_la-rand.lo libcurl_la-ratelimit.lo \
+	libcurl_la-request.lo libcurl_la-rtsp.lo libcurl_la-select.lo \
+	libcurl_la-sendf.lo libcurl_la-setopt.lo libcurl_la-sha256.lo \
+	libcurl_la-slist.lo libcurl_la-smtp.lo \
+	libcurl_la-socketpair.lo libcurl_la-socks.lo \
+	libcurl_la-socks_gssapi.lo libcurl_la-socks_sspi.lo \
+	libcurl_la-splay.lo libcurl_la-strcase.lo \
+	libcurl_la-strequal.lo libcurl_la-strerror.lo \
+	libcurl_la-telnet.lo libcurl_la-tftp.lo libcurl_la-thrdpool.lo \
+	libcurl_la-thrdqueue.lo libcurl_la-transfer.lo \
+	libcurl_la-u8_strset.lo libcurl_la-u32_ptrset.lo \
+	libcurl_la-uint-bset.lo libcurl_la-uint-spbset.lo \
+	libcurl_la-uint-table.lo libcurl_la-url.lo \
+	libcurl_la-urlapi.lo libcurl_la-version.lo libcurl_la-ws.lo
 am__dirstamp = $(am__leading_dot)dirstamp
 am__objects_2 = vauth/libcurl_la-cleartext.lo vauth/libcurl_la-cram.lo \
 	vauth/libcurl_la-digest.lo vauth/libcurl_la-digest_sspi.lo \
@@ -440,11 +442,11 @@ am__libcurlu_la_SOURCES_DIST = altsvc.c amigaos.c api.c bufq.c \
 	ldap.c llist.c macos.c md4.c md5.c memdebug.c mime.c mprintf.c \
 	mqtt.c multi.c multi_ev.c multi_ntfy.c netrc.c openldap.c \
 	parsedate.c peer.c pingpong.c pop3.c progress.c protocol.c \
-	proxy.c psl.c rand.c ratelimit.c request.c rtsp.c select.c \
-	sendf.c setopt.c sha256.c slist.c smtp.c socketpair.c socks.c \
-	socks_gssapi.c socks_sspi.c splay.c strcase.c strequal.c \
-	strerror.c telnet.c tftp.c thrdpool.c thrdqueue.c transfer.c \
-	u8_strset.c u32_ptrset.c uint-bset.c uint-spbset.c \
+	proxy.c psl.c ptrarray.c rand.c ratelimit.c request.c rtsp.c \
+	select.c sendf.c setopt.c sha256.c slist.c smtp.c socketpair.c \
+	socks.c socks_gssapi.c socks_sspi.c splay.c strcase.c \
+	strequal.c strerror.c telnet.c tftp.c thrdpool.c thrdqueue.c \
+	transfer.c u8_strset.c u32_ptrset.c uint-bset.c uint-spbset.c \
 	uint-table.c url.c urlapi.c version.c ws.c vauth/cleartext.c \
 	vauth/cram.c vauth/digest.c vauth/digest_sspi.c vauth/gsasl.c \
 	vauth/krb5_gssapi.c vauth/krb5_sspi.c vauth/ntlm.c \
@@ -485,27 +487,28 @@ am__libcurlu_la_SOURCES_DIST = altsvc.c amigaos.c api.c bufq.c \
 	http_digest.h http_negotiate.h http_ntlm.h http_proxy.h idn.h \
 	if2ip.h imap.h llist.h macos.h mime.h mqtt.h multihandle.h \
 	multi_ev.h multi_ntfy.h multiif.h netrc.h parsedate.h peer.h \
-	pingpong.h pop3.h progress.h protocol.h proxy.h psl.h rand.h \
-	ratelimit.h request.h rtsp.h select.h sendf.h setopt.h \
-	setup-os400.h setup-vms.h setup-win32.h sigpipe.h slist.h \
-	smtp.h sockaddr.h socketpair.h socks.h splay.h strcase.h \
-	strerror.h telnet.h tftp.h thrdpool.h thrdqueue.h transfer.h \
-	u8_strset.h u32_ptrset.h uint-bset.h uint-spbset.h \
-	uint-table.h url.h urlapi-int.h urldata.h ws.h vauth/digest.h \
-	vauth/vauth.h vdns/asyn.h vdns/cf-dns.h vdns/dnscache.h \
-	vdns/doh.h vdns/hostip.h vdns/httpsrr.h vtls/apple.h \
-	vtls/cipher_suite.h vtls/gtls.h vtls/hostcheck.h vtls/keylog.h \
-	vtls/mbedtls.h vtls/openssl.h vtls/rustls.h vtls/schannel.h \
-	vtls/schannel_int.h vtls/vtls.h vtls/vtls_config.h \
-	vtls/vtls_int.h vtls/vtls_scache.h vtls/vtls_spack.h \
-	vtls/wolfssl.h vtls/x509asn1.h vquic/capsule.h \
-	vquic/cf-capsule.h vquic/cf-ngtcp2.h vquic/cf-ngtcp2-cmn.h \
-	vquic/cf-ngtcp2-proxy.h vquic/cf-quiche.h vquic/vquic.h \
-	vquic/vquic_int.h vquic/vquic-tls.h vssh/vssh.h vssh/ssh.h \
-	curlx/base64.h curlx/basename.h curlx/dynbuf.h \
-	curlx/win32-fopen.h curlx/inet_ntop.h curlx/inet_pton.h \
-	curlx/multibyte.h curlx/nonblock.h curlx/snprintf.h \
-	curlx/strcopy.h curlx/strdup.h curlx/strerr.h curlx/strparse.h \
+	pingpong.h pop3.h progress.h protocol.h proxy.h psl.h \
+	ptrarray.h rand.h ratelimit.h request.h rtsp.h select.h \
+	sendf.h setopt.h setup-os400.h setup-vms.h setup-win32.h \
+	sigpipe.h slist.h smtp.h sockaddr.h socketpair.h socks.h \
+	splay.h strcase.h strerror.h telnet.h tftp.h thrdpool.h \
+	thrdqueue.h transfer.h u8_strset.h u32_ptrset.h uint-bset.h \
+	uint-spbset.h uint-table.h url.h urlapi-int.h urldata.h ws.h \
+	vauth/digest.h vauth/vauth.h vdns/asyn.h vdns/cf-dns.h \
+	vdns/dnscache.h vdns/doh.h vdns/hostip.h vdns/httpsrr.h \
+	vtls/apple.h vtls/cipher_suite.h vtls/gtls.h vtls/hostcheck.h \
+	vtls/keylog.h vtls/mbedtls.h vtls/openssl.h vtls/rustls.h \
+	vtls/schannel.h vtls/schannel_int.h vtls/vtls.h \
+	vtls/vtls_config.h vtls/vtls_int.h vtls/vtls_scache.h \
+	vtls/vtls_spack.h vtls/wolfssl.h vtls/x509asn1.h \
+	vquic/capsule.h vquic/cf-capsule.h vquic/cf-ngtcp2.h \
+	vquic/cf-ngtcp2-cmn.h vquic/cf-ngtcp2-proxy.h \
+	vquic/cf-quiche.h vquic/vquic.h vquic/vquic_int.h \
+	vquic/vquic-tls.h vssh/vssh.h vssh/ssh.h curlx/base64.h \
+	curlx/basename.h curlx/dynbuf.h curlx/win32-fopen.h \
+	curlx/inet_ntop.h curlx/inet_pton.h curlx/multibyte.h \
+	curlx/nonblock.h curlx/snprintf.h curlx/strcopy.h \
+	curlx/strdup.h curlx/strerr.h curlx/strparse.h \
 	curlx/timediff.h curlx/timeval.h curlx/version_win32.h \
 	curlx/wait.h curlx/warnless.h curlx/winapi.h
 am__objects_14 = libcurlu_la-altsvc.lo libcurlu_la-amigaos.lo \
@@ -551,7 +554,7 @@ am__objects_14 = libcurlu_la-altsvc.lo libcurlu_la-amigaos.lo \
 	libcurlu_la-peer.lo libcurlu_la-pingpong.lo \
 	libcurlu_la-pop3.lo libcurlu_la-progress.lo \
 	libcurlu_la-protocol.lo libcurlu_la-proxy.lo \
-	libcurlu_la-psl.lo libcurlu_la-rand.lo \
+	libcurlu_la-psl.lo libcurlu_la-ptrarray.lo libcurlu_la-rand.lo \
 	libcurlu_la-ratelimit.lo libcurlu_la-request.lo \
 	libcurlu_la-rtsp.lo libcurlu_la-select.lo libcurlu_la-sendf.lo \
 	libcurlu_la-setopt.lo libcurlu_la-sha256.lo \
@@ -730,7 +733,9 @@ am__depfiles_remade = ./$(DEPDIR)/libcurl_la-altsvc.Plo \
 	./$(DEPDIR)/libcurl_la-progress.Plo \
 	./$(DEPDIR)/libcurl_la-protocol.Plo \
 	./$(DEPDIR)/libcurl_la-proxy.Plo \
-	./$(DEPDIR)/libcurl_la-psl.Plo ./$(DEPDIR)/libcurl_la-rand.Plo \
+	./$(DEPDIR)/libcurl_la-psl.Plo \
+	./$(DEPDIR)/libcurl_la-ptrarray.Plo \
+	./$(DEPDIR)/libcurl_la-rand.Plo \
 	./$(DEPDIR)/libcurl_la-ratelimit.Plo \
 	./$(DEPDIR)/libcurl_la-request.Plo \
 	./$(DEPDIR)/libcurl_la-rtsp.Plo \
@@ -857,6 +862,7 @@ am__depfiles_remade = ./$(DEPDIR)/libcurl_la-altsvc.Plo \
 	./$(DEPDIR)/libcurlu_la-protocol.Plo \
 	./$(DEPDIR)/libcurlu_la-proxy.Plo \
 	./$(DEPDIR)/libcurlu_la-psl.Plo \
+	./$(DEPDIR)/libcurlu_la-ptrarray.Plo \
 	./$(DEPDIR)/libcurlu_la-rand.Plo \
 	./$(DEPDIR)/libcurlu_la-ratelimit.Plo \
 	./$(DEPDIR)/libcurlu_la-request.Plo \
@@ -1517,6 +1523,7 @@ LIB_CFILES = \
   protocol.c         \
   proxy.c            \
   psl.c              \
+  ptrarray.c         \
   rand.c             \
   ratelimit.c        \
   request.c          \
@@ -1648,6 +1655,7 @@ LIB_HFILES = \
   protocol.h         \
   proxy.h            \
   psl.h              \
+  ptrarray.h         \
   rand.h             \
   ratelimit.h        \
   request.h          \
@@ -2291,6 +2299,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcurl_la-protocol.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcurl_la-proxy.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcurl_la-psl.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcurl_la-ptrarray.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcurl_la-rand.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcurl_la-ratelimit.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcurl_la-request.Plo@am__quote@ # am--include-marker
@@ -2418,6 +2427,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcurlu_la-protocol.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcurlu_la-proxy.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcurlu_la-psl.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcurlu_la-ptrarray.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcurlu_la-rand.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcurlu_la-ratelimit.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcurlu_la-request.Plo@am__quote@ # am--include-marker
@@ -3269,6 +3279,13 @@ libcurl_la-psl.lo: psl.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='psl.c' object='libcurl_la-psl.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libcurl_la_CPPFLAGS) $(CPPFLAGS) $(libcurl_la_CFLAGS) $(CFLAGS) -c -o libcurl_la-psl.lo `test -f 'psl.c' || echo '$(srcdir)/'`psl.c
+
+libcurl_la-ptrarray.lo: ptrarray.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libcurl_la_CPPFLAGS) $(CPPFLAGS) $(libcurl_la_CFLAGS) $(CFLAGS) -MT libcurl_la-ptrarray.lo -MD -MP -MF $(DEPDIR)/libcurl_la-ptrarray.Tpo -c -o libcurl_la-ptrarray.lo `test -f 'ptrarray.c' || echo '$(srcdir)/'`ptrarray.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libcurl_la-ptrarray.Tpo $(DEPDIR)/libcurl_la-ptrarray.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='ptrarray.c' object='libcurl_la-ptrarray.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libcurl_la_CPPFLAGS) $(CPPFLAGS) $(libcurl_la_CFLAGS) $(CFLAGS) -c -o libcurl_la-ptrarray.lo `test -f 'ptrarray.c' || echo '$(srcdir)/'`ptrarray.c
 
 libcurl_la-rand.lo: rand.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libcurl_la_CPPFLAGS) $(CPPFLAGS) $(libcurl_la_CFLAGS) $(CFLAGS) -MT libcurl_la-rand.lo -MD -MP -MF $(DEPDIR)/libcurl_la-rand.Tpo -c -o libcurl_la-rand.lo `test -f 'rand.c' || echo '$(srcdir)/'`rand.c
@@ -4642,6 +4659,13 @@ libcurlu_la-psl.lo: psl.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libcurlu_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libcurlu_la-psl.lo `test -f 'psl.c' || echo '$(srcdir)/'`psl.c
 
+libcurlu_la-ptrarray.lo: ptrarray.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libcurlu_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libcurlu_la-ptrarray.lo -MD -MP -MF $(DEPDIR)/libcurlu_la-ptrarray.Tpo -c -o libcurlu_la-ptrarray.lo `test -f 'ptrarray.c' || echo '$(srcdir)/'`ptrarray.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libcurlu_la-ptrarray.Tpo $(DEPDIR)/libcurlu_la-ptrarray.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='ptrarray.c' object='libcurlu_la-ptrarray.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libcurlu_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libcurlu_la-ptrarray.lo `test -f 'ptrarray.c' || echo '$(srcdir)/'`ptrarray.c
+
 libcurlu_la-rand.lo: rand.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libcurlu_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libcurlu_la-rand.lo -MD -MP -MF $(DEPDIR)/libcurlu_la-rand.Tpo -c -o libcurlu_la-rand.lo `test -f 'rand.c' || echo '$(srcdir)/'`rand.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libcurlu_la-rand.Tpo $(DEPDIR)/libcurlu_la-rand.Plo
@@ -5610,6 +5634,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/libcurl_la-protocol.Plo
 	-rm -f ./$(DEPDIR)/libcurl_la-proxy.Plo
 	-rm -f ./$(DEPDIR)/libcurl_la-psl.Plo
+	-rm -f ./$(DEPDIR)/libcurl_la-ptrarray.Plo
 	-rm -f ./$(DEPDIR)/libcurl_la-rand.Plo
 	-rm -f ./$(DEPDIR)/libcurl_la-ratelimit.Plo
 	-rm -f ./$(DEPDIR)/libcurl_la-request.Plo
@@ -5737,6 +5762,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/libcurlu_la-protocol.Plo
 	-rm -f ./$(DEPDIR)/libcurlu_la-proxy.Plo
 	-rm -f ./$(DEPDIR)/libcurlu_la-psl.Plo
+	-rm -f ./$(DEPDIR)/libcurlu_la-ptrarray.Plo
 	-rm -f ./$(DEPDIR)/libcurlu_la-rand.Plo
 	-rm -f ./$(DEPDIR)/libcurlu_la-ratelimit.Plo
 	-rm -f ./$(DEPDIR)/libcurlu_la-request.Plo
@@ -6047,6 +6073,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/libcurl_la-protocol.Plo
 	-rm -f ./$(DEPDIR)/libcurl_la-proxy.Plo
 	-rm -f ./$(DEPDIR)/libcurl_la-psl.Plo
+	-rm -f ./$(DEPDIR)/libcurl_la-ptrarray.Plo
 	-rm -f ./$(DEPDIR)/libcurl_la-rand.Plo
 	-rm -f ./$(DEPDIR)/libcurl_la-ratelimit.Plo
 	-rm -f ./$(DEPDIR)/libcurl_la-request.Plo
@@ -6174,6 +6201,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/libcurlu_la-protocol.Plo
 	-rm -f ./$(DEPDIR)/libcurlu_la-proxy.Plo
 	-rm -f ./$(DEPDIR)/libcurlu_la-psl.Plo
+	-rm -f ./$(DEPDIR)/libcurlu_la-ptrarray.Plo
 	-rm -f ./$(DEPDIR)/libcurlu_la-rand.Plo
 	-rm -f ./$(DEPDIR)/libcurlu_la-ratelimit.Plo
 	-rm -f ./$(DEPDIR)/libcurlu_la-request.Plo

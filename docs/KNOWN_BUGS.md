@@ -115,12 +115,6 @@ this library to download.
 
 See [curl issue 5176](https://github.com/curl/curl/issues/5176)
 
-## `curl-config --libs` contains private details
-
-`curl-config --libs` include details set in `LDFLAGS` when configure is run
-that might be needed only for building libcurl. Further, `curl-config
---cflags` suffers from the same effects with `CFLAGS`/`CPPFLAGS`.
-
 ## `LDFLAGS` passed too late making libs linked incorrectly
 
 Compiling latest curl on HP-UX and linking against a custom OpenSSL (which is
@@ -196,7 +190,15 @@ https://curl.se/mail/lib-2012-07/0073.html
 
 # Authentication
 
-## `--aws-sigv4` does not handle multipart/form-data correctly
+## `--aws-sigv4` signs an empty payload hash for bodies not held in memory
+
+`--aws-sigv4` hashes only the in-memory POST fields when it computes the payload hash, so a request
+whose body comes from anywhere else is signed as if it had no body at all: the signature is
+computed over `SHA256("")` while a different body goes on the wire. This affects `-F`
+(multipart/form-data) and `-T` (PUT upload) alike.
+
+`aws:amz:<region>:s3` is not affected, because it sends and signs `UNSIGNED-PAYLOAD` instead. Every
+other service gets the empty hash, with no `x-amz-content-sha256` header sent, and no warning.
 
 [curl issue 13351](https://github.com/curl/curl/issues/13351)
 
@@ -438,13 +440,6 @@ detect if a port is already in use, so it tries the first port, uses that and
 then subsequently fails anyway if that was actually in use.
 
 [curl issue 8112](https://github.com/curl/curl/issues/8112)
-
-## Stdin is not non-blocking on Windows
-
-The telnet handler reads data from stdin by default without needing to
-specify that on the command line, but since Windows is special, reading
-from stdin is not done in a non-blocking manner, meaning that curl might
-block waiting for input without triggering the timeout.
 
 # HTTP/2
 
